@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "competitor_discovery_signal",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "artifact_version",
+    "artifact_id",
+    "job_id",
+    "session_id",
+    "agent",
+    "query",
+    "company_name",
+    "product_name",
+    "category",
+    "website_url",
+    "app_store_urls",
+    "summary",
+    "evidence",
+    "verification_status",
+    "confidence_score",
+    "discovered_at",
+    "content_hash"
+  ],
+  "properties": {
+    "artifact_type": { "const": "competitor_discovery_signal" },
+    "artifact_version": { "type": "string" },
+    "artifact_id": { "type": "string" },
+    "job_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "agent": { "const": "hans" },
+    "query": { "type": "string" },
+    "company_name": { "type": "string" },
+    "product_name": { "type": "string" },
+    "category": { "type": "string" },
+    "website_url": { "type": "string" },
+    "app_store_urls": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "summary": { "type": "string" },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url", "kind"],
+        "properties": {
+          "url": { "type": "string" },
+          "kind": { "type": "string" },
+          "title": { "type": "string" },
+          "snippet": { "type": "string" }
+        }
+      }
+    },
+    "verification_status": { "type": "string" },
+    "confidence_score": { "type": "number" },
+    "discovered_at": { "type": "string" },
+    "content_hash": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "opportunity_id",
+    "title",
+    "summary",
+    "user_problem",
+    "solution",
+    "core_features",
+    "primary_user",
+    "priority",
+    "confidence"
+  ],
+  "properties": {
+    "opportunity_id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "user_problem": { "type": "string", "minLength": 1 },
+    "solution": { "type": "string", "minLength": 1 },
+    "core_features": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "primary_user": { "type": "string", "minLength": 1 },
+    "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "notes": { "type": "string" }
+  }
+}

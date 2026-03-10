@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+agent="${1:?agent required}"
+input="${2:?input json file required}"
+
+test -s "$input"
+
+resp="$("$HOME/ri_db/bin/oc_ws_invoke.mjs" "$agent" "$input" 2>/dev/null || true)"
+
+python3 - <<'PY' "$resp"
+import json, sys
+s = sys.argv[1] if len(sys.argv) > 1 else ""
+if not s.strip():
+  print("ERROR: empty response from gateway/agent", file=sys.stderr)
+  sys.exit(0)
+try:
+  json.loads(s)
+except Exception as e:
+  print("ERROR: non-JSON response from gateway/agent", file=sys.stderr)
+  print(str(e), file=sys.stderr)
+  print(s[:400], file=sys.stderr)
+  sys.exit(0)
+print(s)
+PY

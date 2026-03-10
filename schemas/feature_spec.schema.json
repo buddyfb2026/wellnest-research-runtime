@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "feature_spec",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "artifact_version",
+    "artifact_id",
+    "job_id",
+    "session_id",
+    "agent",
+    "source_artifact_id",
+    "feature_name",
+    "problem_statement",
+    "user_story",
+    "flows",
+    "system_behavior",
+    "edge_cases",
+    "acceptance_criteria",
+    "technical_notes",
+    "test_cases",
+    "generated_at",
+    "content_hash"
+  ],
+  "properties": {
+    "artifact_type": { "const": "feature_spec" },
+    "artifact_version": { "type": "string" },
+    "artifact_id": { "type": "string" },
+    "job_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "agent": { "const": "karen" },
+    "source_artifact_id": { "type": "string" },
+    "feature_name": { "type": "string" },
+    "problem_statement": { "type": "string" },
+    "user_story": { "type": "string" },
+    "flows": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "system_behavior": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "edge_cases": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "technical_notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "test_cases": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "generated_at": { "type": "string" },
+    "content_hash": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,33 @@
+{
+  "artifact_type": "creator_discovery_signal",
+  "artifact_version": "2.0",
+  "required_top_level_fields": [
+    "artifact_type",
+    "artifact_version",
+    "artifact_id",
+    "job_id",
+    "session_id",
+    "agent",
+    "query",
+    "platform",
+    "creators",
+    "confidence_score",
+    "discovered_at",
+    "validation_status"
+  ],
+  "creator_fields": [
+    "creator_handle",
+    "display_name",
+    "platform",
+    "cluster",
+    "profile_url",
+    "bio_summary",
+    "topic_tags",
+    "tools_or_products",
+    "evidence",
+    "confidence_score",
+    "engagement_score",
+    "discovered_from",
+    "discovery_method"
+  ]
+}

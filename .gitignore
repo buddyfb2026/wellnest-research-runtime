@@ -1,0 +1,5 @@
+out/
+work/
+logs/
+*.tar.gz
+.DS_Store

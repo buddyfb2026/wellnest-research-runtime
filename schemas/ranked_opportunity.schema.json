@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ranked_opportunity",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "artifact_version",
+    "artifact_id",
+    "job_id",
+    "session_id",
+    "agent",
+    "source_artifact_ids",
+    "title",
+    "problem",
+    "target_user",
+    "severity_score",
+    "frequency_score",
+    "strategic_fit_score",
+    "revenue_potential_score",
+    "overall_score",
+    "rationale",
+    "generated_at",
+    "content_hash"
+  ],
+  "properties": {
+    "artifact_type": { "const": "ranked_opportunity" },
+    "artifact_version": { "type": "string" },
+    "artifact_id": { "type": "string" },
+    "job_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "agent": { "const": "atlas" },
+    "source_artifact_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "title": { "type": "string" },
+    "problem": { "type": "string" },
+    "target_user": { "type": "string" },
+    "severity_score": { "type": "number" },
+    "frequency_score": { "type": "number" },
+    "strategic_fit_score": { "type": "number" },
+    "revenue_potential_score": { "type": "number" },
+    "overall_score": { "type": "number" },
+    "rationale": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "content_hash": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "topics": [
+    "morning_routines",
+    "evening_routines",
+    "meal_planning",
+    "shopping_and_product_discovery",
+    "calendar_management",
+    "school_logistics",
+    "household_resets",
+    "mental_load",
+    "kids_activities",
+    "chore_systems",
+    "home_organization",
+    "family_productivity",
+    "working_mom_balance",
+    "parenting_hacks",
+    "holiday_prep"
+  ],
+  "cluster_topic_map": {
+    "product_discovery_moms": [
+      "shopping_and_product_discovery",
+      "holiday_prep",
+      "home_organization"
+    ],
+    "household_systems_moms": [
+      "morning_routines",
+      "evening_routines",
+      "meal_planning",
+      "calendar_management",
+      "household_resets",
+      "family_productivity",
+      "home_organization"
+    ],
+    "kids_activity_creators": [
+      "kids_activities",
+      "school_logistics",
+      "parenting_hacks"
+    ],
+    "honest_motherhood_creators": [
+      "mental_load",
+      "working_mom_balance",
+      "family_productivity"
+    ],
+    "working_mom_career_balance": [
+      "working_mom_balance",
+      "calendar_management",
+      "mental_load",
+      "family_productivity"
+    ]
+  }
+}

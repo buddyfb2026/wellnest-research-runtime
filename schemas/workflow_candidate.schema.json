@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "workflow_candidate",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "artifact_version",
+    "artifact_id",
+    "job_id",
+    "session_id",
+    "agent",
+    "source_artifact_id",
+    "creator_name",
+    "workflow_title",
+    "trigger",
+    "steps",
+    "tools_or_products",
+    "pain_points",
+    "failure_points",
+    "evidence",
+    "confidence_score",
+    "generated_at",
+    "content_hash"
+  ],
+  "properties": {
+    "artifact_type": { "const": "workflow_candidate" },
+    "artifact_version": { "type": "string" },
+    "artifact_id": { "type": "string" },
+    "job_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "agent": { "const": "scout" },
+    "source_artifact_id": { "type": "string" },
+    "creator_name": { "type": "string" },
+    "workflow_title": { "type": "string" },
+    "trigger": { "type": "string" },
+    "steps": { "type": "array", "items": { "type": "string" } },
+    "tools_or_products": { "type": "array", "items": { "type": "string" } },
+    "pain_points": { "type": "array", "items": { "type": "string" } },
+    "failure_points": { "type": "array", "items": { "type": "string" } },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url", "kind"],
+        "properties": {
+          "url": { "type": "string" },
+          "kind": { "type": "string" },
+          "title": { "type": "string" },
+          "snippet": { "type": "string" }
+        }
+      }
+    },
+    "confidence_score": { "type": "number" },
+    "generated_at": { "type": "string" },
+    "content_hash": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,159 @@
+{
+  "version": "1.0",
+  "domain": "working_mom_household_systems",
+  "objective": "Discover creators, workflows, and signals related to working-mom household management systems, routines, productivity, product discovery, parenting logistics, and family operations.",
+  "clusters": [
+    {
+      "name": "product_discovery_moms",
+      "description": "Influencers who drive large product discovery and affiliate commerce for household and parenting products.",
+      "seed_accounts": [
+        "thebuyguide",
+        "mothercould",
+        "thingsiboughtandliked",
+        "pardonmuahinstigator",
+        "thesisterstudio"
+      ]
+    },
+    {
+      "name": "household_systems_moms",
+      "description": "Creators focused on routines, organization systems, home operations, and family productivity.",
+      "seed_accounts": [
+        "thelazygenius",
+        "beginathome",
+        "organizedish",
+        "simplyonpurpose",
+        "cleanmama"
+      ]
+    },
+    {
+      "name": "kids_activity_creators",
+      "description": "Influencers who create and share activities, learning routines, and engagement systems for children.",
+      "seed_accounts": [
+        "busytoddler",
+        "dayswithgrey",
+        "7daysofplay",
+        "raisinglittletalkers",
+        "playingpreschool"
+      ]
+    },
+    {
+      "name": "honest_motherhood_creators",
+      "description": "Creators discussing the mental load of motherhood, parenting struggles, and realistic family life.",
+      "seed_accounts": [
+        "diaryofanestmom",
+        "themomroom",
+        "mombraintherapist",
+        "nurturedfirst",
+        "motherhoodunderstood"
+      ]
+    },
+    {
+      "name": "working_mom_career_balance",
+      "description": "Creators focused on balancing career and motherhood, productivity, and professional life with children.",
+      "seed_accounts": [
+        "workingmomcollective",
+        "corporatenatalie",
+        "themamaattorney",
+        "momtransparent",
+        "momceosuite"
+      ]
+    }
+  ],
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "youtube"
+  ],
+  "discovery_queries": {
+    "instagram_search": [
+      "working mom routines",
+      "working mom life",
+      "mom hacks",
+      "mom organization",
+      "mom routine ideas",
+      "mom life systems",
+      "amazon mom finds",
+      "busy mom hacks",
+      "mom productivity",
+      "mom household management",
+      "mom routine morning",
+      "mom routine night",
+      "mom life tips",
+      "mom influencer recommendations"
+    ],
+    "instagram_hashtags": [
+      "#workingmomlife",
+      "#momlifehacks",
+      "#momroutine",
+      "#momorganization",
+      "#momproductivity",
+      "#amazonmomfinds",
+      "#momlifeunfiltered",
+      "#momlifecommunity",
+      "#momsofinstagram",
+      "#momsoftiktok"
+    ],
+    "tiktok_queries": [
+      "working mom routine",
+      "mom life hacks",
+      "mom amazon finds",
+      "busy mom tips",
+      "mom schedule routine",
+      "mom life organization",
+      "mom mental load",
+      "mom productivity hacks"
+    ],
+    "youtube_queries": [
+      "working mom daily routine",
+      "mom life systems",
+      "mom organization routine",
+      "working mom productivity",
+      "mom amazon finds",
+      "busy mom schedule"
+    ]
+  },
+  "signals_to_extract": [
+    "creator_account",
+    "platform",
+    "content_type",
+    "topic_cluster",
+    "workflow_patterns",
+    "tools_or_products_mentioned",
+    "engagement_signals",
+    "recurring_problems",
+    "routine_structures"
+  ],
+  "expansion_strategy": {
+    "creator_graph": {
+      "description": "Expand discovery by finding related creators through collaborations, mentions, comments, and recommended accounts.",
+      "max_depth": 2
+    },
+    "hashtag_expansion": {
+      "description": "Identify new high-signal hashtags and explore related creator clusters.",
+      "max_new_hashtags": 20
+    },
+    "viral_post_detection": {
+      "description": "Identify posts with unusually high engagement for their account size to detect emerging trends."
+    }
+  },
+  "ranking_signals": {
+    "engagement_rate_weight": 0.4,
+    "recurring_topic_frequency_weight": 0.3,
+    "cross_platform_presence_weight": 0.2,
+    "follower_growth_weight": 0.1
+  },
+  "output_schema": {
+    "artifact_type": "creator_discovery_signal",
+    "fields": [
+      "creator_handle",
+      "platform",
+      "cluster",
+      "content_summary",
+      "workflow_patterns",
+      "tools_or_products",
+      "engagement_metrics",
+      "evidence_urls",
+      "confidence_score"
+    ]
+  }
+}
