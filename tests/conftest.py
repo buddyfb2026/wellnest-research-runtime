@@ -59,6 +59,30 @@ def entry(url, fetch=True, source_type="publication", attribution="Fixture Publi
             "fetch": fetch, "usage_constraints": "test", "discovery_origin": "test"}
 
 
+STALE_ARTICLE = """<html><head><title>Holiday Sale Guide 2016</title>
+<meta property="article:published_time" content="2016-11-20T09:00:00Z"></head>
+<body><article>
+<p>Our holiday sale ends this Friday, so order the Cozy Fleece Blanket for $19.99 while it is in stock.</p>
+<p>Wrap gifts a week before the holiday to avoid the last-minute rush.</p>
+<p>Kitchen sponges should be replaced every week because they harbor bacteria.</p>
+</article></body></html>"""
+
+
+@pytest.fixture(autouse=True)
+def _no_network(request, monkeypatch):
+    """No test may reach the network or a model server, whatever path it takes.
+    Tests marked `local_http` run a loopback HTTP server and keep urllib live."""
+    import urllib.request
+    if request.node.get_closest_marker("local_http"):
+        return
+
+    def _refuse(*a, **k):
+        raise AssertionError("network access attempted during tests: %r" % (a[:1],))
+
+    monkeypatch.setattr(urllib.request, "urlopen", _refuse)
+    monkeypatch.setattr(urllib.request.OpenerDirector, "open", _refuse)
+
+
 @pytest.fixture
 def cfg(tmp_path):
     return Config(db_path=tmp_path / "db.sqlite", allowlist_path=tmp_path / "allowlist.json",

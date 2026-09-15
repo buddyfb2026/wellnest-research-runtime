@@ -23,6 +23,7 @@ PROPOSAL_SCHEMA_HINT = {
     "inferences": ["things you conclude that the text does not literally say"],
     "relevance_conditions": ["when this applies, e.g. 'household owns an air fryer'"],
     "lead_time_days": "integer or null; null unless the text supports a timing",
+    "lead_time_quote": "verbatim quote that states that exact timing (e.g. 'every two weeks'), or null",
     "expiry_quote": "verbatim quote that supports a time limit, or null",
     "product_mentions": ["product names exactly as written in the text, or empty list"],
 }

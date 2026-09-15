@@ -1,7 +1,7 @@
 """Manually invoked research worker (WEL-40). No scheduler, no daemon.
 
     python3 -m research.worker run   [--allowlist F] [--db F] [--report F] [--provider none|ollama|fixture]
-                                     [--max-urls N] [--max-inference N] [--no-robots]
+                                     [--max-urls N] [--max-inference N]
     python3 -m research.worker report [--db F] [--report F]
     python3 -m research.worker review CANDIDATE_ID approved|rejected|deferred|pending --by NAME --reason TEXT
 """
@@ -55,6 +55,8 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
         result["failures"].append("database unavailable: %s: %s" % (type(e).__name__, e))
         return result
 
+    if not check_robots and content_kind != "fixture":
+        raise ValueError("robots bypass is only allowed for fixture content, never for live collection")
     sources = load_allowlist(cfg.allowlist_path)
     fetcher = Fetcher(transport, cfg.user_agent, cfg.fetch_timeout_s, cfg.max_body_bytes, check_robots)
     model = model or ModelClient(cfg.provider, cfg.max_inference, cfg.ollama_model, cfg.ollama_url)
@@ -139,16 +141,20 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
     result["robots_requests"] = fetcher.robots_requests
     result["source_requests"] = fetcher.requests_made
     try:
-        summary = {k: v for k, v in result.items() if k != "failures"}
-        summary["failures"] = len(result["failures"])
-        conn.execute("UPDATE runs SET finished_at=?, status=?, summary=? WHERE run_id=?",
-                     (now_iso(), result["status"], json.dumps(summary), run_id))
         cfg.report_path.parent.mkdir(parents=True, exist_ok=True)
         cfg.report_path.write_text(rpt.render(conn))
         result["report_path"] = str(cfg.report_path)
     except Exception as e:
         result["status"] = "failed"
-        result["failures"].append("finalize: %s: %s" % (type(e).__name__, e))
+        result["failures"].append("report write to %s: %s: %s" % (cfg.report_path, type(e).__name__, e))
+    summary = {k: v for k, v in result.items() if k != "failures"}
+    summary["failures"] = list(result["failures"])
+    try:
+        conn.execute("UPDATE runs SET finished_at=?, status=?, summary=? WHERE run_id=?",
+                     (now_iso(), result["status"], json.dumps(summary), run_id))
+    except Exception as e:
+        result["status"] = "failed"
+        result["failures"].append("run status write: %s: %s" % (type(e).__name__, e))
     return result
 
 
@@ -159,7 +165,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     r.add_argument("--allowlist"); r.add_argument("--db"); r.add_argument("--report")
     r.add_argument("--provider", choices=["none", "ollama", "fixture"])
     r.add_argument("--max-urls", type=int); r.add_argument("--max-inference", type=int)
-    r.add_argument("--no-robots", action="store_true", help="tests/fixtures only")
     p = sub.add_parser("report"); p.add_argument("--db"); p.add_argument("--report")
     v = sub.add_parser("review"); v.add_argument("candidate_id", type=int)
     v.add_argument("state", choices=list(cands.VALID_HUMAN_STATES)); v.add_argument("--by", required=True)
@@ -173,7 +178,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if cfg.provider == "fixture":
             print("provider=fixture is only available programmatically (tests)", file=sys.stderr)
             return 2
-        res = run(cfg, check_robots=not a.no_robots)
+        res = run(cfg, transport=urllib_transport)
         print(json.dumps(res, indent=2))
         return 0 if res.ok else 1
     cfg = Config.from_env(db_path=Path(a.db) if a.db else None, report_path=Path(getattr(a, "report", None)) if getattr(a, "report", None) else None)

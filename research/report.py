@@ -57,8 +57,9 @@ def render(conn: sqlite3.Connection, run_id: Optional[str] = None) -> str:
         if unsupported:
             out += ["- **Dropped as unsupported**:"] + ["  - %s" % q for q in unsupported]
         out += ["- **Relevance conditions**: %s" % ("; ".join(_j(c["relevance_conditions"])) or "-"),
-                "- **Lead time / expiry**: %s / %s%s" % (
-                    c["lead_time_days"] if c["lead_time_days"] is not None else "unsupported",
+                "- **Lead time / expiry**: %s%s / %s%s" % (
+                    ("%d days" % c["lead_time_days"]) if c["lead_time_days"] is not None else "unsupported",
+                    (" (basis: \"%s\")" % c["lead_time_basis"]) if c["lead_time_basis"] else "",
                     c["expires_at"] or "none set",
                     (" (basis: \"%s\")" % c["expiry_basis"]) if c["expiry_basis"] else ""),
                 "- **Products named**: %s" % (", ".join("%s%s" % (p["name"], "" if p.get("grounded") else " [NOT IN TEXT]") for p in _j(c["product_mentions"])) or "none"),

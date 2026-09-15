@@ -30,8 +30,8 @@ def test_migrate_is_idempotent_and_state_survives_reopen(cfg, tmp_path):
     res, _ = _run(cfg, {U1: (200, U1, HTML, ARTICLE)})
     assert res.ok, res
     conn = dbm.connect(cfg.db_path)
-    assert dbm.migrate(conn) == 1
-    assert dbm.migrate(conn) == 1
+    assert dbm.migrate(conn) == 2
+    assert dbm.migrate(conn) == 2
     conn.close()
     conn = dbm.connect(cfg.db_path)  # simulated restart
     assert conn.execute("SELECT COUNT(*) FROM evidence").fetchone()[0] == 1
@@ -189,8 +189,16 @@ def test_save_failure_does_not_report_success(cfg, tmp_path):
     assert conn.execute("SELECT COUNT(*) FROM evidence").fetchone()[0] == 0
     assert conn.execute("SELECT COUNT(*) FROM candidates").fetchone()[0] == 0
     assert conn.execute("SELECT status FROM runs").fetchone()[0] == "failed"
-    assert worker.main(["run", "--db", str(cfg.db_path), "--allowlist", str(cfg.allowlist_path),
-                        "--report", str(cfg.report_path), "--provider", "none"]) == 0  # sanity: CLI path works
+
+
+def test_cli_run_uses_injected_transport_only(cfg, tmp_path, monkeypatch, capsys):
+    write_allowlist(tmp_path, [entry(U1)])
+    t = make_transport({U1: (200, U1, HTML, ARTICLE)})
+    monkeypatch.setattr(worker, "urllib_transport", t)
+    rc = worker.main(["run", "--db", str(cfg.db_path), "--allowlist", str(cfg.allowlist_path),
+                      "--report", str(cfg.report_path), "--provider", "none"])
+    assert rc == 0 and t.calls == ["https://fixture.example/robots.txt", U1]
+    assert json.loads(capsys.readouterr().out)["status"] == "ok"
 
 
 def test_database_unavailable_is_a_failure(cfg, tmp_path):

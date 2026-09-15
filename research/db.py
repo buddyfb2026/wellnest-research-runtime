@@ -114,6 +114,12 @@ MIGRATIONS = [
         );
         """,
     ),
+    (
+        2,
+        """
+        ALTER TABLE candidates ADD COLUMN lead_time_basis TEXT;  -- grounded quote that states lead_time_days
+        """,
+    ),
 ]
 
 
@@ -137,9 +143,13 @@ def migrate(conn: sqlite3.Connection) -> int:
     for version, sql in MIGRATIONS:
         if version <= current:
             continue
-        # executescript autocommits statement by statement; every statement is
-        # CREATE IF NOT EXISTS, so a partial apply is safe to re-run.
-        conn.executescript(sql)
+        # executescript autocommits statement by statement; v1 statements are CREATE IF NOT
+        # EXISTS and later ones are single additive ALTERs, so a partial apply is safe to re-run.
+        try:
+            conn.executescript(sql)
+        except sqlite3.OperationalError as e:
+            if "duplicate column" not in str(e):
+                raise
         conn.execute(
             "INSERT INTO schema_version(version, applied_at) VALUES (?, strftime('%Y-%m-%dT%H:%M:%SZ','now'))",
             (version,),

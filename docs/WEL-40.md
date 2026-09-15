@@ -13,7 +13,7 @@ optionally a local Ollama server for inference.
 
 ```bash
 # from the repository root
-python3 -m pytest tests -q                              # focused fixtures, no network
+python3 -m pytest tests -q                              # fixtures only; network is refused (one loopback-server test)
 python3 -m research.worker run --provider none          # retrieval + storage only; candidates deferred
 python3 -m research.worker run --provider ollama        # local inference (default model qwen2.5:14b)
 python3 -m research.worker report                       # re-render work/report.md from the database
@@ -28,7 +28,7 @@ Defaults: database `work/research.sqlite`, allowlist `sources/allowlist.json`, r
 Hard caps: at most 10 source URLs and 10 inference calls per run (`--max-urls`, `--max-inference`
 can lower them, never raise them). One model call per evidence row, no automatic retries.
 
-## What is stored (`research/db.py`, schema version 1)
+## What is stored (`research/db.py`, schema version 2)
 
 | table | meaning |
 |---|---|
@@ -37,13 +37,17 @@ can lower them, never raise them). One model call per evidence row, no automatic
 | `evidence` | append-only retrieved content: `content_kind` (`live` or `fixture`), sha-256 `content_hash`, `version_no` + `supersedes_id`, `fetched_at`, `published_at` + `published_at_basis` (or `unknown`), `modified_at`, excerpt, `injection_flags`. |
 | `evidence_text` | full extracted text per evidence row (for grounding checks). |
 | `inference_calls` | provider, model, prompt hash, ok/error — the audit trail for the call budget. |
-| `candidates` | household problem, proposed prepared action, **observations** (verbatim quotes proven present in the evidence text), **inferences**, dropped unsupported claims, relevance conditions, lead time / expiry (+ basis), product mentions with a grounded flag, source attribution, `proposed_destination` (always NULL here), `stock_price_claims` (`not_verified`), `state` pending/approved/rejected/deferred, `state_reason`, `state_set_by`, `publishable` (never set by the worker). |
+| `candidates` | household problem, proposed prepared action, **observations** (verbatim quotes proven present in the evidence text), **inferences**, dropped unsupported claims, relevance conditions, lead time (+ `lead_time_basis` quote) / expiry (+ basis), product mentions with a grounded flag, source attribution, `proposed_destination` (always NULL here), `stock_price_claims` (`not_verified`), `state` pending/approved/rejected/deferred, `state_reason`, `state_set_by`, `publishable` (never set by the worker). |
 | `runs` | run status; a run with any failed write is `failed`. |
 
 ## Rules enforced in code
 
-* Only allowlisted URLs with `fetch: true` are requested; robots.txt is checked per origin and a
-  disallow blocks the fetch. URLs found inside retrieved content are never followed.
+* Only allowlisted URLs with `fetch: true` are requested. The transport never follows redirects;
+  the fetcher checks every hop before requesting it: same origin as the allowlisted URL, not a
+  loopback/private host, not a login path, and allowed by that origin's robots.txt. A robots.txt
+  that is unavailable (5xx, timeout) blocks the fetch; an absent one (404) is unrestricted. At
+  most 3 hops. URLs found inside retrieved content are never followed. There is no CLI robots
+  bypass; the programmatic one is refused for live content.
 * Login walls, 401/403, redirects to login, paywall shells and 404s are recorded as honest
   failures with a reason. Nothing is fabricated for them.
 * Identical content for a URL is not re-inserted (hash match). Changed content becomes version
@@ -56,9 +60,18 @@ can lower them, never raise them). One model call per evidence row, no automatic
   tools. Instruction-like text is flagged on the evidence row and any derived candidate is
   deferred for human review. The worker's own behaviour (what it fetches, what it calls) does
   not change.
-* Every observation quote is re-checked as a verbatim substring of the evidence text; others are
-  demoted to `unsupported_claims`. No grounded observation → `rejected`. Product names not in
-  the text → `deferred: unsupported_product_identity`. Model confidence/approval fields are ignored.
+* The whole proposal is validated into a small typed representation before anything is saved.
+  Wrong field types → `rejected`. Every observation quote is re-checked as a verbatim substring of
+  the evidence text; others are demoted to `unsupported_claims`. No grounded observation →
+  `rejected`. Price, stock, discount or purchase language in any prose field, or a brand/model-like
+  identity not present in the text (in any field, not only `product_mentions`) → `deferred` with
+  the reason. Model confidence/approval fields are ignored.
+* `lead_time_days` is kept only when a grounded `lead_time_quote` literally states that value
+  (e.g. "every two weeks" → 14); otherwise it is unknown and the dropped value is listed under
+  `unsupported_claims`. Negative, non-finite, boolean or string values are dropped the same way.
+* Run status is persisted only after the report is written. A report-write failure returns
+  `failed`, persists `failed` with the reason on the `runs` row, and keeps the evidence and
+  candidates that were already committed. Re-rendering with `report` never changes run history.
 * `approved` is only set through `review` with a named reviewer and reason. Approval does not
   set `publishable`; publishability is a separate later decision.
 * Creator attribution is stored with the candidate; no shopping destination is proposed, no

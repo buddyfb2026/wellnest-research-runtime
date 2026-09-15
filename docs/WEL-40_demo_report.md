@@ -4,53 +4,52 @@
 
 | run | started | status | summary |
 |---|---|---|---|
-| run_20260915T141515Z_709243 | 2026-09-15T14:15:15Z | ok | {"run_id": "run_20260915T141515Z_709243", "status": "ok", "fetched_ok": 6, "blocked": 0, "errors": 1, "skipped_policy": 2, "evidence_new": 0, "evidence_existing": 6, "candidates_new": 0, "candidates_existing": 6, "inference_calls": 0, "robots_requests": 4, "source_requests": 7, "failures": 0} |
-| run_20260915T141431Z_aea966 | 2026-09-15T14:14:31Z | ok | {"run_id": "run_20260915T141431Z_aea966", "status": "ok", "fetched_ok": 6, "blocked": 0, "errors": 1, "skipped_policy": 2, "evidence_new": 6, "evidence_existing": 0, "candidates_new": 6, "candidates_existing": 0, "inference_calls": 6, "robots_requests": 4, "source_requests": 7, "failures": 0} |
+| run_20260915T144419Z_22d046 | 2026-09-15T14:44:19Z | running |  |
+| run_20260915T144339Z_e0a2fd | 2026-09-15T14:43:39Z | ok | {"run_id": "run_20260915T144339Z_e0a2fd", "status": "ok", "fetched_ok": 6, "blocked": 0, "errors": 1, "skipped_policy": 2, "evidence_new": 6, "evidence_existing": 0, "candidates_new": 6, "candidates_existing": 0, "inference_calls": 6, "robots_requests": 4, "source_requests": 7, "report_path": "/Users/buddystudio1/Projects/wellnest-research-runtime-wel-40/work/report.md", "failures": []} |
 
 ## Sources (hints are not evidence)
 
 | url | type | access basis | fetch? | last attempt | outcome | reason |
 |---|---|---|---|---|---|---|
-| https://thebuyguide.com/hers/smart-as-a-mother/ | creator_site | public_web_robots_checked | yes | 2026-09-15T14:15:16Z | ok | content unchanged (hash match) |
-| https://thebuyguide.com/home/teen-girl-room-with-havenly/ | creator_site | public_web_robots_checked | yes | 2026-09-15T14:15:16Z | ok | content unchanged (hash match) |
-| https://www.instagram.com/thebuyguide/ | creator_social | none: login-gated platform; no permitted content access established | no | 2026-09-15T14:15:17Z | skipped_policy | no permitted access basis: none: login-gated platform; no permitted content access established |
-| https://www.cdc.gov/food-safety/prevention/index.html | government | public_domain_us_government; robots checked | yes | 2026-09-15T14:15:17Z | ok | content unchanged (hash match) |
-| https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/ | publication | public_web_robots_checked | yes | 2026-09-15T14:15:15Z | ok | content unchanged (hash match) |
-| https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/ | publication | public_web_robots_checked | yes | 2026-09-15T14:15:15Z | ok | content unchanged (hash match) |
-| https://www.pewresearch.org/short-reads/2023/04/13/in-a-growing-share-of-u-s-marriages-husbands-and-wives-earn-about-the-same/ | research | public_web_robots_checked | yes | 2026-09-15T14:15:17Z | error | http 404: not found |
-| https://www.pewresearch.org/social-trends/2023/01/24/parenting-in-america-today/ | research | public_web_robots_checked; site robots.txt publishes Content-Signal ai-input=yes | yes | 2026-09-15T14:15:16Z | ok | content unchanged (hash match) |
-| https://www.youtube.com/results?search_query=working+mom+household+systems | video | none: no permitted transcript/content access established | no | 2026-09-15T14:15:17Z | skipped_policy | no permitted access basis: none: no permitted transcript/content access established |
+| https://thebuyguide.com/hers/smart-as-a-mother/ | creator_site | public_web_robots_checked | yes | 2026-09-15T14:44:21Z | ok | content unchanged (hash match) |
+| https://thebuyguide.com/home/teen-girl-room-with-havenly/ | creator_site | public_web_robots_checked | yes | 2026-09-15T14:44:21Z | ok | content unchanged (hash match) |
+| https://www.instagram.com/thebuyguide/ | creator_social | none: login-gated platform; no permitted content access established | no | 2026-09-15T14:44:23Z | skipped_policy | no permitted access basis: none: login-gated platform; no permitted content access established |
+| https://www.cdc.gov/food-safety/prevention/index.html | government | public_domain_us_government; robots checked | yes | 2026-09-15T14:44:22Z | ok | content unchanged (hash match) |
+| https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/ | publication | public_web_robots_checked | yes | 2026-09-15T14:44:19Z | ok | content unchanged (hash match) |
+| https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/ | publication | public_web_robots_checked | yes | 2026-09-15T14:44:20Z | ok | content unchanged (hash match) |
+| https://www.pewresearch.org/short-reads/2023/04/13/in-a-growing-share-of-u-s-marriages-husbands-and-wives-earn-about-the-same/ | research | public_web_robots_checked | yes | 2026-09-15T14:44:21Z | error | http 404: not found |
+| https://www.pewresearch.org/social-trends/2023/01/24/parenting-in-america-today/ | research | public_web_robots_checked; site robots.txt publishes Content-Signal ai-input=yes | yes | 2026-09-15T14:44:21Z | ok | content unchanged (hash match) |
+| https://www.youtube.com/results?search_query=working+mom+household+systems | video | none: no permitted transcript/content access established | no | 2026-09-15T14:44:23Z | skipped_policy | no permitted access basis: none: no permitted transcript/content access established |
 
 ## Evidence (append-only, versioned)
 
 | id | v | kind | url | fetched | published (basis) | modified | hash | title | flags |
 |---|---|---|---|---|---|---|---|---|---|
-| 3 | 1 | live | https://thebuyguide.com/hers/smart-as-a-mother/ | 2026-09-15T14:14:31Z | 2023-04-27T17:19:24+00:00 (meta:article:published_time) | 2023-05-03T22:16:59+00:00 | e87402e61a16 | Smart as a Mother - The Buy Guide | - |
-| 4 | 1 | live | https://thebuyguide.com/home/teen-girl-room-with-havenly/ | 2026-09-15T14:14:32Z | 2023-03-10T17:55:46+00:00 (meta:article:published_time) | 2023-05-01T19:44:41+00:00 | 6fe940a32fc3 | Teen Girl Room with Havenly - The Buy Guide | - |
-| 6 | 1 | live | https://www.cdc.gov/food-safety/prevention/index.html | 2026-09-15T14:14:33Z | 2025-11-24T13:50:58Z (meta:dc.date) | - | b2574db36c04 | Preventing Food Poisoning / Food Safety / CDC | - |
-| 1 | 1 | live | https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/ | 2026-09-15T14:14:31Z | 2016-03-22T14:00:00Z (meta:article:published_time) | 2026-07-29T16:06:00Z | eda57077feb1 | The Ultimate House Cleaning Checklist | - |
-| 2 | 1 | live | https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/ | 2026-09-15T14:14:31Z | 2026-07-09T15:58:23Z (meta:article:published_time) | 2026-09-08T20:07:00Z | cd25ae35f722 | How to Clean an Air Fryer Basket, According to Cleaning Expe | - |
-| 5 | 1 | live | https://www.pewresearch.org/social-trends/2023/01/24/parenting-in-america-today/ | 2026-09-15T14:14:32Z | 2023-01-24T09:52:43-05:00 (meta:article:published_time) | 2026-08-24T15:22:17-04:00 | b313e88567ef | Parenting in America Today: A Survey Report (2023) / Pew Res | - |
+| 3 | 1 | live | https://thebuyguide.com/hers/smart-as-a-mother/ | 2026-09-15T14:43:42Z | 2023-04-27T17:19:24+00:00 (meta:article:published_time) | 2023-05-03T22:16:59+00:00 | e87402e61a16 | Smart as a Mother - The Buy Guide | - |
+| 4 | 1 | live | https://thebuyguide.com/home/teen-girl-room-with-havenly/ | 2026-09-15T14:43:42Z | 2023-03-10T17:55:46+00:00 (meta:article:published_time) | 2023-05-01T19:44:41+00:00 | 6fe940a32fc3 | Teen Girl Room with Havenly - The Buy Guide | - |
+| 6 | 1 | live | https://www.cdc.gov/food-safety/prevention/index.html | 2026-09-15T14:43:44Z | 2025-11-24T13:50:58Z (meta:dc.date) | - | b2574db36c04 | Preventing Food Poisoning / Food Safety / CDC | - |
+| 1 | 1 | live | https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/ | 2026-09-15T14:43:39Z | 2016-03-22T14:00:00Z (meta:article:published_time) | 2026-07-29T16:06:00Z | eda57077feb1 | The Ultimate House Cleaning Checklist | - |
+| 2 | 1 | live | https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/ | 2026-09-15T14:43:41Z | 2026-07-09T15:58:23Z (meta:article:published_time) | 2026-09-08T20:07:00Z | cd25ae35f722 | How to Clean an Air Fryer Basket, According to Cleaning Expe | - |
+| 5 | 1 | live | https://www.pewresearch.org/social-trends/2023/01/24/parenting-in-america-today/ | 2026-09-15T14:43:42Z | 2023-01-24T09:52:43-05:00 (meta:article:published_time) | 2026-08-24T15:22:17-04:00 | b313e88567ef | Parenting in America Today: A Survey Report (2023) / Pew Res | - |
 
 ## Candidates
 
 ### Candidate 3 — DEFERRED
 - **Source**: https://thebuyguide.com/hers/smart-as-a-mother/ (live evidence #3)
 - **Attribution**: The Buy Guide (thebuyguide.com)
-- **State set by**: worker — unsupported_product_identity: Shop LeMel stretchy gold stacking bracelets
-- **Household problem**: Finding and supporting mother-owned businesses can be a recurring task for households that prioritize ethical and inspirational shopping.
-- **Proposed prepared action**: A household app could offer a feature to curate and recommend mother-owned businesses and their products, complete with discount codes and product information.
+- **State set by**: worker — unsupported_product_identity: Shop LeMel stretchy gold stacking bracelets, Food Nanny Kamut flour
+- **Household problem**: Finding and purchasing gifts for Mother's Day can be a recurring burden for households.
+- **Proposed prepared action**: A household app could offer a curated list of mother-owned businesses and their products for Mother's Day gift ideas.
 - **Observations (verbatim, grounded)**:
+  - "Our TBG team is made up of 5 mothers and this Mother's Day, we are highlighting some of our favorite mother-owned businesses."
   - "There is no limit for how many MZ Wallace bags one needs. They are a necessity."
   - "Greens + caffeine? Say no more. Plus it tastes really good."
-  - "Well-made beautiful children’s swimsuits that can be passed from sibling to sibling."
 - **Inferences (not stated by source)**:
-  - Households may seek out products that are both functional and aesthetically pleasing.
-  - Supporting small and mother-owned businesses is a priority for some consumers.
-  - There is a desire for products that can be shared or passed down within a family.
-- **Relevance conditions**: household values supporting mother-owned businesses; household is interested in ethical shopping
+  - Mother's Day gift selection can be challenging and time-consuming.
+  - Supporting mother-owned businesses can be a meaningful way to celebrate Mother's Day.
+- **Relevance conditions**: Mother's Day is approaching; Household members are looking for gift ideas
 - **Lead time / expiry**: unsupported / none set
-- **Products named**: MZ Wallace Small Sutton Deluxe, BetterDays BetterGreens, Minnow Swim, Solly Baby Wrap, Gathre Placemats, Goosebumps One Piece Pajamas, Jan Marini Retinol Face Cream, Cora Ainge Art, Walker Family Goods Duffle Bag, Shop LeMel stretchy gold stacking bracelets [NOT IN TEXT]
+- **Products named**: MZ Wallace Small Sutton Deluxe, Sting Tray Slate, BetterDays BetterGreens, Minnow Swim, Solly Baby Wrap, Gathre Placemats, Goosebumps One Piece Pajamas, Jan Marini Retinol Face Cream, Cora Ainge Art, Walker Family Goods Duffle Bag, The Daily Essential Co Skin Bae, Five Mary's Farm fresh meat, Shop LeMel stretchy gold stacking bracelets [NOT IN TEXT], Food Nanny Kamut flour [NOT IN TEXT]
 - **Shopping destination**: none proposed (separate decision; creator attribution preserved)
 - **Stock/price claims**: not_verified
 - **Publishable**: no
@@ -60,15 +59,15 @@
 - **Source**: https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/ (live evidence #1)
 - **Attribution**: Good Housekeeping (Hearst)
 - **State set by**: worker — -
-- **Household problem**: Households struggle with maintaining a regular cleaning schedule for various appliances and areas of the home.
-- **Proposed prepared action**: A household app could offer a customizable cleaning schedule with reminders for daily, weekly, monthly, and yearly tasks.
+- **Household problem**: Households struggle to maintain a regular cleaning schedule for various appliances and areas of the home.
+- **Proposed prepared action**: A household app could provide a customizable cleaning schedule with reminders for daily, weekly, monthly, and yearly tasks.
 - **Observations (verbatim, grounded)**:
   - "Clean Keurig (or coffee maker): Wash removable parts with warm, soapy water or stick dishwasher-safe pieces in the machine."
   - "Clean air fryer: To prevent food residue from building up in your air fryer, thoroughly clean the basket after every use and wipe down the exterior as needed."
   - "Clean inside of microwave: Heat a microwave-safe bowl filled with 1 cup of water and several tablespoons of vinegar on high power for several minutes until the window is steamy."
 - **Inferences (not stated by source)**:
-  - Regular cleaning of appliances and surfaces can prevent the buildup of grime and bacteria.
-  - A cleaning checklist can help distribute cleaning tasks evenly throughout the week to prevent them from becoming overwhelming.
+  - Regular cleaning prevents the buildup of grime and residue in appliances.
+  - A cleaning schedule can help distribute cleaning tasks evenly throughout the week.
 - **Relevance conditions**: household owns a Keurig or coffee maker; household owns an air fryer; household uses a microwave
 - **Lead time / expiry**: unsupported / none set
 - **Products named**: Mr. Clean Magic Eraser, CLR Bath & Kitchen Cleaner, Affresh, Bissell ProHeat 2X Revolution Pet Pro Carpet Cleaner, Invisible Glass Cleaner With EZ Grip
@@ -82,13 +81,13 @@
 - **Attribution**: Good Housekeeping (Hearst)
 - **State set by**: worker — -
 - **Household problem**: The air fryer basket accumulates grease and food residue after each use, requiring regular cleaning to maintain hygiene and prevent off flavors.
-- **Proposed prepared action**: The household app could remind users to clean their air fryer basket after each use, providing step-by-step instructions and tips for maintaining the nonstick finish.
+- **Proposed prepared action**: A household app could remind users to clean their air fryer basket after each use, providing step-by-step instructions and tips for maintaining the nonstick finish.
 - **Observations (verbatim, grounded)**:
   - "Regular cleaning helps prevent grease buildup, lingering odors, and stuck-on food that can make cleanup even harder the next time you cook."
-  - "Before putting your air fryer basket in the dishwasher, check your owner's manual to make sure the removable parts are dishwasher-safe."
 - **Inferences (not stated by source)**:
-  - Cleaning the air fryer basket after each use is crucial for hygiene and to prevent damage to the nonstick coating.
-  - Hand-washing is recommended over dishwashing to preserve the nonstick finish of the air fryer basket.
+  - Cleaning the air fryer basket after each use is crucial for hygiene and safety.
+- **Dropped as unsupported**:
+  - You should think of them like pots and pans. If they aren’t cleaned regularly, crumbs, oil, and other food residue can build up. It’s unhygienic, it can lead to off flavors and can even be a fire hazard.
 - **Relevance conditions**: household owns an air fryer
 - **Lead time / expiry**: unsupported / none set
 - **Products named**: Dawn Platinum
@@ -101,18 +100,18 @@
 - **Source**: https://thebuyguide.com/home/teen-girl-room-with-havenly/ (live evidence #4)
 - **Attribution**: The Buy Guide (thebuyguide.com)
 - **State set by**: worker — -
-- **Household problem**: Designing and refreshing a teenager's bedroom can be overwhelming and time-consuming for parents.
-- **Proposed prepared action**: A household app could offer a room design service that guides parents through the process of refreshing their teenager's bedroom, providing mood boards and product suggestions.
+- **Household problem**: Designing and refreshing a teenager's bedroom can be a daunting and time-consuming task for parents.
+- **Proposed prepared action**: A household app could offer a room design service similar to Havenly, allowing users to easily refresh their teenager's bedroom with professional design help.
 - **Observations (verbatim, grounded)**:
   - "I like my home to look nice, but making all the decisions required to design a space is mentally exhausting and far too time consuming for me."
   - "We submitted some photos of the room as it was, along with a simple sketch of the room layout and dimensions."
   - "We had a blast seeing her ideas and deciding which mood board was our favorite."
 - **Inferences (not stated by source)**:
-  - Parents often struggle with the decision-making process when it comes to redesigning a teenager's bedroom.
-  - Professional interior design services can be expensive and not feasible for every room in the house.
-  - A room design app can provide a cost-effective and efficient solution for refreshing a teenager's bedroom.
-- **Relevance conditions**: household has a teenager who needs a bedroom refresh; parents are looking for an easy and affordable way to redesign a teenager's bedroom
-- **Lead time / expiry**: 7 / none set (basis: "The entire process took about a week.")
+  - Parents often struggle with the process of redesigning a teenager's bedroom due to the complexity and time involved.
+  - Professional design services can be expensive and not feasible for every room in the house.
+  - A user-friendly app can streamline the design process and make it more accessible and enjoyable for families.
+- **Relevance conditions**: household has a teenager who needs a bedroom refresh; household is looking for a cost-effective design solution
+- **Lead time / expiry**: 7 days (basis: "The entire process took about a week.") / none set
 - **Products named**: Havenly, Crate & Barrel
 - **Shopping destination**: none proposed (separate decision; creator attribution preserved)
 - **Stock/price claims**: not_verified
@@ -124,12 +123,12 @@
 - **Attribution**: Pew Research Center
 - **State set by**: worker — -
 - **Household problem**: Parents, especially mothers, are concerned about their children's mental health and well-being.
-- **Proposed prepared action**: A household app could offer a feature to track and manage parental concerns and provide resources for mental health support.
+- **Proposed prepared action**: A household app could offer a feature to remind parents to schedule regular mental health check-ups for their children.
 - **Observations (verbatim, grounded)**:
   - "four-in-ten U.S. parents with children younger than 18 say they are extremely or very worried that their children might struggle with anxiety or depression at some point"
   - "mental health concerns top the list of parental worries"
 - **Inferences (not stated by source)**:
-  - Parents may benefit from tools that help them address and mitigate their children's mental health issues
+  - Parents may benefit from resources to address their children's mental health concerns
 - **Relevance conditions**: parent has a child under 18
 - **Lead time / expiry**: unsupported / none set
 - **Products named**: none
@@ -168,9 +167,9 @@
 
 | run | provider | model | evidence | ok | error |
 |---|---|---|---|---|---|
-| run_20260915T141431Z_aea966 | ollama | qwen2.5:14b | 1 | 1 | - |
-| run_20260915T141431Z_aea966 | ollama | qwen2.5:14b | 2 | 1 | - |
-| run_20260915T141431Z_aea966 | ollama | qwen2.5:14b | 3 | 1 | - |
-| run_20260915T141431Z_aea966 | ollama | qwen2.5:14b | 4 | 1 | - |
-| run_20260915T141431Z_aea966 | ollama | qwen2.5:14b | 5 | 1 | - |
-| run_20260915T141431Z_aea966 | ollama | qwen2.5:14b | 6 | 1 | - |
+| run_20260915T144339Z_e0a2fd | ollama | qwen2.5:14b | 1 | 1 | - |
+| run_20260915T144339Z_e0a2fd | ollama | qwen2.5:14b | 2 | 1 | - |
+| run_20260915T144339Z_e0a2fd | ollama | qwen2.5:14b | 3 | 1 | - |
+| run_20260915T144339Z_e0a2fd | ollama | qwen2.5:14b | 4 | 1 | - |
+| run_20260915T144339Z_e0a2fd | ollama | qwen2.5:14b | 5 | 1 | - |
+| run_20260915T144339Z_e0a2fd | ollama | qwen2.5:14b | 6 | 1 | - |
