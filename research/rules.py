@@ -47,6 +47,26 @@ RULES: Tuple[SupportRule, ...] = (
                     "basket evidence in the WEL-40 demo run. No lead time: 'after every use' is a cadence, "
                     "not an advance notice period.",
     ),
+    SupportRule(
+        rule_id="rinse_fresh_produce_under_running_water",
+        version=1,
+        action="Rinse the fresh vegetables for this meal under running water.",
+        relevance="the planned meal uses fresh vegetables",
+        support_sentences=(
+            "Rinse fresh fruits and vegetables under running water.",
+        ),
+        problem_sentences=(
+            "Unwashed fruits and vegetables",
+            "Germs that cause food poisoning can survive in many places and spread around your kitchen.",
+        ),
+        review_note="Sentences read from live CDC evidence id=6, content hash "
+                    "b2574db36c04e96958bae89bb4ec9f9e52d2d1ec1dcc01698e8d08af81aeb418, fetched "
+                    "2026-09-15T15:33:48Z from https://www.cdc.gov/food-safety/prevention/index.html "
+                    "(U.S. federal government work; attribute, do not imply endorsement). The action "
+                    "restates the support sentence and adds no temperature, time or safety claim the "
+                    "source does not make. Registered as reviewer-curated engineering; publication still "
+                    "requires a named human approval plus a separate publishable decision.",
+    ),
 )
 
 _QUOTES = {"‘": "'", "’": "'", "“": '"', "”": '"'}
