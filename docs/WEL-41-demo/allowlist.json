@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "note": "WEL-41 live discovery demo: declared route + the two GH seeds only",
+  "sources": [
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/",
+      "role": "discovery_route",
+      "source_type": "publication",
+      "attribution": "Good Housekeeping (Hearst)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Index page read only to find same-origin article URLs; hints are assessed before collection; article usage constraints apply as for other Good Housekeeping evidence.",
+      "discovery_origin": "manual: declared discovery route (WEL-41); publisher already permitted for two seed articles"
+    },
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/",
+      "source_type": "publication",
+      "attribution": "Good Housekeeping (Hearst)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Read for evidence; short verbatim quotes with attribution only; no image reuse; no republication.",
+      "discovery_origin": "manual: publication named in WN Research-to-card charter"
+    },
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/",
+      "source_type": "publication",
+      "attribution": "Good Housekeeping (Hearst)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Read for evidence; short verbatim quotes with attribution only; no image reuse; no republication.",
+      "discovery_origin": "manual: publication named in WN Research-to-card charter"
+    }
+  ]
+}

@@ -1,7 +1,17 @@
 {
   "version": 1,
-  "note": "Discovery hints with a per-source access basis. fetch=false means discovery-only: no request is made until a permitted access route is established. Public visibility is not blanket permission. Buy Guide entries are seeds from seeds/scour_discovery_playbook.json, not permission to reuse material.",
+  "note": "Discovery hints with a per-source access basis. fetch=false means discovery-only: no request is made until a permitted access route is established. Public visibility is not blanket permission. Buy Guide entries are seeds from seeds/scour_discovery_playbook.json, not permission to reuse material. role=discovery_route (WEL-41) marks a declared public index page whose same-origin links become hints; each hint is access-assessed (robots, origin, login path) before it may be collected. Links inside article evidence are never hints.",
   "sources": [
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/",
+      "role": "discovery_route",
+      "source_type": "publication",
+      "attribution": "Good Housekeeping (Hearst)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Index page read only to find same-origin article URLs; hints are assessed before collection; article usage constraints apply as for other Good Housekeeping evidence.",
+      "discovery_origin": "manual: declared discovery route (WEL-41); publisher already permitted for two seed articles"
+    },
     {
       "url": "https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/",
       "source_type": "publication",

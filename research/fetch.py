@@ -85,12 +85,14 @@ def _word_count(html: str) -> int:
 
 class Fetcher:
     def __init__(self, transport: Transport = urllib_transport, user_agent: str = "WellNestResearch/0.1",
-                 timeout: int = 20, max_bytes: int = 2_000_000, check_robots: bool = True):
+                 timeout: int = 20, max_bytes: int = 2_000_000, check_robots: bool = True,
+                 clock: Optional[Callable[[], datetime]] = None):
         self.transport = transport
         self.user_agent = user_agent
         self.timeout = timeout
         self.max_bytes = max_bytes
         self.check_robots = check_robots
+        self.clock = clock or (lambda: datetime.now(timezone.utc))
         self._robots: Dict[str, Tuple[str, Optional[urllib.robotparser.RobotFileParser]]] = {}
         self.requests_made = 0          # source URL requests (every hop counts)
         self.robots_requests = 0        # robots.txt requests (accounted separately)
@@ -136,8 +138,13 @@ class Fetcher:
             return True, "allowed" if state == "fetched" else "allowed_no_robots", ""
         return False, "disallowed", "robots.txt disallows this path for our agent"
 
+    def permit(self, url: str, allowlisted: str) -> Tuple[bool, str, str]:
+        """Access assessment without a content request: at most one robots.txt request per origin.
+        Used by discovery to assess a hint before it may ever be collected."""
+        return self._permit(url, allowlisted)
+
     def fetch(self, url: str) -> FetchResult:
-        attempted_at = now_iso()
+        attempted_at = self.clock().astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         current, hops = url, []
         robots_status = "not_checked"
         for _ in range(MAX_REDIRECTS + 1):

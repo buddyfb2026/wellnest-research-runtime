@@ -50,15 +50,23 @@ class BudgetExhausted(RuntimeError):
 
 
 class ModelClient:
+    """Two ceilings, both may be lowered and never raised: `budget` per process and `daily_cap`
+    per UTC day persisted in `inference_calls`. The daily row is committed BEFORE the request
+    (status=reserved) and updated after; it is never deleted, so restart, overlap, timeout or a
+    later rollback cannot refund it."""
+
     def __init__(self, provider: str, budget: int, model: Optional[str] = None,
                  ollama_url: str = "http://127.0.0.1:11434",
                  fixture_fn: Optional[Callable[[str, Dict[str, Any]], Optional[Dict[str, Any]]]] = None,
-                 http_post: Optional[Callable[[str, Dict[str, Any], int], Dict[str, Any]]] = None):
+                 http_post: Optional[Callable[[str, Dict[str, Any], int], Dict[str, Any]]] = None,
+                 daily_cap: int = 10):
         if provider not in ("none", "fixture", "ollama"):
             raise ValueError("unknown provider: %s" % provider)
         self.provider = provider
         self.budget = int(budget)
+        self.daily_cap = int(daily_cap)
         self.calls_used = 0
+        self.last_status: Optional[str] = None   # ok | error | ambiguous
         self.model = model if provider == "ollama" else (provider if provider != "none" else None)
         self.ollama_url = ollama_url.rstrip("/")
         self.fixture_fn = fixture_fn
@@ -76,18 +84,51 @@ class ModelClient:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
+    @staticmethod
+    def used_today(conn: sqlite3.Connection, day: str) -> int:
+        return int(conn.execute("SELECT COUNT(*) FROM inference_calls WHERE day=?", (day,)).fetchone()[0])
+
+    def _reserve(self, conn: sqlite3.Connection, run_id: str, evidence_id: int, prompt_hash: str,
+                 day: str, called_at: str) -> int:
+        """Atomic check-and-reserve in its own transaction. Caller must not be inside a transaction."""
+        if conn.in_transaction:
+            raise RuntimeError("inference reservation must be committed on its own, not inside a candidate transaction")
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            used = self.used_today(conn, day)
+            if used >= self.daily_cap:
+                raise BudgetExhausted("daily inference cap of %d reached for %s (%d used)" % (self.daily_cap, day, used))
+            cur = conn.execute(
+                """INSERT INTO inference_calls(run_id, provider, model, purpose, evidence_id, prompt_hash, called_at,
+                       ok, error, response_chars, day, status) VALUES(?,?,?,?,?,?,?,0,'reserved',0,?,'reserved')""",
+                (run_id, self.provider, self.model, "candidate_proposal", evidence_id, prompt_hash, called_at, day))
+            conn.execute("COMMIT")
+            return int(cur.lastrowid)
+        except BaseException:
+            try:
+                conn.execute("ROLLBACK")
+            except Exception:
+                pass
+            raise
+
     def propose(self, conn: sqlite3.Connection, run_id: str, evidence_id: int, evidence_text: str,
-                meta: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """One call, one chance. Returns parsed proposal or None (and records why)."""
+                meta: Dict[str, Any], day: Optional[str] = None, called_at: Optional[str] = None
+                ) -> Optional[Dict[str, Any]]:
+        """One call, one chance. Returns parsed proposal or None (and records why).
+        Raises BudgetExhausted before any reservation when either ceiling is reached."""
         if self.provider == "none":
             self.last_error = "inference_unavailable: provider=none"
+            self.last_status = None
             return None
         if self.calls_used >= self.budget:
             raise BudgetExhausted("inference budget of %d calls exhausted" % self.budget)
+        called_at = called_at or now_iso()
+        day = day or called_at[:10]
         prompt = build_prompt(evidence_text, meta)
         prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        row_id = self._reserve(conn, run_id, evidence_id, prompt_hash, day, called_at)   # committed first
         self.calls_used += 1
-        ok, err, raw = 0, None, ""
+        ok, err, raw, status = 0, None, "", "error"
         proposal = None
         try:
             if self.provider == "fixture":
@@ -95,6 +136,7 @@ class ModelClient:
                 raw = json.dumps(proposal) if proposal is not None else ""
                 ok = 1 if proposal is not None else 0
                 err = None if proposal is not None else "fixture returned no proposal"
+                status = "ok" if ok else "error"
             else:
                 payload = {
                     "model": self.model,
@@ -104,19 +146,26 @@ class ModelClient:
                     "format": "json",
                     "options": {"temperature": 0, "seed": 7, "num_predict": 900},
                 }
-                res = self.http_post(self.ollama_url + "/api/generate", payload, 300)
+                try:
+                    res = self.http_post(self.ollama_url + "/api/generate", payload, 300)
+                except Exception as e:
+                    # The request may have executed (timeout, dropped connection): the reservation
+                    # stays spent and the outcome is reported as ambiguous. Never replayed.
+                    raise _Ambiguous("%s: %s" % (type(e).__name__, e))
                 raw = res.get("response", "")
                 proposal = json.loads(raw)
                 if not isinstance(proposal, dict):
                     raise ValueError("model did not return a JSON object")
-                ok = 1
+                ok, status = 1, "ok"
+        except _Ambiguous as e:
+            ok, err, proposal, status = 0, "ambiguous_response: %s" % e, None, "ambiguous"
         except Exception as e:  # no retry, by design
-            ok, err, proposal = 0, "%s: %s" % (type(e).__name__, e), None
-        self.last_error = err
-        conn.execute(
-            """INSERT INTO inference_calls(run_id, provider, model, purpose, evidence_id, prompt_hash, called_at,
-                   ok, error, response_chars) VALUES(?,?,?,?,?,?,?,?,?,?)""",
-            (run_id, self.provider, self.model, "candidate_proposal", evidence_id, prompt_hash, now_iso(),
-             ok, err, len(raw)),
-        )
+            ok, err, proposal, status = 0, "%s: %s" % (type(e).__name__, e), None, "error"
+        self.last_error, self.last_status = err, status
+        conn.execute("UPDATE inference_calls SET ok=?, error=?, response_chars=?, status=? WHERE id=?",
+                     (ok, err, len(raw), status, row_id))
         return proposal
+
+
+class _Ambiguous(Exception):
+    pass

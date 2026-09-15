@@ -10,9 +10,12 @@ DEFAULT_REPORT = REPO_ROOT / "work" / "report.md"
 
 USER_AGENT = "WellNestResearch/0.1 (+bounded household research; contact spencer@bizina.ai)"
 
-# Hard demonstration caps (WEL-40). CLI may lower them, never raise them.
+# Hard demonstration caps (WEL-40/41). CLI may lower them, never raise them.
 MAX_URLS_HARD_CAP = 10
-MAX_INFERENCE_HARD_CAP = 10
+MAX_INFERENCE_HARD_CAP = 10            # per run (process)
+MAX_INFERENCE_PER_DAY_HARD_CAP = 10    # per UTC day, persisted across runs, restarts and overlaps
+MAX_DISCOVERY_ASSESSMENTS_PER_CYCLE = 3
+MAX_DISCOVERY_HINTS_PER_ROUTE = 20
 
 
 @dataclass
@@ -22,6 +25,7 @@ class Config:
     report_path: Path = DEFAULT_REPORT
     max_urls: int = MAX_URLS_HARD_CAP
     max_inference: int = MAX_INFERENCE_HARD_CAP
+    max_inference_per_day: int = MAX_INFERENCE_PER_DAY_HARD_CAP
     provider: str = "none"            # none | ollama | fixture
     ollama_model: str = "qwen2.5:14b"
     ollama_url: str = "http://127.0.0.1:11434"
@@ -45,4 +49,5 @@ class Config:
                 setattr(cfg, k, v)
         cfg.max_urls = min(int(cfg.max_urls), MAX_URLS_HARD_CAP)
         cfg.max_inference = min(int(cfg.max_inference), MAX_INFERENCE_HARD_CAP)
+        cfg.max_inference_per_day = min(int(cfg.max_inference_per_day), MAX_INFERENCE_PER_DAY_HARD_CAP)
         return cfg
