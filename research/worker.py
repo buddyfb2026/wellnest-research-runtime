@@ -147,7 +147,12 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
 
     # 2. Select: manual = every permitted source (WEL-40 behaviour); cycle = due sources only, capped.
     if due_only:
-        due = sch.due_urls(conn, now, cfg.max_urls)
+        # WEL-43: same gates and same number of slots as before; a fixed share of the slots is
+        # reserved for never-attempted sources so an incumbent cannot occupy every cycle.
+        selection = sch.select_cycle_urls(conn, now, cfg.max_urls)
+        due = selection["selected"]
+        result["exploration_selected"] = len(selection["exploration"])
+        result["exploitation_selected"] = len(selection["exploitation"])
         by_url = {s["url"]: s for s in sources if s.get("fetch", False)}
         selected = [by_url[u] for u in due if u in by_url]
         permitted = [s for s in sources if s.get("fetch", False)]
