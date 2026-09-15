@@ -28,7 +28,7 @@ Defaults: database `work/research.sqlite`, allowlist `sources/allowlist.json`, r
 Hard caps: at most 10 source URLs and 10 inference calls per run (`--max-urls`, `--max-inference`
 can lower them, never raise them). One model call per evidence row, no automatic retries.
 
-## What is stored (`research/db.py`, schema version 2)
+## What is stored (`research/db.py`, schema version 3)
 
 | table | meaning |
 |---|---|
@@ -37,8 +37,44 @@ can lower them, never raise them). One model call per evidence row, no automatic
 | `evidence` | append-only retrieved content: `content_kind` (`live` or `fixture`), sha-256 `content_hash`, `version_no` + `supersedes_id`, `fetched_at`, `published_at` + `published_at_basis` (or `unknown`), `modified_at`, excerpt, `injection_flags`. |
 | `evidence_text` | full extracted text per evidence row (for grounding checks). |
 | `inference_calls` | provider, model, prompt hash, ok/error — the audit trail for the call budget. |
-| `candidates` | household problem, proposed prepared action, **observations** (verbatim quotes proven present in the evidence text), **inferences**, dropped unsupported claims, relevance conditions, lead time (+ `lead_time_basis` quote) / expiry (+ basis), product mentions with a grounded flag, source attribution, `proposed_destination` (always NULL here), `stock_price_claims` (`not_verified`), `state` pending/approved/rejected/deferred, `state_reason`, `state_set_by`, `publishable` (never set by the worker). |
+| `candidates` | household problem, proposed prepared action, **observations** (verbatim quotes proven present in the evidence text), **inferences**, dropped unsupported claims, relevance conditions, lead time (+ `lead_time_basis` quote) / expiry (+ basis), product mentions with a grounded flag, source attribution, `proposed_destination` (always NULL here), `stock_price_claims` (`not_verified`), `state` pending/approved/rejected/deferred, `state_reason`, `state_set_by`, `publishable` (never set by the worker), `validation` (v3: JSON `{"kind":"rule",...}` with rule id/version and the exact support and problem quotes, or `{"kind":"free_text","raw_proposal":...}` holding the model's raw output for audit only; NULL on rows created before v3). |
 | `runs` | run status; a run with any failed write is `failed`. |
+
+## Which candidates can be pending (`research/rules.py`)
+
+Only one thing produces a `pending` candidate: a **closed registry of supported prepared actions**.
+Each rule fixes the action text, the relevance condition and the human-reviewed source sentences
+that support it. A rule fires when a reviewed support sentence occurs in the evidence as a
+**complete sentence** (same words, same order, both boundaries; case, whitespace and one final
+full stop are ignored). A prefix such as "Do not assume that …", a suffix, a question mark, the
+tail of the sentence on its own, or any rewording does not match and produces nothing. If the
+support sentence is present but the reviewed problem sentence is not, the rule candidate is
+`deferred` with reason `rule_support_incomplete`.
+
+The registry currently holds one action, chosen because the demo evidence supports it:
+
+| rule | action | relevance | lead time |
+|---|---|---|---|
+| `air_fryer_basket_after_each_use` v1 | Remind the household to clean the air fryer basket after each use. | household owns an air fryer | none ("after every use" is a cadence, not an advance notice) |
+
+Support sentence and problem sentence are the two Good Housekeeping sentences in `rules.py`, read
+by a reviewer from the evidence of the demo run. This is a curated evidence-to-action mapping,
+not language understanding: automatically validated action coverage is deliberately this narrow,
+while evidence retrieval and reporting still cover every allowlisted source. Rule candidates carry
+`generator = rule:<id>@<version>` and no model inference; the report says so on each one.
+
+**Free-text model proposals never become pending.** They are still validated so the reason is
+specific (grounded quotes, invented identities, shopping language, timing), then `deferred` with
+`unvalidated_free_text` or `rejected`. Their household problem, action, inferences, relevance
+conditions and product names are stored only in `validation.raw_proposal` and are not rendered;
+the report shows the source, the reason, the grounded quotes and the dropped claims. A matching
+registry sentence in the same evidence does not change this: the rule candidate and the model's
+proposal are separate rows. The regex blacklists for price/stock/purchase and brand-like names
+are diagnostics, not the safety boundary; the closed registry is.
+
+Rows created before schema v3 (`validation IS NULL`) keep their state and reviewer and are
+listed in the report under "Legacy candidates" by id, source, state, reviewer and reason, with no
+prose. Migration does not re-validate or re-bless them.
 
 ## Rules enforced in code
 
@@ -60,18 +96,23 @@ can lower them, never raise them). One model call per evidence row, no automatic
   tools. Instruction-like text is flagged on the evidence row and any derived candidate is
   deferred for human review. The worker's own behaviour (what it fetches, what it calls) does
   not change.
-* The whole proposal is validated into a small typed representation before anything is saved.
-  Wrong field types → `rejected`. Every observation quote is re-checked as a verbatim substring of
-  the evidence text; others are demoted to `unsupported_claims`. No grounded observation →
-  `rejected`. Price, stock, discount or purchase language in any prose field, or a brand/model-like
-  identity not present in the text (in any field, not only `product_mentions`) → `deferred` with
-  the reason. Model confidence/approval fields are ignored.
-* `lead_time_days` is kept only when a grounded `lead_time_quote` literally states that value
-  (e.g. "every two weeks" → 14); otherwise it is unknown and the dropped value is listed under
+* The whole free-text proposal is validated into a small typed representation before anything is
+  saved. Wrong field types → `rejected`. Every observation quote is re-checked as a verbatim
+  substring of the evidence text; others are demoted to `unsupported_claims`. No grounded
+  observation → `rejected`. Price, stock, discount or purchase language in any prose field, or a
+  brand/model-like identity not present in the text (in any field, not only `product_mentions`) →
+  `deferred` with the reason. Anything that passes all of that is still `deferred` as
+  `unvalidated_free_text`. Model confidence/approval fields are ignored.
+* `lead_time_days` is kept only when a grounded `lead_time_quote` literally states that value as a
+  complete whole number (e.g. "every two weeks" → 14). Decimal, fractional or ranged quantities
+  ("1.5 weeks", "half a week", "2-3 weeks") support nothing; the dropped value is listed under
   `unsupported_claims`. Negative, non-finite, boolean or string values are dropped the same way.
-* Run status is persisted only after the report is written. A report-write failure returns
-  `failed`, persists `failed` with the reason on the `runs` row, and keeps the evidence and
-  candidates that were already committed. Re-rendering with `report` never changes run history.
+* Finalization writes the durable run result first, then renders the report from it, so no report
+  shows a finished run as `running`. These are two separate writes (a SQLite row, then a file)
+  with no atomicity between them. A report-write failure returns `failed`, updates the `runs` row
+  to `failed` with the reason, and keeps the evidence and candidates already committed. If the
+  status write itself fails, no report is written and the run returns `failed`. Re-rendering with
+  `report` never changes run history.
 * `approved` is only set through `review` with a named reviewer and reason. Approval does not
   set `publishable`; publishability is a separate later decision.
 * Creator attribution is stored with the candidate; no shopping destination is proposed, no
@@ -88,7 +129,13 @@ are deliberately different bases. The Buy Guide entries are seeds from
 
 * No video or newsletter access route exists; those hints stay discovery-only.
 * Publication dates are trusted from page metadata as-is (no cross-checking with other channels).
-* Candidate quality depends on the local model; the grounding check protects against invented
-  quotes and products but not against dull proposals. Reject/defer is a valid outcome.
+* Automatically validated actions are limited to the registry in `research/rules.py` (one rule).
+  Every other proposal, however good, is deferred for a human. Growing coverage means a human
+  reading real evidence and adding a rule with the sentences they read; nothing here understands
+  language. Reject/defer is a valid outcome.
+* The model's role is currently audit-only: its proposals are validated and stored raw, and a
+  reviewer can read them in the database, but they do not drive any displayed action text.
+* Registry sentences were read from the demo run's evidence; if the live page is rewritten, the
+  rule stops matching and the report shows no pending candidate rather than a stale one.
 * Full-text storage in `evidence_text` is for grounding and review only; usage constraints per
   source govern any reuse.

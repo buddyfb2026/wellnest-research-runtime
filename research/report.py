@@ -11,6 +11,14 @@ def _j(s: Optional[str]):
         return []
 
 
+def _jobj(s: Optional[str]):
+    try:
+        v = json.loads(s) if s else None
+    except Exception:
+        return None
+    return v if isinstance(v, dict) else None
+
+
 def render(conn: sqlite3.Connection, run_id: Optional[str] = None) -> str:
     out = ["# WellNest research report", ""]
     runs = conn.execute("SELECT * FROM runs ORDER BY started_at DESC LIMIT 5").fetchall()
@@ -40,25 +48,41 @@ def render(conn: sqlite3.Connection, run_id: Optional[str] = None) -> str:
             ", ".join(_j(e["injection_flags"])) or "-"))
     out.append("")
 
-    out += ["## Candidates", ""]
+    out += ["## Candidates", "",
+            "Only candidates from the closed action registry (`research/rules.py`) can be pending. Free-text "
+            "model proposals are deferred or rejected with a reason; their prose is kept for audit and not shown.", ""]
     cands = conn.execute("SELECT c.*, e.url AS url, e.content_kind AS kind FROM candidates c JOIN evidence e ON e.id=c.evidence_id ORDER BY c.state, c.id").fetchall()
-    if not cands:
-        out.append("_No candidates._")
+    legacy = []
+    shown = 0
     for c in cands:
+        val = _jobj(c["validation"])
+        if val is None:
+            legacy.append(c)
+            continue
+        shown += 1
+        is_rule = val.get("kind") == "rule"
         out += ["### Candidate %d — %s" % (c["id"], c["state"].upper()),
                 "- **Source**: %s (%s evidence #%d)" % (c["url"], c["kind"], c["evidence_id"]),
                 "- **Attribution**: %s" % (c["source_attribution"] or "unknown"),
-                "- **State set by**: %s — %s" % (c["state_set_by"], c["state_reason"] or "-"),
-                "- **Household problem**: %s" % (c["household_problem"] or "-"),
-                "- **Proposed prepared action**: %s" % (c["proposed_action"] or "-"),
-                "- **Observations (verbatim, grounded)**:"] + (["  - \"%s\"" % q for q in _j(c["observations"])] or ["  - none"])
+                "- **State set by**: %s — %s" % (c["state_set_by"], c["state_reason"] or "-")]
+        if is_rule:
+            out += ["- **Rule**: %s v%s (fixed action text; model inference: none)" % (val.get("rule_id"), val.get("rule_version")),
+                    "- **Proposed prepared action**: %s" % (c["proposed_action"] or "-"),
+                    "- **Support quote (whole sentence, verbatim)**: \"%s\"" % (val.get("support_quote") or "-"),
+                    "- **Household problem (whole sentence, verbatim)**: %s" % (
+                        ("\"%s\"" % val["problem_quote"]) if val.get("problem_quote") else "not found in this evidence")]
+        else:
+            out += ["- **Proposed prepared action**: not shown — free-text model proposal, not a registered action "
+                    "(raw model output retained for audit)",
+                    "- **Household problem**: not shown (free-text model proposal)"]
+        out += ["- **Observations (verbatim, grounded)**:"] + (["  - \"%s\"" % q for q in _j(c["observations"])] or ["  - none"])
         out += ["- **Inferences (not stated by source)**:"] + (["  - %s" % q for q in _j(c["inferences"])] or ["  - none"])
         unsupported = _j(c["unsupported_claims"])
         if unsupported:
-            out += ["- **Dropped as unsupported**:"] + ["  - %s" % q for q in unsupported]
+            out += ["- **Dropped as unsupported (model text, not evidence)**:"] + ["  - %s" % q for q in unsupported]
         out += ["- **Relevance conditions**: %s" % ("; ".join(_j(c["relevance_conditions"])) or "-"),
                 "- **Lead time / expiry**: %s%s / %s%s" % (
-                    ("%d days" % c["lead_time_days"]) if c["lead_time_days"] is not None else "unsupported",
+                    ("%d days" % c["lead_time_days"]) if c["lead_time_days"] is not None else "none (unsupported)",
                     (" (basis: \"%s\")" % c["lead_time_basis"]) if c["lead_time_basis"] else "",
                     c["expires_at"] or "none set",
                     (" (basis: \"%s\")" % c["expiry_basis"]) if c["expiry_basis"] else ""),
@@ -67,6 +91,16 @@ def render(conn: sqlite3.Connection, run_id: Optional[str] = None) -> str:
                 "- **Stock/price claims**: %s" % c["stock_price_claims"],
                 "- **Publishable**: %s" % ("yes" if c["publishable"] else "no"),
                 "- **Generator**: %s" % c["generator"], ""]
+    if not shown:
+        out += ["_No candidates._", ""]
+    if legacy:
+        out += ["## Legacy candidates (created before schema v3; prose never validated, not shown)", "",
+                "| id | source | evidence | state | set by | reason | generator |", "|---|---|---|---|---|---|---|"]
+        for c in legacy:
+            out.append("| %d | %s | #%d | %s | %s | %s | %s |" % (
+                c["id"], c["url"], c["evidence_id"], c["state"], c["state_set_by"],
+                (c["state_reason"] or "-").replace("|", "/"), c["generator"]))
+        out.append("")
 
     out += ["## Inference usage", "", "| run | provider | model | evidence | ok | error |", "|---|---|---|---|---|---|"]
     for i in conn.execute("SELECT * FROM inference_calls ORDER BY id").fetchall():

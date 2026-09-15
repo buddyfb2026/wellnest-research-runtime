@@ -172,7 +172,9 @@ def test_claims_in_any_prose_field_defer(field, value, expect):
 
 def test_identity_present_in_text_is_fine():
     c = _cand({"proposed_action": "Remind households to swap the Scrub Daddy sponge weekly."})
-    assert c["state"] == "pending"
+    assert "unsupported_product_identity" not in c["state_reason"]
+    # ...but free text is never pending: it is not a registered action (round 2)
+    assert c["state"] == "deferred" and c["state_reason"].startswith("unvalidated_free_text")
 
 
 @pytest.mark.parametrize("bad", [
@@ -208,7 +210,8 @@ def test_lead_time_requires_evidence_for_that_value(days, quote, expect_days, ex
     notes = [u for u in c["unsupported_claims"] if u.startswith("lead_time_days")]
     if expect_note:
         assert notes and expect_note in notes[0]
-        assert c["state"] == "pending", "an unsupported timing is dropped, the rest of the candidate survives review"
+        assert c["state_reason"].startswith("unvalidated_free_text"), \
+            "an unsupported timing is dropped with its own note; it is not the defer reason"
     else:
         assert not notes and c["lead_time_basis"] == quote
 
@@ -219,9 +222,9 @@ def test_migration_v2_applies_to_v1_database(tmp_path):
     conn = dbm.connect(path)
     conn.executescript(dbm.MIGRATIONS[0][1])
     conn.execute("INSERT INTO schema_version(version, applied_at) VALUES (1, 'x')")
-    assert dbm.migrate(conn) == 2
-    assert "lead_time_basis" in {r[1] for r in conn.execute("PRAGMA table_info(candidates)")}
-    assert dbm.migrate(conn) == 2
+    assert dbm.migrate(conn) == 3
+    assert {"lead_time_basis", "validation"} <= {r[1] for r in conn.execute("PRAGMA table_info(candidates)")}
+    assert dbm.migrate(conn) == 3
 
 
 # ---------------------------------------------------- F4: honest persisted run status

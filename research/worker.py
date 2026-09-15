@@ -17,6 +17,7 @@ from . import candidates as cands
 from . import db as dbm
 from . import evidence as ev
 from . import report as rpt
+from . import rules
 from .config import Config
 from .extract import extract
 from .fetch import Fetcher, FetchResult, now_iso, urllib_transport
@@ -110,11 +111,31 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
 
     for eid in evidence_ids:
         row = conn.execute("SELECT * FROM evidence WHERE id=?", (eid,)).fetchone()
+        text = ev.load_evidence_text(conn, eid)
+
+        # 1. Closed action registry: deterministic, no model. The only source of 'pending' candidates.
+        for match in rules.match_rules(text):
+            if conn.execute("SELECT 1 FROM candidates WHERE dedupe_key=?",
+                            (cands.dedupe_key(eid, match.rule.generator),)).fetchone():
+                result["candidates_existing"] += 1
+                continue
+            try:
+                conn.execute("BEGIN")
+                cid = cands.save_candidate(conn, cands.build_rule_candidate(row, match))
+                conn.execute("COMMIT")
+                result["candidates_new" if cid else "candidates_existing"] += 1
+            except Exception as e:
+                try:
+                    conn.execute("ROLLBACK")
+                except Exception:
+                    pass
+                result["failures"].append("rule candidate for evidence %d: %s: %s" % (eid, type(e).__name__, e))
+
+        # 2. Free-text model proposal: validated for a specific reason, stored for audit, never pending.
         key = cands.dedupe_key(eid, model.generator_name)
         if conn.execute("SELECT 1 FROM candidates WHERE dedupe_key=?", (key,)).fetchone():
             result["candidates_existing"] += 1
             continue
-        text = ev.load_evidence_text(conn, eid)
         meta = {"url": row["url"], "title": row["title"], "attribution": row["attribution"],
                 "source_type": row["source_type"], "published_at": row["published_at"] or "unknown"}
         proposal, failure = None, None
@@ -140,21 +161,37 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
     result["status"] = "failed" if result["failures"] else "ok"
     result["robots_requests"] = fetcher.robots_requests
     result["source_requests"] = fetcher.requests_made
+    result["report_path"] = str(cfg.report_path)
+
+    # Finalization order: durable run result first, then the report that renders it. These are two
+    # separate writes (SQLite row, then a file); there is no atomicity between them. If the report
+    # write fails, the run row is updated again to 'failed' with the reason; committed evidence and
+    # candidates are untouched either way.
+    def persist_status() -> None:
+        summary = {k: v for k, v in result.items() if k != "failures"}
+        summary["failures"] = list(result["failures"])
+        conn.execute("UPDATE runs SET finished_at=?, status=?, summary=? WHERE run_id=?",
+                     (now_iso(), result["status"], json.dumps(summary), run_id))
+
+    try:
+        persist_status()
+    except Exception as e:
+        result["status"] = "failed"
+        result["report_path"] = None
+        result["failures"].append("run status write: %s: %s (report not written: it would show this run as running)"
+                                  % (type(e).__name__, e))
+        return result
     try:
         cfg.report_path.parent.mkdir(parents=True, exist_ok=True)
         cfg.report_path.write_text(rpt.render(conn))
-        result["report_path"] = str(cfg.report_path)
     except Exception as e:
         result["status"] = "failed"
+        result["report_path"] = None
         result["failures"].append("report write to %s: %s: %s" % (cfg.report_path, type(e).__name__, e))
-    summary = {k: v for k, v in result.items() if k != "failures"}
-    summary["failures"] = list(result["failures"])
-    try:
-        conn.execute("UPDATE runs SET finished_at=?, status=?, summary=? WHERE run_id=?",
-                     (now_iso(), result["status"], json.dumps(summary), run_id))
-    except Exception as e:
-        result["status"] = "failed"
-        result["failures"].append("run status write: %s: %s" % (type(e).__name__, e))
+        try:
+            persist_status()
+        except Exception as e2:
+            result["failures"].append("run status write after report failure: %s: %s" % (type(e2).__name__, e2))
     return result
 
 

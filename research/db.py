@@ -120,6 +120,15 @@ MIGRATIONS = [
         ALTER TABLE candidates ADD COLUMN lead_time_basis TEXT;  -- grounded quote that states lead_time_days
         """,
     ),
+    (
+        3,
+        """
+        -- JSON: how the row was produced and what was checked. {"kind":"rule",...} for the closed
+        -- action registry, {"kind":"free_text","raw_proposal":...} for audit-only model prose.
+        -- NULL = row created before v3: its prose was never validated and is not rendered.
+        ALTER TABLE candidates ADD COLUMN validation TEXT;
+        """,
+    ),
 ]
 
 

@@ -6,7 +6,8 @@ Providers:
   ollama   — local Ollama HTTP API (already-installed local models; no paid credential).
 
 The model never has tools. It receives evidence text wrapped as untrusted data and
-returns JSON; every claim it makes is re-checked against the evidence text before use.
+returns JSON; every claim it makes is re-checked against the evidence text, and the proposal is
+then stored for audit and deferred. Displayed pending actions come only from research/rules.py.
 """
 import hashlib
 import json

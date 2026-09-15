@@ -7,8 +7,8 @@ from research import db as dbm
 from research import worker
 from research.candidates import human_review
 from research.model import ModelClient
-from tests.conftest import (ARTICLE, ARTICLE_CHANGED, ARTICLE_NO_DATE, INJECTED, LOGIN_WALL, entry, good_proposal,
-                            make_transport, write_allowlist)
+from tests.conftest import (AIR_FRYER_ARTICLE, ARTICLE, ARTICLE_CHANGED, ARTICLE_NO_DATE, INJECTED, LOGIN_WALL,
+                            air_fryer_proposal, entry, good_proposal, make_transport, write_allowlist)
 
 U1 = "https://fixture.example/how-often-clean/"
 U2 = "https://fixture.example/second/"
@@ -30,8 +30,8 @@ def test_migrate_is_idempotent_and_state_survives_reopen(cfg, tmp_path):
     res, _ = _run(cfg, {U1: (200, U1, HTML, ARTICLE)})
     assert res.ok, res
     conn = dbm.connect(cfg.db_path)
-    assert dbm.migrate(conn) == 2
-    assert dbm.migrate(conn) == 2
+    assert dbm.migrate(conn) == 3
+    assert dbm.migrate(conn) == 3
     conn.close()
     conn = dbm.connect(cfg.db_path)  # simulated restart
     assert conn.execute("SELECT COUNT(*) FROM evidence").fetchone()[0] == 1
@@ -130,10 +130,14 @@ def test_unsupported_product_identity_defers_candidate(cfg, tmp_path):
     conn = dbm.connect(cfg.db_path)
     c = conn.execute("SELECT * FROM candidates").fetchone()
     assert c["state"] == "deferred" and "unsupported_product_identity: Dyson V15 Detect" in c["state_reason"]
-    pm = json.loads(c["product_mentions"])
-    assert {p["name"]: p["grounded"] for p in pm} == {"Scrub Daddy sponge": True, "Dyson V15 Detect": False}
+    assert "Scrub Daddy" not in c["state_reason"], "the grounded name is not a reason"
+    assert json.loads(c["product_mentions"]) == [], "model product names are audit material, not display content"
+    raw = json.loads(c["validation"])
+    assert raw["kind"] == "free_text" and raw["raw_proposal"]["product_mentions"] == ["Scrub Daddy sponge", "Dyson V15 Detect"]
     assert c["proposed_destination"] is None and c["stock_price_claims"] == "not_verified"
     assert c["source_attribution"] == "Fixture Publisher"
+    report = cfg.report_path.read_text()
+    assert "swap the kitchen sponge" not in report and "Products named**: none" in report
 
 
 def test_ungrounded_quotes_are_dropped_and_candidate_rejected_when_none_remain(cfg, tmp_path):
@@ -153,9 +157,10 @@ def test_ungrounded_quotes_are_dropped_and_candidate_rejected_when_none_remain(c
 
 def test_no_automatic_approval_and_human_review_path(cfg, tmp_path):
     write_allowlist(tmp_path, [entry(U1)])
-    _run(cfg, {U1: (200, U1, HTML, ARTICLE)})  # good_proposal claims approved=True, confidence=0.99
+    _run(cfg, {U1: (200, U1, HTML, AIR_FRYER_ARTICLE)})  # good_proposal claims approved=True, confidence=0.99
     conn = dbm.connect(cfg.db_path)
-    c = conn.execute("SELECT * FROM candidates").fetchone()
+    assert conn.execute("SELECT COUNT(*) FROM candidates WHERE state='pending'").fetchone()[0] == 1
+    c = conn.execute("SELECT * FROM candidates WHERE generator LIKE 'rule:%'").fetchone()
     assert c["state"] == "pending" and c["state_set_by"] == "worker" and c["publishable"] == 0
     conn.execute("BEGIN")
     human_review(conn, c["id"], "approved", "astra", "grounded, useful")
@@ -269,9 +274,9 @@ def test_provider_none_defers_honestly(cfg, tmp_path):
 
 def test_report_is_readable_and_has_no_household_fields(cfg, tmp_path):
     write_allowlist(tmp_path, [entry(U1), entry("https://fixture.example/ig/", fetch=False, source_type="creator_social", basis="none")])
-    _run(cfg, {U1: (200, U1, HTML, ARTICLE)})
+    _run(cfg, {U1: (200, U1, HTML, AIR_FRYER_ARTICLE)}, model=fixture_model(air_fryer_proposal))
     text = cfg.report_path.read_text()
-    for needle in ("## Sources", "## Evidence", "## Candidates", "PENDING", "Observations (verbatim, grounded)",
+    for needle in ("## Sources", "## Evidence", "## Candidates", "PENDING", "DEFERRED", "Observations (verbatim, grounded)",
                    "Inferences (not stated by source)", "skipped_policy", "Shopping destination**: none proposed"):
         assert needle in text, needle
     conn = dbm.connect(cfg.db_path)

@@ -59,6 +59,37 @@ def entry(url, fetch=True, source_type="publication", attribution="Fixture Publi
             "fetch": fetch, "usage_constraints": "test", "discovery_origin": "test"}
 
 
+SUPPORT_SENTENCE = ("This may surprise you more than how much your appliance can tackle, but air fryer baskets "
+                    "need to be cleaned after every use.")
+PROBLEM_SENTENCE = ("Regular cleaning helps prevent grease buildup, lingering odors, and stuck-on food that can "
+                    "make cleanup even harder the next time you cook.")
+
+# Fixture shaped like the demo evidence the registry sentences were read from.
+AIR_FRYER_ARTICLE = """<html><head><title>How to Clean an Air Fryer Basket</title>
+<meta property="article:published_time" content="2026-07-09T15:58:23Z"></head>
+<body><nav>Menu</nav><article>
+<h2>How often should you clean it?</h2>
+<p>%s</p>
+<p>%s</p>
+<p>Use a soft sponge and warm water so the nonstick finish is not scratched, and let the basket dry fully.</p>
+<p>Dawn Platinum is one dish soap the experts mentioned.</p>
+</article></body></html>""" % (SUPPORT_SENTENCE, PROBLEM_SENTENCE)
+
+def air_fryer_proposal(text, meta):
+    """A free-text proposal grounded in AIR_FRYER_ARTICLE with nothing the regexes object to."""
+    return {
+        "household_problem": "Air fryer baskets get greasy and are easy to forget.",
+        "proposed_action": "Offer a nudge to wipe the basket after cooking.",
+        "observations": ["Use a soft sponge and warm water so the nonstick finish is not scratched"],
+        "inferences": ["A short nudge right after cooking is easiest to act on."],
+        "relevance_conditions": ["household owns an air fryer"],
+        "lead_time_days": None,
+        "expiry_quote": None,
+        "product_mentions": [],
+        "approved": True,
+    }
+
+
 STALE_ARTICLE = """<html><head><title>Holiday Sale Guide 2016</title>
 <meta property="article:published_time" content="2016-11-20T09:00:00Z"></head>
 <body><article>

@@ -1,11 +1,19 @@
-"""Turn a model proposal into a reviewable candidate, grounding every claim first.
+"""Build reviewable candidates. Two generators, kept apart on purpose:
+
+  * rule candidates (research/rules.py): a fixed prepared action whose reviewed support sentence
+    occurs as a whole sentence in the evidence. Deterministic, no model. These are the only
+    candidates the worker ever saves as 'pending'.
+  * free-text model proposals: validated (grounded quotes, shopping claims, invented identities,
+    timing) so the reason is specific, then ALWAYS deferred or rejected. The model's prose is
+    stored raw in `validation` for audit and is never shown as action/inference/product output.
 
 Rules (WEL-40 AC3/AC5/AC6):
   * observations must be verbatim substrings of the evidence text; anything else is demoted
-  * a candidate with no grounded observation is rejected, not approved on model confidence
-  * the WHOLE proposal is validated: price/stock/discount/purchase claims or brand-like
-    identities not present in the text, in any prose field, mark the candidate deferred
-  * lead_time_days is kept only when a grounded quote states that very value
+  * a proposal with no grounded observation is rejected, not approved on model confidence
+  * price/stock/discount/purchase claims or brand-like identities not present in the text, in any
+    prose field, give a specific defer reason (they are not the safety boundary; the closed
+    action registry is)
+  * lead_time_days is kept only when a grounded quote states that very whole-number value
   * evidence flagged for embedded instructions -> candidate deferred for human review
   * state is never 'approved' when set by the worker; publishable is never set here
   * proposed_destination stays NULL; stock/price claims stay 'not_verified'
@@ -17,6 +25,10 @@ import sqlite3
 from typing import Any, Dict, List, Optional
 
 from .fetch import now_iso
+from .rules import RuleMatch
+
+FREE_TEXT_DEFER_REASON = ("unvalidated_free_text: model prose is not a registered supported action; "
+                          "raw output retained for audit, not shown")
 
 
 def _norm(s: str) -> str:
@@ -83,11 +95,18 @@ def unsupported_identities(text: str, text_norm: str) -> List[str]:
 _PERIOD_WORDS = {"daily": 1, "weekly": 7, "monthly": 30}
 
 
+_TIMING_RX = re.compile(
+    # a complete whole-number quantity only: not the '5' of '1.5', '1,5', '2-3' or '1/2', not 'half a week'
+    r"(?<![\d.,/–-])(?<!half )(?<!quarter )\b(\d+|%s)\b(?![.,/–-]\d)\s+(days?|weeks?|months?)\b"
+    % "|".join(_NUM_WORDS))
+
+
 def timing_days_in_quote(quote: str) -> List[int]:
-    """Every day-count a quote literally supports: 'every two weeks' -> [14], 'every week' -> [7]."""
+    """Every day-count a quote literally supports: 'every two weeks' -> [14], 'every week' -> [7].
+    Decimal, fractional, ranged or otherwise incomplete quantities support nothing."""
     q = (quote or "").lower()
     out = []
-    for m in re.finditer(r"\b(\d+|%s)\s+(days?|weeks?|months?)\b" % "|".join(_NUM_WORDS), q):
+    for m in _TIMING_RX.finditer(q):
         n = int(m.group(1)) if m.group(1).isdigit() else _NUM_WORDS[m.group(1)]
         out.append(n * _UNIT_DAYS[m.group(2)])
     for m in re.finditer(r"\b(every|each|per)\s+(day|week|month)\b", q):
@@ -157,11 +176,8 @@ def validate_proposal(proposal: Dict[str, Any], text_norm: str) -> Dict[str, Any
     return v
 
 
-def build_candidate(evidence_row: sqlite3.Row, evidence_text: str, proposal: Optional[Dict[str, Any]],
-                    generator: str, failure_reason: Optional[str] = None) -> Dict[str, Any]:
-    text_norm = _norm(evidence_text)
-    injection_flags = json.loads(evidence_row["injection_flags"] or "[]")
-    cand: Dict[str, Any] = {
+def _empty_candidate(evidence_row: sqlite3.Row, generator: str) -> Dict[str, Any]:
+    return {
         "dedupe_key": dedupe_key(int(evidence_row["id"]), generator),
         "evidence_id": int(evidence_row["id"]),
         "generator": generator,
@@ -183,7 +199,39 @@ def build_candidate(evidence_row: sqlite3.Row, evidence_text: str, proposal: Opt
         "state_reason": None,
         "state_set_by": "worker",
         "publishable": 0,
+        "validation": None,   # JSON: {"kind": "rule", ...} | {"kind": "free_text", ...}; NULL = legacy (unvalidated)
     }
+
+
+def build_rule_candidate(evidence_row: sqlite3.Row, match: RuleMatch) -> Dict[str, Any]:
+    """A pending candidate whose every displayed word is fixed rule text or a whole evidence sentence."""
+    r = match.rule
+    injection_flags = json.loads(evidence_row["injection_flags"] or "[]")
+    cand = _empty_candidate(evidence_row, r.generator)
+    cand["household_problem"] = match.problem_quote
+    cand["proposed_action"] = r.action
+    cand["observations"] = [match.support_quote] + ([match.problem_quote] if match.problem_quote else [])
+    cand["relevance_conditions"] = [r.relevance]
+    cand["validation"] = {"kind": "rule", "rule_id": r.rule_id, "rule_version": r.version,
+                          "support_quote": match.support_quote, "problem_quote": match.problem_quote,
+                          "model_inference": False, "review_note": r.review_note}
+    if not match.complete:
+        cand["state"], cand["state_reason"] = "deferred", (
+            "rule_support_incomplete: support sentence present but no reviewed problem sentence "
+            "occurs as a whole sentence in this evidence")
+    elif injection_flags:
+        cand["state"], cand["state_reason"] = "deferred", "source_embedded_instructions_flagged: human review required"
+    return cand
+
+
+def build_candidate(evidence_row: sqlite3.Row, evidence_text: str, proposal: Optional[Dict[str, Any]],
+                    generator: str, failure_reason: Optional[str] = None) -> Dict[str, Any]:
+    """Validate a free-text model proposal and return a deferred/rejected candidate with a specific
+    reason. Never pending: free prose is not a registered action. The raw proposal is kept for audit."""
+    text_norm = _norm(evidence_text)
+    injection_flags = json.loads(evidence_row["injection_flags"] or "[]")
+    cand = _empty_candidate(evidence_row, generator)
+    cand["validation"] = {"kind": "free_text", "raw_proposal": proposal, "model_inference": True}
     if proposal is None:
         cand["state"], cand["state_reason"] = "deferred", failure_reason or "inference_unavailable"
         return cand
@@ -194,10 +242,8 @@ def build_candidate(evidence_row: sqlite3.Row, evidence_text: str, proposal: Opt
     v = validate_proposal(proposal, text_norm)
     for q in v["observations"]:
         (cand["observations"] if _grounded(q, text_norm) else cand["unsupported_claims"]).append(q)
-    cand["inferences"] = v["inferences"]
-    cand["relevance_conditions"] = v["relevance_conditions"]
-    cand["household_problem"] = v["household_problem"] or None
-    cand["proposed_action"] = v["proposed_action"] or None
+    # household_problem / proposed_action / inferences / relevance_conditions / product_mentions stay
+    # empty on the row: model prose is audit material (validation.raw_proposal), not display content.
     cand["lead_time_days"], cand["lead_time_basis"] = v["lead_time_days"], v["lead_time_basis"]
     cand["unsupported_claims"] += v["unsupported"]
     eq = v["expiry_quote"]
@@ -206,17 +252,12 @@ def build_candidate(evidence_row: sqlite3.Row, evidence_text: str, proposal: Opt
     elif eq:
         cand["unsupported_claims"].append("expiry: %s" % eq)
 
-    unsupported_products = []
-    for name in v["product_mentions"]:
-        ok = _norm(name) in text_norm
-        cand["product_mentions"].append({"name": name, "grounded": ok})
-        if not ok:
-            unsupported_products.append(name)
+    unsupported_products = [name for name in v["product_mentions"] if _norm(name) not in text_norm]
 
     # Any 'approved' / confidence field from the model is ignored on purpose.
     if v["type_errors"]:
         cand["state"], cand["state_reason"] = "rejected", "invalid_proposal_types: %s" % "; ".join(v["type_errors"])
-    elif not cand["household_problem"] or not cand["proposed_action"]:
+    elif not v["household_problem"] or not v["proposed_action"]:
         cand["state"], cand["state_reason"] = "rejected", "incomplete_proposal: missing problem or action"
     elif not cand["observations"]:
         cand["state"], cand["state_reason"] = "rejected", "no_grounded_observation: no quote matched the evidence"
@@ -227,6 +268,8 @@ def build_candidate(evidence_row: sqlite3.Row, evidence_text: str, proposal: Opt
         cand["state"], cand["state_reason"] = "deferred", "; ".join(reasons)
     elif injection_flags:
         cand["state"], cand["state_reason"] = "deferred", "source_embedded_instructions_flagged: human review required"
+    else:
+        cand["state"], cand["state_reason"] = "deferred", FREE_TEXT_DEFER_REASON
     return cand
 
 
@@ -239,14 +282,15 @@ def save_candidate(conn: sqlite3.Connection, cand: Dict[str, Any]) -> Optional[i
         """INSERT INTO candidates(dedupe_key, evidence_id, generator, household_problem, proposed_action,
                observations, inferences, unsupported_claims, relevance_conditions, lead_time_days, lead_time_basis,
                expires_at, expiry_basis, product_mentions, source_attribution, proposed_destination, stock_price_claims,
-               state, state_reason, state_set_by, publishable, created_at, updated_at)
-           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               state, state_reason, state_set_by, publishable, validation, created_at, updated_at)
+           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (cand["dedupe_key"], cand["evidence_id"], cand["generator"], cand["household_problem"],
          cand["proposed_action"], json.dumps(cand["observations"]), json.dumps(cand["inferences"]),
          json.dumps(cand["unsupported_claims"]), json.dumps(cand["relevance_conditions"]), cand["lead_time_days"],
          cand["lead_time_basis"], cand["expires_at"], cand["expiry_basis"], json.dumps(cand["product_mentions"]), cand["source_attribution"],
          cand["proposed_destination"], cand["stock_price_claims"], cand["state"], cand["state_reason"],
-         cand["state_set_by"], cand["publishable"], ts, ts),
+         cand["state_set_by"], cand["publishable"],
+         json.dumps(cand["validation"], default=str) if cand["validation"] is not None else None, ts, ts),
     )
     return int(cur.lastrowid)
 
