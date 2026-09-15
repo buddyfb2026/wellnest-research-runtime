@@ -1,0 +1,39 @@
+{
+  "provider": "none",
+  "model_calls": 0,
+  "first_run": {
+    "run_id": "run_20260915T153344Z_ff943a",
+    "status": "ok",
+    "fetched_ok": 6,
+    "blocked": 0,
+    "errors": 1,
+    "skipped_policy": 2,
+    "evidence_new": 6,
+    "evidence_existing": 0,
+    "candidates_new": 7,
+    "candidates_existing": 0,
+    "inference_calls": 0,
+    "failures": [],
+    "robots_requests": 4,
+    "source_requests": 7,
+    "report_path": "/tmp/wel40-coordination/live-demo/report.md"
+  },
+  "restart_run": {
+    "run_id": "run_20260915T153410Z_90b488",
+    "status": "ok",
+    "fetched_ok": 6,
+    "blocked": 0,
+    "errors": 1,
+    "skipped_policy": 2,
+    "evidence_new": 0,
+    "evidence_existing": 6,
+    "candidates_new": 0,
+    "candidates_existing": 7,
+    "inference_calls": 0,
+    "failures": [],
+    "robots_requests": 4,
+    "source_requests": 7,
+    "report_path": "/tmp/wel40-coordination/live-demo/report.md"
+  },
+  "limitation": "One reviewer-curated air-fryer rule; unrestricted model proposals remain deferred/rejected."
+}
