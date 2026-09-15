@@ -129,6 +129,37 @@ MIGRATIONS = [
         ALTER TABLE candidates ADD COLUMN validation TEXT;
         """,
     ),
+    (
+        4,
+        # WEL-41: recurring collection. A list is applied statement by statement so a partially
+        # applied migration can be re-run (each ALTER tolerates "duplicate column").
+        [
+            # Per-source scheduling and backoff state. One row per permitted source; hints without a
+            # permitted access basis never get a row and are therefore never due.
+            """CREATE TABLE IF NOT EXISTS source_state (
+                url TEXT PRIMARY KEY,
+                next_check_at TEXT NOT NULL,
+                consecutive_failures INTEGER NOT NULL DEFAULT 0,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                last_attempt_at TEXT,
+                last_outcome TEXT,               -- ok | blocked | error
+                last_reason TEXT,
+                last_success_at TEXT,
+                last_evidence_id INTEGER,
+                stalled INTEGER NOT NULL DEFAULT 0,   -- 1 after repeated blocks; only a manual reset clears it
+                updated_at TEXT NOT NULL
+            )""",
+            # Persistent daily budget: a row is inserted (status=reserved) and committed BEFORE the
+            # external request. Every row for a UTC day counts toward that day's cap; rows are never
+            # deleted, so a crash, timeout or rollback cannot refund a call that may have executed.
+            "ALTER TABLE inference_calls ADD COLUMN day TEXT",
+            "ALTER TABLE inference_calls ADD COLUMN status TEXT",   # reserved | ok | error | ambiguous
+            # Discovery provenance and the recorded access assessment for hints found via a route.
+            "ALTER TABLE source_hints ADD COLUMN discovered_at TEXT",
+            "ALTER TABLE source_hints ADD COLUMN discovery_route TEXT",   # the declared route URL
+            "ALTER TABLE source_hints ADD COLUMN access_assessment TEXT",  # JSON {status, reason, robots_status, checked_at}
+        ],
+    ),
 ]
 
 
@@ -154,11 +185,12 @@ def migrate(conn: sqlite3.Connection) -> int:
             continue
         # executescript autocommits statement by statement; v1 statements are CREATE IF NOT
         # EXISTS and later ones are single additive ALTERs, so a partial apply is safe to re-run.
-        try:
-            conn.executescript(sql)
-        except sqlite3.OperationalError as e:
-            if "duplicate column" not in str(e):
-                raise
+        for stmt in ([sql] if isinstance(sql, str) else sql):
+            try:
+                conn.executescript(stmt)
+            except sqlite3.OperationalError as e:
+                if "duplicate column" not in str(e):
+                    raise
         conn.execute(
             "INSERT INTO schema_version(version, applied_at) VALUES (?, strftime('%Y-%m-%dT%H:%M:%SZ','now'))",
             (version,),

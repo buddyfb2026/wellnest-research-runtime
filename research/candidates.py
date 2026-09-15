@@ -295,6 +295,31 @@ def save_candidate(conn: sqlite3.Connection, cand: Dict[str, Any]) -> Optional[i
     return int(cur.lastrowid)
 
 
+BUDGET_PLACEHOLDER_PREFIX = "inference_budget_exhausted"
+
+
+def is_budget_placeholder(row: Optional[sqlite3.Row]) -> bool:
+    """The one explicitly recoverable candidate state (WEL-41): the worker could not call the
+    model because a budget ceiling was reached. It is redone when budget exists again, unless a
+    human has since changed the row."""
+    return bool(row) and row["state_set_by"] == "worker" and \
+        (row["state_reason"] or "").startswith(BUDGET_PLACEHOLDER_PREFIX)
+
+
+def replace_placeholder(conn: sqlite3.Connection, candidate_id: int, cand: Dict[str, Any]) -> int:
+    """Overwrite a budget placeholder with the real outcome for the same evidence/generator."""
+    conn.execute(
+        """UPDATE candidates SET observations=?, inferences=?, unsupported_claims=?, relevance_conditions=?,
+               lead_time_days=?, lead_time_basis=?, expires_at=?, expiry_basis=?, product_mentions=?,
+               state=?, state_reason=?, state_set_by='worker', validation=?, updated_at=?
+           WHERE id=? AND state_set_by='worker'""",
+        (json.dumps(cand["observations"]), json.dumps(cand["inferences"]), json.dumps(cand["unsupported_claims"]),
+         json.dumps(cand["relevance_conditions"]), cand["lead_time_days"], cand["lead_time_basis"], cand["expires_at"],
+         cand["expiry_basis"], json.dumps(cand["product_mentions"]), cand["state"], cand["state_reason"],
+         json.dumps(cand["validation"], default=str) if cand["validation"] is not None else None, now_iso(), candidate_id))
+    return candidate_id
+
+
 VALID_HUMAN_STATES = ("approved", "rejected", "deferred", "pending")
 
 

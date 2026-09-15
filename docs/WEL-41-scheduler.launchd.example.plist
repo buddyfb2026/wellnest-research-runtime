@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  WEL-41 example only. NOT installed, NOT loaded, Disabled=true. Live activation is a separate,
+  explicitly authorized step (WEL-41 out of scope). To review what a scheduler would do, read
+  docs/WEL-41.md; the worker itself has no loop and exits after one bounded `cycle`.
+  A second overlapping trigger exits with code 3 ("locked") without any request or model call.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.wellnest.research-cycle.example</string>
+  <key>Disabled</key><true/>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>-m</string><string>research.worker</string>
+    <string>cycle</string>
+    <string>--provider</string><string>none</string>
+    <string>--max-urls</string><string>10</string>
+    <string>--max-inference-per-day</string><string>10</string>
+  </array>
+  <key>WorkingDirectory</key><string>/path/to/wellnest-research-runtime</string>
+  <key>StartInterval</key><integer>3600</integer>
+  <key>RunAtLoad</key><false/>
+  <key>StandardOutPath</key><string>/path/to/wellnest-research-runtime/work/cycle.log</string>
+  <key>StandardErrorPath</key><string>/path/to/wellnest-research-runtime/work/cycle.err</string>
+</dict>
+</plist>

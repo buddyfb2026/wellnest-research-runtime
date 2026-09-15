@@ -222,9 +222,9 @@ def test_migration_v2_applies_to_v1_database(tmp_path):
     conn = dbm.connect(path)
     conn.executescript(dbm.MIGRATIONS[0][1])
     conn.execute("INSERT INTO schema_version(version, applied_at) VALUES (1, 'x')")
-    assert dbm.migrate(conn) == 3
+    assert dbm.migrate(conn) == 4
     assert {"lead_time_basis", "validation"} <= {r[1] for r in conn.execute("PRAGMA table_info(candidates)")}
-    assert dbm.migrate(conn) == 3
+    assert dbm.migrate(conn) == 4
 
 
 # ---------------------------------------------------- F4: honest persisted run status
