@@ -37,12 +37,21 @@ def _page(*paragraphs):
 
 
 # ------------------------------------------------------------------ registry: positive
-def test_registry_is_closed_and_has_one_reviewed_action():
-    assert [r.rule_id for r in RULES] == ["air_fryer_basket_after_each_use"]
+def test_registry_is_closed_and_every_action_is_reviewed():
+    # Closed registry: adding an entry is a deliberate, reviewed change. WEL-42 added the second.
+    assert [r.rule_id for r in RULES] == [
+        "air_fryer_basket_after_each_use",
+        "rinse_fresh_produce_under_running_water",
+        "bean_rice_bowl_prep_guide",
+    ]
     assert RULE.generator == "rule:air_fryer_basket_after_each_use@1"
     assert RULE.support_sentences == (SUPPORT_SENTENCE,) and RULE.problem_sentences == (PROBLEM_SENTENCE,)
-    for word in ("$", "price", "stock", "buy", "order", "purchase"):
-        assert word not in (RULE.action + RULE.relevance).lower()
+    for rule in RULES:
+        # No shopping language in any rule, and every rule records where its sentences were read.
+        for word in ("$", "price", "stock", "buy", "order", "purchase"):
+            assert word not in (rule.action + rule.relevance).lower()
+        assert rule.support_sentences and rule.problem_sentences
+        assert rule.review_note.strip(), "%s has no review note" % rule.rule_id
 
 
 def test_fixed_rule_candidate_is_pending_with_exact_support_quote(cfg, tmp_path):
