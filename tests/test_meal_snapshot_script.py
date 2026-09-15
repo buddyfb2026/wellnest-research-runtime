@@ -11,6 +11,8 @@ from pathlib import Path
 import pytest
 
 from research.db import connect, migrate
+from research.meal_guides import MEAL_GUIDES
+from research.rules import RULES
 
 _spec = importlib.util.spec_from_file_location(
     "wel42_build_snapshot", Path(__file__).resolve().parent.parent / "scripts" / "wel42_build_snapshot.py"
@@ -29,8 +31,9 @@ def make_db(path: Path, *, wal: bool = False) -> None:
     migrate(c)
     if wal:
         c.execute("PRAGMA journal_mode=WAL")
-    text = "%s\n%s" % (SUPPORT, PROBLEM)
     import hashlib
+
+    text = "%s\n%s" % (SUPPORT, PROBLEM)
 
     c.execute(
         """INSERT INTO evidence(id, url, content_kind, content_hash, version_no, fetched_at,
@@ -42,6 +45,27 @@ def make_db(path: Path, *, wal: bool = False) -> None:
         (hashlib.sha256(text.encode()).hexdigest(),),
     )
     c.execute("INSERT INTO evidence_text(evidence_id, text) VALUES(1, ?)", (text,))
+
+    # Also stand up the evidence each registered guide cites, built from that guide's own anchors
+    # plus its gating rule's sentences. Keeps this fixture honest as the registry grows.
+    next_id = 2
+    for guide in MEAL_GUIDES.values():
+        rule = next(r for r in RULES if r.rule_id == guide.rule_id)
+        for url in guide.source_urls:
+            sentences = [i.anchor for i in guide.items if i.source_url == url]
+            sentences += list(rule.support_sentences) + list(rule.problem_sentences)
+            body = "\n".join(sentences)
+            c.execute(
+                """INSERT INTO evidence(id, url, content_kind, content_hash, version_no, fetched_at,
+                        published_at_basis, title, attribution, source_type, access_basis, excerpt,
+                        text_chars, injection_flags)
+                   VALUES(?, ?, 'live', ?, 1, '2026-09-15T18:12:54Z', 'unknown', ?,
+                          'Good Housekeeping (Hearst)', 'publication', 'public', 'x', ?, '[]')""",
+                (next_id, url, hashlib.sha256(body.encode()).hexdigest(),
+                 "Fixture article for %s" % guide.rule_id, len(body)),
+            )
+            c.execute("INSERT INTO evidence_text(evidence_id, text) VALUES(?, ?)", (next_id, body))
+            next_id += 1
     c.commit()
     c.close()
 
@@ -149,7 +173,7 @@ def test_REPRO_content_committed_to_wal_is_retained(tmp_path):
             """INSERT INTO evidence(id, url, content_kind, content_hash, version_no, fetched_at,
                     published_at_basis, attribution, source_type, access_basis, excerpt, text_chars,
                     injection_flags)
-               VALUES(2, 'https://example.gov/second', 'live', 'hash2', 1, '2026-09-15T00:00:00Z',
+               VALUES(999, 'https://example.gov/second', 'live', 'hash2', 1, '2026-09-15T00:00:00Z',
                       'unknown', 'Publisher', 'government', 'public', 'x', 10, '[]')"""
         )
         c.commit()
@@ -162,7 +186,7 @@ def test_REPRO_content_committed_to_wal_is_retained(tmp_path):
         naive_conn = sqlite3.connect(naive)
         naive_ids = [r[0] for r in naive_conn.execute("SELECT id FROM evidence ORDER BY id")]
         naive_conn.close()
-        assert naive_ids == [1], "precondition: file copy loses the WAL-committed row"
+        assert 999 not in naive_ids, "precondition: file copy loses the WAL-committed row"
 
         result = builder.build(src, tmp_path / "out.json", tmp_path / "work.sqlite")
     finally:
@@ -171,7 +195,7 @@ def test_REPRO_content_committed_to_wal_is_retained(tmp_path):
     work = sqlite3.connect(result["work"])
     ids = [r[0] for r in work.execute("SELECT id FROM evidence ORDER BY id")]
     work.close()
-    assert ids == [1, 2], "WAL-committed row was lost by the copy"
+    assert 999 in ids, "WAL-committed row was lost by the copy"
 
 
 def test_build_does_not_modify_the_source(tmp_path):
@@ -194,9 +218,10 @@ def test_candidate_is_written_to_the_working_copy_and_stays_pending(tmp_path):
     work.row_factory = sqlite3.Row
     rows = work.execute("SELECT * FROM candidates").fetchall()
     work.close()
-    assert len(rows) == 1
-    assert rows[0]["state"] == "pending" and rows[0]["state_set_by"] == "worker"
-    assert rows[0]["publishable"] == 0
+    assert len(rows) >= 1
+    for row in rows:
+        assert row["state"] == "pending" and row["state_set_by"] == "worker"
+        assert row["publishable"] == 0
     assert result["snapshot"]["details"] == [], "pending candidates export nothing"
 
 
@@ -204,7 +229,13 @@ def test_preview_approval_touches_only_the_working_copy(tmp_path):
     src = tmp_path / "research.sqlite"
     make_db(src)
     first = builder.build(src, tmp_path / "out.json", tmp_path / "work.sqlite")
-    cid = first["snapshot"]["omitted"][0]["candidate_id"]
+    guide_rule = next(iter(MEAL_GUIDES))
+    work = sqlite3.connect(result_work := first["work"])
+    cid = work.execute(
+        "SELECT id FROM candidates WHERE generator LIKE ?", ("rule:%s@%%" % guide_rule,)
+    ).fetchone()[0]
+    work.close()
+    assert result_work
 
     result = builder.build(src, tmp_path / "preview.json", tmp_path / "work2.sqlite", (cid,))
     assert len(result["snapshot"]["details"]) == 1

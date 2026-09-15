@@ -67,6 +67,30 @@ RULES: Tuple[SupportRule, ...] = (
                     "source does not make. Registered as reviewer-curated engineering; publication still "
                     "requires a named human approval plus a separate publishable decision.",
     ),
+    SupportRule(
+        rule_id="bean_rice_bowl_prep_guide",
+        version=2,
+        action="Show the reviewed recipe guide for rice-and-bean bowls.",
+        relevance="the planned meal uses rice and canned beans",
+        support_sentences=(
+            "Add 2 cups long grain white rice, 1/2 tsp salt, and 3 cups water to a sauce pot.",
+        ),
+        problem_sentences=(
+            "Begin the rice first because everything else will be finished by the time the rice is "
+            "done cooking.",
+        ),
+        review_note="Gates the reviewed recipe guide in research/meal_guides.py "
+                    "(BEAN_RICE_BOWL_GUIDE v2). Sentences read from live Budget Bytes evidence "
+                    "'Poor Man's Burrito Bowls' (Beth Moncel), content hash "
+                    "fcc262853a138ffe6f202e924465d5051ad7d7e184f6d8b33a58fa6a7928878c, fetched "
+                    "2026-09-15, robots allowed. The page's own recipe data states 6 servings and a "
+                    "25 minute total, matching the existing template estimate. Every guide line is "
+                    "re-verified against this evidence at export. v1 (a tips-only guide from two "
+                    "Good Housekeeping technique articles) was rejected in review as not "
+                    "executable: no rice method, ratio, bean heating or assembly. Registered as "
+                    "reviewer-curated engineering; publication still requires a named human "
+                    "approval plus a separate publishable decision.",
+    ),
 )
 
 _QUOTES = {"‘": "'", "’": "'", "“": '"', "”": '"'}

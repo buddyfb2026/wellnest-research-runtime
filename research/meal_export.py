@@ -8,10 +8,12 @@ This is the only path by which research content may reach the app. It is deliber
     This module never sets any of those; it only reads them. Approval by itself is not enough.
   * The rule must still be registered in rules.py at the exact version recorded on the candidate.
     A rule that was edited or withdrawn stops exporting rather than exporting stale wording.
-  * Applicability is an exact, reviewer-registered mapping from rule_id to one meal template name
-    plus the ingredient tokens that template must contain. It is NOT keyword matching over recipe
-    text: a rule with no entry in MEAL_APPLICABILITY cannot be attached to any meal.
-  * Every displayed string is either fixed rule text or a whole sentence quoted from the evidence.
+  * What is published is a whole reviewed GUIDE from research/meal_guides.py — approval covers the
+    guide as one unit. A rule with no guide cannot be attached to any meal.
+  * Applicability is exact and reviewer-registered: one meal template name plus the ingredient
+    tokens that template must contain. It is NOT keyword matching over recipe text.
+  * Every displayed string is reviewer-written paraphrase, and each is bound to an `anchor` that is
+    re-verified here as a whole sentence in evidence still matching its recorded content hash.
 
 Household data never enters this module. It reads the research database only; nothing about a
 household is an input, so nothing about a household can be written back.
@@ -22,36 +24,111 @@ import sqlite3
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from .rules import RULES, SupportRule, match_rules
+from .meal_guides import MEAL_GUIDES, MealGuide
+from .rules import RULES, SupportRule, match_rules, normalize_sentence, sentence_units
 
 MEAL_EXPORT_PAYLOAD_VERSION = 1
 MEAL_EXPORT_CAPABILITY = "weekly_meal_plan"
 
 
-@dataclass(frozen=True)
-class MealApplicability:
-    """Exact applicability. Both conditions must hold against the meal the app already selected.
+def _evidence_index(conn: sqlite3.Connection) -> Dict[str, sqlite3.Row]:
+    """url -> evidence row (with text), newest revision wins."""
+    rows = conn.execute(
+        """SELECT e.*, t.text AS evidence_text
+             FROM evidence e LEFT JOIN evidence_text t ON t.evidence_id = e.id
+            ORDER BY e.version_no"""
+    )
+    return {row["url"]: row for row in rows}
 
-    `template_name` must equal the meal's name exactly. `required_ingredients` must all appear
-    exactly in that meal's ingredient list. Applicability can only ever *narrow* where a detail may
-    attach; it can never cause a meal to be chosen, reordered, or substituted, and it is evaluated
-    after household constraints have already picked the week's meals.
+
+def verify_guide_sources(
+    guide: MealGuide,
+    evidence_by_url: Dict[str, sqlite3.Row],
+    allow_fixture_evidence: bool,
+) -> Tuple[Dict[str, sqlite3.Row], List[str]]:
+    """Every source a guide cites must be present, live, intact and actually contain each anchor.
+
+    This is the whole safety story for a multi-line guide: a paraphrase is only publishable while the
+    sentence it was written from is still in the source, and the source still hashes to what was
+    recorded. One loop, checked per item — not a registry per step.
     """
-    template_name: str
-    required_ingredients: Tuple[str, ...]
+    reasons: List[str] = []
+    used: Dict[str, sqlite3.Row] = {}
+
+    for url in guide.source_urls:
+        row = evidence_by_url.get(url)
+        if row is None:
+            reasons.append("guide_source_missing: no stored evidence for %s" % url)
+            continue
+        text = row["evidence_text"]
+        if text is None:
+            reasons.append("guide_source_has_no_text: %s" % url)
+            continue
+        if hashlib.sha256(text.encode("utf-8")).hexdigest() != row["content_hash"]:
+            reasons.append("guide_source_hash_mismatch: %s" % url)
+            continue
+        if (row["content_kind"] or "") != "live" and not allow_fixture_evidence:
+            reasons.append("guide_source_not_live: %s" % url)
+            continue
+        try:
+            if json.loads(row["injection_flags"] or "[]"):
+                reasons.append("guide_source_instructions_flagged: %s" % url)
+                continue
+        except (ValueError, TypeError):
+            reasons.append("guide_source_malformed_injection_flags: %s" % url)
+            continue
+        used[url] = row
+
+    for item in guide.items:
+        row = used.get(item.source_url)
+        if row is None:
+            continue  # its source already produced a reason
+        units = {normalize_sentence(o): o for _, o in sentence_units(row["evidence_text"])}
+        # Ingredient lines contain abbreviations such as "15oz."; preserve the whole line
+        # as an exact anchor rather than accepting only the sentence splitter's fragment.
+        units.update({normalize_sentence(line): line for line in row["evidence_text"].splitlines()
+                      if line.strip()})
+        if normalize_sentence(item.anchor) not in units:
+            reasons.append("guide_anchor_not_in_evidence: %r not a whole sentence or complete line in %s"
+                           % (item.text[:60], item.source_url))
+
+    return used, reasons
 
 
-# rule_id -> applicability. An entry is added only after the rule's support sentence has been read in
-# real retrieved evidence and the guidance confirmed correct for that exact template.
-MEAL_APPLICABILITY: Dict[str, MealApplicability] = {
-    # CDC: "Rinse fresh fruits and vegetables under running water." The app's only template whose
-    # ingredient list is explicit fresh produce is the sheet-pan dish; broccoli and carrots must both
-    # be present, so the guidance cannot drift onto a meal it was not reviewed against.
-    "rinse_fresh_produce_under_running_water": MealApplicability(
-        template_name="Sheet-pan chicken and vegetables",
-        required_ingredients=("broccoli", "carrots"),
-    ),
-}
+def _evidence_payload(row: sqlite3.Row) -> Dict[str, Any]:
+    return {
+        "evidence_id": str(row["id"]),
+        "title": row["title"],
+        "revision": int(row["version_no"]),
+        "content_hash": row["content_hash"],
+        "source_url": row["url"],
+        "attribution": row["attribution"],
+        "checked_at": row["fetched_at"],
+        "published_at": row["published_at"],
+    }
+
+
+def _guide_payload(guide: MealGuide, used: Dict[str, sqlite3.Row]) -> Dict[str, Any]:
+    def section(items):
+        return [
+            {"text": i.text, "anchor": i.anchor, "evidence_id": str(used[i.source_url]["id"])}
+            for i in items
+        ]
+
+    payload: Dict[str, Any] = {
+        "title": guide.title,
+        "summary": guide.summary,
+        "equipment": section(guide.equipment),
+        "extra_ingredients": section(guide.extra_ingredients),
+        "steps": section(guide.steps),
+        "cautions": section(guide.cautions),
+    }
+    # Only present when a source states them; absent rather than estimated.
+    if guide.servings is not None:
+        payload["servings"] = guide.servings
+    if guide.total_time_minutes is not None:
+        payload["total_time_minutes"] = guide.total_time_minutes
+    return payload
 
 
 def _rule_index(rules: Tuple[SupportRule, ...]) -> Dict[Tuple[str, int], SupportRule]:
@@ -64,12 +141,14 @@ def _reject(reasons: List[str], detail: str) -> None:
 
 def build_meal_detail(
     row: sqlite3.Row,
-    applicability: Dict[str, MealApplicability],
+    guides: Dict[str, MealGuide],
     rule_index: Dict[Tuple[str, int], SupportRule],
+    evidence_by_url: Dict[str, sqlite3.Row],
     allow_fixture_evidence: bool = False,
 ) -> Tuple[Optional[Dict[str, Any]], List[str]]:
     """Return (detail, rejection_reasons). A detail is returned only when every gate passes."""
     reasons: List[str] = []
+    used_sources: Dict[str, sqlite3.Row] = {}
 
     state = row["state"]
     set_by = row["state_set_by"] or ""
@@ -109,9 +188,16 @@ def build_meal_detail(
     if rule is None:
         _reject(reasons, "rule_not_registered_at_version: %s@%s" % (rule_id, rule_version))
 
-    applies = applicability.get(rule_id)
-    if applies is None:
-        _reject(reasons, "no_registered_meal_applicability: %s" % rule_id)
+    guide = guides.get(rule_id)
+    if guide is None:
+        _reject(reasons, "no_registered_meal_guide: %s" % rule_id)
+    elif guide.version != rule_version:
+        _reject(reasons, "guide_version_mismatch: guide %s@%d vs candidate @%d"
+                % (rule_id, guide.version, rule_version))
+    else:
+        used_sources, guide_reasons = verify_guide_sources(
+            guide, evidence_by_url, allow_fixture_evidence)
+        reasons.extend(guide_reasons)
 
     # The recorded support quote is not trusted. Re-derive it from the stored evidence text: the
     # registered rule's sentence must still occur, as a whole sentence, in evidence whose text still
@@ -156,7 +242,7 @@ def build_meal_detail(
     if reasons:
         return None, reasons
 
-    assert rule is not None and applies is not None
+    assert rule is not None and guide is not None
     return {
         "detail_id": row["dedupe_key"],
         "candidate": {
@@ -169,14 +255,15 @@ def build_meal_detail(
         },
         "applicability": {
             "kind": "meal_template",
-            "template_name": applies.template_name,
-            "required_ingredients": list(applies.required_ingredients),
+            "template_name": guide.template_name,
+            "required_ingredients": list(guide.required_ingredients),
+            # Ingredients the guide adds beyond the template. The app checks these against household
+            # exclusions before attaching, so a guide can never smuggle in a rejected ingredient.
+            "introduced_ingredients": list(guide.introduced_ingredients),
         },
-        "guidance": {
-            # Fixed reviewer-authored rule text, plus the whole evidence sentence that supports it.
-            "text": rule.action,
-            "supporting_passage": support_quote,
-        },
+        "guide": _guide_payload(guide, used_sources),
+        # Every source the guide cites, in the order the guide first uses them.
+        "sources": [_evidence_payload(used_sources[u]) for u in guide.source_urls],
         "evidence": {
             "evidence_id": str(row["evidence_id"]),
             "revision": int(row["version_no"]),
@@ -202,7 +289,7 @@ _EXPORT_SQL = """
 
 def export_meal_details(
     conn: sqlite3.Connection,
-    applicability: Dict[str, MealApplicability] = MEAL_APPLICABILITY,
+    guides: Dict[str, MealGuide] = MEAL_GUIDES,
     rules: Tuple[SupportRule, ...] = RULES,
     generated_at: Optional[str] = None,
     allow_fixture_evidence: bool = False,
@@ -214,11 +301,13 @@ def export_meal_details(
     """
     conn.row_factory = sqlite3.Row
     rule_index = _rule_index(rules)
+    evidence_by_url = _evidence_index(conn)
     details: List[Dict[str, Any]] = []
     omitted: List[Dict[str, Any]] = []
 
     for row in conn.execute(_EXPORT_SQL):
-        detail, reasons = build_meal_detail(row, applicability, rule_index, allow_fixture_evidence)
+        detail, reasons = build_meal_detail(
+            row, guides, rule_index, evidence_by_url, allow_fixture_evidence)
         if detail is not None:
             details.append(detail)
         else:

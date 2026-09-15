@@ -15,12 +15,11 @@ from research.candidates import build_rule_candidate, save_candidate
 from research.db import connect, migrate
 from research.rules import match_rules
 from research.meal_export import (
-    MEAL_APPLICABILITY,
     MEAL_EXPORT_CAPABILITY,
     MEAL_EXPORT_PAYLOAD_VERSION,
-    MealApplicability,
     export_meal_details,
 )
+from research.meal_guides import MEAL_GUIDES, GuideItem, MealGuide
 from research.rules import RULES as REAL_RULES, SupportRule
 
 # ---- explicitly synthetic fixtures -------------------------------------------------------------
@@ -39,12 +38,27 @@ SYNTHETIC_MEAL_RULE = SupportRule(
 
 SYNTHETIC_RULES = (SYNTHETIC_MEAL_RULE,)
 
-SYNTHETIC_APPLICABILITY = {
-    "synthetic_meal_guidance_fixture": MealApplicability(
-        template_name="Sheet-pan chicken and vegetables",
-        required_ingredients=("chicken",),
-    )
-}
+SYNTHETIC_URL = "https://fixture.example/synthetic"
+
+SYNTHETIC_GUIDE = MealGuide(
+    rule_id="synthetic_meal_guidance_fixture",
+    version=1,
+    template_name="Sheet-pan chicken and vegetables",
+    required_ingredients=("chicken",),
+    introduced_ingredients=("olive oil",),
+    title="SYNTHETIC FIXTURE GUIDE",
+    summary="SYNTHETIC FIXTURE: reviewer-authored summary for the test template.",
+    equipment=(GuideItem("SYNTHETIC: a baking sheet",
+                         "Synthetic fixture sentence: use a baking sheet.", SYNTHETIC_URL),),
+    extra_ingredients=(GuideItem("SYNTHETIC: olive oil",
+                                 "Synthetic fixture sentence: you will also need olive oil.",
+                                 SYNTHETIC_URL),),
+    steps=(GuideItem("SYNTHETIC: cook the chicken through.", SYNTHETIC_SUPPORT, SYNTHETIC_URL),),
+    cautions=(GuideItem("SYNTHETIC: a fixture caution.",
+                        "Synthetic fixture sentence: this is a caution.", SYNTHETIC_URL),),
+)
+
+SYNTHETIC_GUIDES = {SYNTHETIC_GUIDE.rule_id: SYNTHETIC_GUIDE}
 
 
 def rule_validation(**overrides):
@@ -61,7 +75,13 @@ def rule_validation(**overrides):
     return v
 
 
-SYNTHETIC_TEXT = SYNTHETIC_SUPPORT + "\nSynthetic fixture problem sentence."
+SYNTHETIC_TEXT = "\n".join([
+    SYNTHETIC_SUPPORT,
+    "Synthetic fixture problem sentence.",
+    "Synthetic fixture sentence: use a baking sheet.",
+    "Synthetic fixture sentence: you will also need olive oil.",
+    "Synthetic fixture sentence: this is a caution.",
+])
 SYNTHETIC_HASH = hashlib.sha256(SYNTHETIC_TEXT.encode("utf-8")).hexdigest()
 
 
@@ -103,7 +123,7 @@ def add_candidate(conn, *, cid=1, state="approved", set_by="human:Spencer", publ
 def run(conn):
     """Synthetic evidence is content_kind='fixture', so these tests must opt in explicitly.
     Production callers never pass this flag; see test_fixture_evidence_is_refused_by_default."""
-    return export_meal_details(conn, SYNTHETIC_APPLICABILITY, SYNTHETIC_RULES,
+    return export_meal_details(conn, SYNTHETIC_GUIDES, SYNTHETIC_RULES,
                                allow_fixture_evidence=True)
 
 
@@ -115,11 +135,21 @@ def only_reason_contains(payload, fragment):
 
 # ---- the registry ships with no real meal rule yet ----------------------------------------------
 
-def test_registered_applicability_rules_all_exist_in_the_rule_registry():
-    """Applicability may only reference rules whose support sentences were read in real evidence."""
-    registered = {r.rule_id for r in REAL_RULES}
-    for rule_id in MEAL_APPLICABILITY:
-        assert rule_id in registered, "%s has applicability but no SupportRule" % rule_id
+def test_registered_guides_all_exist_in_the_rule_registry():
+    """A guide may only reference a rule whose support sentence was read in real evidence."""
+    registered = {(r.rule_id, r.version) for r in REAL_RULES}
+    for rule_id, guide in MEAL_GUIDES.items():
+        assert (rule_id, guide.version) in registered, "%s has a guide but no SupportRule" % rule_id
+        assert guide.steps, "%s: a guide must have steps" % rule_id
+        assert guide.title and guide.summary
+        # A guide must be executable, not a tip sheet.
+        assert len(guide.steps) >= 5, "%s: too few steps to cook from" % rule_id
+        # Everything it introduces beyond the template must be declared, so the app can honour
+        # household exclusions, and must also be shown to the household.
+        shown = " ".join(i.text.lower() for i in guide.extra_ingredients)
+        for ing in guide.introduced_ingredients:
+            assert ing not in guide.required_ingredients
+            assert ing.split()[0] in shown, "%s: %s not shown to the household" % (rule_id, ing)
 
 
 # ---- the happy path ----------------------------------------------------------------------------
@@ -142,11 +172,20 @@ def test_approved_publishable_rule_candidate_exports_full_detail(conn):
         "kind": "meal_template",
         "template_name": "Sheet-pan chicken and vegetables",
         "required_ingredients": ["chicken"],
+        "introduced_ingredients": ["olive oil"],
     }
 
-    # Displayed guidance is fixed rule text; the passage is the whole evidence sentence.
-    assert d["guidance"]["text"] == SYNTHETIC_MEAL_RULE.action
-    assert d["guidance"]["supporting_passage"] == SYNTHETIC_SUPPORT
+    # Displayed guidance is the reviewed guide; every anchor is a whole evidence sentence.
+    g = d["guide"]
+    assert g["title"] == SYNTHETIC_GUIDE.title
+    assert g["summary"] == SYNTHETIC_GUIDE.summary
+    assert [i["text"] for i in g["steps"]] == [i.text for i in SYNTHETIC_GUIDE.steps]
+    assert g["steps"][0]["anchor"] == SYNTHETIC_SUPPORT
+    assert len(g["equipment"]) == 1 and len(g["extra_ingredients"]) == 1 and len(g["cautions"]) == 1
+    # Unsupported figures are absent, not estimated.
+    assert "servings" not in g and "total_time_minutes" not in g
+    assert len(d["sources"]) == 1
+    assert d["sources"][0]["source_url"] == SYNTHETIC_URL
 
     assert d["evidence"]["revision"] == 2
     assert d["evidence"]["content_hash"] == SYNTHETIC_HASH
@@ -211,7 +250,7 @@ def test_unknown_rule_id_has_no_applicability(conn):
     add_candidate(conn, validation=rule_validation(rule_id="some_unregistered_rule"))
     reasons = " ".join(r for o in run(conn)["omitted"] for r in o["reasons"])
     assert "rule_not_registered_at_version" in reasons
-    assert "no_registered_meal_applicability" in reasons
+    assert "no_registered_meal_guide" in reasons
 
 
 def test_rule_version_drift_stops_export(conn):
@@ -282,7 +321,7 @@ def test_missing_evidence_text_cannot_be_verified(conn):
 def test_fixture_evidence_is_refused_by_default(conn):
     """The production call signature has no flag set; content_kind='fixture' must not publish."""
     add_candidate(conn)
-    payload = export_meal_details(conn, SYNTHETIC_APPLICABILITY, SYNTHETIC_RULES)
+    payload = export_meal_details(conn, SYNTHETIC_GUIDES, SYNTHETIC_RULES)
     assert payload["details"] == []
     reasons = " ".join(r for o in payload["omitted"] for r in o["reasons"])
     assert "non_live_evidence" in reasons
@@ -301,50 +340,17 @@ def test_live_evidence_needs_no_flag(conn):
     conn.execute("UPDATE evidence SET content_kind='live' WHERE id=1")
     conn.commit()
     add_candidate(conn)
-    payload = export_meal_details(conn, SYNTHETIC_APPLICABILITY, SYNTHETIC_RULES)
+    payload = export_meal_details(conn, SYNTHETIC_GUIDES, SYNTHETIC_RULES)
     assert len(payload["details"]) == 1
     assert "_test_only_fixture_evidence" not in payload
 
 
 # ---- producer and consumer registries must not drift ---------------------------------------------
 
-CONSUMER_REGISTRY = Path("/tmp/wellnest-wel42-app/src/core/mealResearch.ts")
-
-
-def test_consumer_registry_matches_the_producer_registries():
-    """The app mirrors rule text and applicability so a payload cannot supply either. That mirror is
-    only safe if the two sides agree, so compare them field by field."""
-    if not CONSUMER_REGISTRY.exists():
-        pytest.skip("app checkout not available")
-    src = CONSUMER_REGISTRY.read_text()
-    block = src.split("export const MEAL_DETAIL_RULES", 1)[1].split("];", 1)[0]
-
-    entries = re.findall(
-        r"ruleId:\s*'([^']+)',\s*"
-        r"ruleVersion:\s*(\d+),\s*"
-        r"text:\s*'((?:[^'\\]|\\.)*)',\s*"
-        r"supportingPassages:\s*\[([^\]]*)\],\s*"
-        r"templateName:\s*'((?:[^'\\]|\\.)*)',\s*"
-        r"requiredIngredients:\s*\[([^\]]*)\],",
-        block,
-    )
-    assert entries, "could not parse the consumer registry"
-
-    exportable = {r.rule_id: r for r in REAL_RULES if r.rule_id in MEAL_APPLICABILITY}
-    assert {e[0] for e in entries} == set(exportable), \
-        "consumer registry and exportable producer rules do not cover the same rule ids"
-
-    for rule_id, version, text, passages, template, ingredients in entries:
-        rule = exportable[rule_id]
-        applies = MEAL_APPLICABILITY[rule_id]
-        strings = lambda s: [m for m in re.findall(r"'((?:[^'\\]|\\.)*)'", s)]  # noqa: E731
-
-        assert int(version) == rule.version, "%s: version drift" % rule_id
-        assert text == rule.action, "%s: guidance text drift" % rule_id
-        assert strings(passages) == list(rule.support_sentences), "%s: support sentence drift" % rule_id
-        assert template == applies.template_name, "%s: template drift" % rule_id
-        assert strings(ingredients) == list(applies.required_ingredients), \
-            "%s: required ingredient drift" % rule_id
+# The producer/consumer cross-check lives in the app suite: the consumer requires the payload's guide
+# to equal its own registry field for field, so producer output either parses or fails loudly. See
+# tests/meal-research-integration.test.ts, "the preview snapshot parses against the production
+# registry". Parsing TypeScript with regexes here would be weaker and more brittle.
 
 
 # ---- the real, source-backed rule ---------------------------------------------------------------
@@ -409,7 +415,7 @@ def test_the_real_pending_candidate_exports_nothing(conn):
     cand = build_rule_candidate(ev, match_rules(text, (rule,))[0])
     save_candidate(conn, cand)
 
-    payload = export_meal_details(conn, MEAL_APPLICABILITY, REAL_RULES)
+    payload = export_meal_details(conn, MEAL_GUIDES, REAL_RULES)
     assert payload["details"] == []
     assert any("state_not_approved: pending" in r for o in payload["omitted"] for r in o["reasons"])
 
@@ -420,3 +426,22 @@ def test_export_is_deterministic_and_ordered_by_candidate_id(conn):
     first = run(conn)
     assert [d["candidate"]["candidate_id"] for d in first["details"]] == [1, 2]
     assert json.dumps(first) == json.dumps(run(conn))
+
+
+@pytest.mark.parametrize("line,accepted", [
+    ("▢ 2 15oz. cans black beans ($0.98)", True),
+    ("▢ 2 10oz. cans black beans ($0.98)", False),
+    ("Do not use ▢ 2 15oz. cans black beans ($0.98)", False),
+    ("▢ 2 15oz. cans black beans ($0.98), unless unavailable", False),
+])
+def test_registered_ingredient_anchor_requires_exact_complete_line(line, accepted):
+    from dataclasses import replace
+    from research.meal_guides import GuideItem
+    from research.meal_export import verify_guide_sources
+    anchor = "▢ 2 15oz. cans black beans ($0.98)"
+    guide = replace(SYNTHETIC_GUIDE, equipment=(), extra_ingredients=(), cautions=(),
+                    steps=(GuideItem("Use two 15-ounce cans of black beans.", anchor, SYNTHETIC_URL),))
+    row = {"evidence_text": line, "content_hash": hashlib.sha256(line.encode()).hexdigest(),
+           "content_kind": "fixture", "injection_flags": "[]"}
+    _, reasons = verify_guide_sources(guide, {SYNTHETIC_URL: row}, True)
+    assert (not reasons) is accepted

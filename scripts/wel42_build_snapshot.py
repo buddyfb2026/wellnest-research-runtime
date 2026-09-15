@@ -22,11 +22,13 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
+from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from research.candidates import build_rule_candidate, human_review, save_candidate  # noqa: E402
-from research.meal_export import MEAL_APPLICABILITY, export_meal_details  # noqa: E402
+from research.extract import extract  # noqa: E402
+from research.meal_export import export_meal_details  # noqa: E402
 from research.rules import RULES, match_rules  # noqa: E402
 
 
@@ -61,7 +63,46 @@ def check_paths(source: Path, out: Path, work: Path) -> None:
         raise UnsafePaths("refusing to run: working copy and output snapshot are the same file")
 
 
-def build(source: Path, out: Path, work: Path, preview_approve=()) -> dict:
+def ingest_saved_evidence(conn: sqlite3.Connection, ingest_dir: Path) -> list:
+    """Load previously retrieved pages (raw HTML + meta.json) into the WORKING COPY as evidence.
+
+    The text and content hash are re-derived here by the repo's own extractor from the stored HTML,
+    so nothing about the evidence is asserted by hand. Re-running is idempotent: a url+hash already
+    present is skipped rather than duplicated.
+    """
+    meta = json.loads((ingest_dir / "meta.json").read_text())
+    added = []
+    for key, m in sorted(meta.items()):
+        html = (ingest_dir / (key + ".html")).read_text()
+        ex = extract(html)
+        if ex.content_hash != m["content_hash"]:
+            raise ValueError("%s: stored HTML no longer extracts to the recorded hash" % key)
+        existing = conn.execute(
+            "SELECT id FROM evidence WHERE url=? AND content_hash=?", (m["url"], ex.content_hash)
+        ).fetchone()
+        if existing:
+            continue
+        prior = conn.execute(
+            "SELECT COALESCE(MAX(version_no), 0) AS v FROM evidence WHERE url=?", (m["url"],)
+        ).fetchone()["v"]
+        cur = conn.execute(
+            """INSERT INTO evidence(url, final_url, content_kind, content_hash, version_no, fetched_at,
+                    published_at, published_at_basis, modified_at, title, attribution, source_type,
+                    access_basis, usage_constraints, excerpt, text_chars, injection_flags)
+               VALUES(?,?,'live',?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (m["url"], m.get("final_url"), ex.content_hash, prior + 1, m["fetched_at"],
+             ex.published_at, ex.published_at_basis, ex.modified_at, ex.title, m["attribution"],
+             "publication", m["access_basis"], m["usage_constraints"], ex.excerpt, len(ex.text),
+             json.dumps(ex.injection_flags)),
+        )
+        conn.execute("INSERT INTO evidence_text(evidence_id, text) VALUES(?, ?)",
+                     (int(cur.lastrowid), ex.text))
+        added.append((int(cur.lastrowid), m["url"]))
+    conn.commit()
+    return added
+
+
+def build(source: Path, out: Path, work: Path, preview_approve=(), ingest_dir: Optional[Path] = None) -> dict:
     # Nothing below this line may run until the paths are proven distinct.
     check_paths(source, out, work)
 
@@ -83,8 +124,11 @@ def build(source: Path, out: Path, work: Path, preview_approve=()) -> dict:
     conn = sqlite3.connect(work)
     conn.row_factory = sqlite3.Row
 
-    # Only rules that have a registered meal applicability are worth materialising here.
-    meal_rules = tuple(r for r in RULES if r.rule_id in MEAL_APPLICABILITY)
+    ingested = ingest_saved_evidence(conn, ingest_dir) if ingest_dir else []
+
+    # Every registered rule, as the worker would. Whether a candidate can reach a card is decided by
+    # the guide registry at export, not by narrowing what we bother to record here.
+    meal_rules = RULES
 
     saved = []
     for ev in conn.execute("SELECT * FROM evidence ORDER BY id"):
@@ -122,7 +166,7 @@ def build(source: Path, out: Path, work: Path, preview_approve=()) -> dict:
     conn.close()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(snapshot, indent=2, sort_keys=False) + "\n")
-    return {"saved": saved, "snapshot": snapshot, "work": work}
+    return {"saved": saved, "snapshot": snapshot, "work": work, "ingested": ingested}
 
 
 def main() -> int:
@@ -130,12 +174,14 @@ def main() -> int:
     p.add_argument("source", type=Path)
     p.add_argument("out", type=Path)
     p.add_argument("--work", type=Path, default=Path("/tmp/wel42-snapshot-work.sqlite"))
+    p.add_argument("--ingest-dir", type=Path, default=None,
+                   help="directory of saved raw HTML + meta.json to load as evidence")
     p.add_argument("--preview-approve", type=int, nargs="*", default=[],
                    help="PREVIEW ONLY: simulate approval of these candidate ids on the working copy")
     a = p.parse_args()
 
     try:
-        result = build(a.source, a.out, a.work, tuple(a.preview_approve))
+        result = build(a.source, a.out, a.work, tuple(a.preview_approve), a.ingest_dir)
     except UnsafePaths as e:
         print("ABORTED, nothing written: %s" % e, file=sys.stderr)
         return 2

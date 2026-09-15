@@ -42,6 +42,7 @@ def test_registry_is_closed_and_every_action_is_reviewed():
     assert [r.rule_id for r in RULES] == [
         "air_fryer_basket_after_each_use",
         "rinse_fresh_produce_under_running_water",
+        "bean_rice_bowl_prep_guide",
     ]
     assert RULE.generator == "rule:air_fryer_basket_after_each_use@1"
     assert RULE.support_sentences == (SUPPORT_SENTENCE,) and RULE.problem_sentences == (PROBLEM_SENTENCE,)
