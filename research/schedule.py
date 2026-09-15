@@ -50,6 +50,56 @@ def due_urls(conn: sqlite3.Connection, now: datetime, limit: int) -> List[str]:
     return [r["url"] for r in rows]
 
 
+# WEL-43 bounded exploration. A fixed, deterministic share of each cycle's slots is reserved for
+# sources that have never been attempted, so a source that is already collecting cannot hold every
+# slot forever. This is a fairness rule only: nothing here scores or ranks source quality, and the
+# reserve is applied AFTER the permitted / not-stalled / due gates, never instead of them.
+EXPLORATION_DIVISOR = 3
+
+
+def eligible_rows(conn: sqlite3.Connection, now: datetime) -> List[sqlite3.Row]:
+    """Every row that may legally be requested now, in the incumbent order (next check, then url).
+
+    Gates, in this order: the source must have a hint row with a permitted access basis, must not be
+    stalled, and must be due. A source without a permitted hint row is never returned.
+    """
+    return conn.execute(
+        "SELECT s.url AS url, s.attempts AS attempts, s.next_check_at AS next_check_at "
+        "FROM source_state s JOIN source_hints h ON h.url = s.url "
+        "WHERE h.fetch_permitted = 1 AND s.stalled = 0 AND s.next_check_at <= ? "
+        "ORDER BY s.next_check_at, s.url", (iso(now),)).fetchall()
+
+
+def select_cycle_urls(conn: sqlite3.Connection, now: datetime, limit: int) -> Dict[str, object]:
+    """Pick at most `limit` eligible urls, reserving floor(limit/3) slots (at least 1 when an
+    unexplored eligible source exists) for sources with zero attempts.
+
+    The reserve changes *which* eligible sources are picked, never how many, and never admits a
+    source the gates above excluded. An empty eligible pool selects nothing and creates no work.
+    Requests stay in the incumbent order; the reserve only decides membership.
+    """
+    limit = max(0, int(limit))
+    rows = eligible_rows(conn, now)
+    if limit == 0 or not rows:
+        return {"selected": [], "exploration": [], "exploitation": [], "reserved_slots": 0, "eligible": len(rows)}
+    unexplored = [r["url"] for r in rows if not r["attempts"]]
+    reserved = limit // EXPLORATION_DIVISOR
+    if unexplored and reserved == 0:
+        reserved = 1
+    reserved = min(reserved, len(unexplored), limit)
+    exploration = unexplored[:reserved]
+    chosen = list(exploration)
+    for r in rows:                      # incumbent order fills the remaining slots
+        if len(chosen) >= limit:
+            break
+        if r["url"] not in chosen:
+            chosen.append(r["url"])
+    selected = [r["url"] for r in rows if r["url"] in set(chosen)]
+    return {"selected": selected, "exploration": exploration,
+            "exploitation": [u for u in selected if u not in set(exploration)],
+            "reserved_slots": reserved, "eligible": len(rows)}
+
+
 def record_outcome(conn: sqlite3.Connection, url: str, outcome: str, reason: Optional[str], attempted_at: str,
                    now: datetime, evidence_id: Optional[int] = None) -> Dict[str, object]:
     """Advance the schedule for one attempt. Must run inside the attempt's transaction."""

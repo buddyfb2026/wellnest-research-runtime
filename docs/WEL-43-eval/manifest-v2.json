@@ -1,0 +1,19 @@
+{
+  "adjustment": "sentence integrity over already-extracted text",
+  "baseline_version": "rules_incumbent",
+  "budget": {
+    "model_calls": 0,
+    "network_requests": 0
+  },
+  "challenger_version": "sentence_integrity_v1",
+  "dev_case_count": 11,
+  "files": {
+    "eval/wel43/dev_cases.json": "8532e6371eae908707140baeb353035fc83d7f7aed8054e071ede276583ade4f",
+    "eval/wel43/rubric-addendum-v2.md": "7d88acd47d01acbc37c64914a252c8241998f417890325cb90b105f0e5d6fe78",
+    "eval/wel43/rubric.md": "c0d6b70ccc0fb1ce04bc1baf06f101b90c0dd6fa2c2d1cdc7c33bdf1f6cfa308",
+    "research/evaluate.py": "a8a4f8424638f5df959abf3ac0be07731088890ce0875a70ca913094c5899a53",
+    "research/rules.py": "876449c08c2df0ba172123eae5b608cb9c6a3be3cbb15067652edfcbd971ce93",
+    "research/sentence_integrity.py": "0f062c3b0bef50cea91655301008fe70b3dc1052527a68f9f112b17b9fd79ba9"
+  },
+  "rubric": "eval/wel43/rubric.md"
+}
