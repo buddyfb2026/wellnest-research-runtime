@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "note": "Discovery hints with a per-source access basis. fetch=false means discovery-only: no request is made until a permitted access route is established. Public visibility is not blanket permission. Buy Guide entries are seeds from seeds/scour_discovery_playbook.json, not permission to reuse material.",
+  "sources": [
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/",
+      "source_type": "publication",
+      "attribution": "Good Housekeeping (Hearst)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Read for evidence; short verbatim quotes with attribution only; no image reuse; no republication.",
+      "discovery_origin": "manual: publication named in WN Research-to-card charter"
+    },
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/",
+      "source_type": "publication",
+      "attribution": "Good Housekeeping (Hearst)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Read for evidence; short verbatim quotes with attribution only; no image reuse; no republication.",
+      "discovery_origin": "manual: publication named in WN Research-to-card charter"
+    },
+    {
+      "url": "https://thebuyguide.com/hers/smart-as-a-mother/",
+      "source_type": "creator_site",
+      "attribution": "The Buy Guide (thebuyguide.com)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Seed only. Preserve creator credit and creator shopping links; never replace affiliate tags; no image reuse; product identity must be verified separately.",
+      "discovery_origin": "seed: scour_discovery_playbook cluster product_discovery_moms (thebuyguide)"
+    },
+    {
+      "url": "https://thebuyguide.com/home/teen-girl-room-with-havenly/",
+      "source_type": "creator_site",
+      "attribution": "The Buy Guide (thebuyguide.com)",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Seed only. Preserve creator credit and creator shopping links; never replace affiliate tags; no image reuse; product identity must be verified separately.",
+      "discovery_origin": "seed: scour_discovery_playbook cluster product_discovery_moms (thebuyguide)"
+    },
+    {
+      "url": "https://www.pewresearch.org/social-trends/2023/01/24/parenting-in-america-today/",
+      "source_type": "research",
+      "attribution": "Pew Research Center",
+      "access_basis": "public_web_robots_checked; site robots.txt publishes Content-Signal ai-input=yes",
+      "fetch": true,
+      "usage_constraints": "Cite with attribution; Pew terms of use apply; no republication of full text.",
+      "discovery_origin": "manual: foundational research (parenting, household burden)"
+    },
+    {
+      "url": "https://www.pewresearch.org/short-reads/2023/04/13/in-a-growing-share-of-u-s-marriages-husbands-and-wives-earn-about-the-same/",
+      "source_type": "research",
+      "attribution": "Pew Research Center",
+      "access_basis": "public_web_robots_checked",
+      "fetch": true,
+      "usage_constraints": "Cite with attribution; Pew terms of use apply.",
+      "discovery_origin": "manual: remembered URL, unverified — kept to exercise an honest not-found outcome"
+    },
+    {
+      "url": "https://www.cdc.gov/food-safety/prevention/index.html",
+      "source_type": "government",
+      "attribution": "U.S. Centers for Disease Control and Prevention",
+      "access_basis": "public_domain_us_government; robots checked",
+      "fetch": true,
+      "usage_constraints": "U.S. federal government work; attribute; do not imply endorsement.",
+      "discovery_origin": "manual: foundational household safety guidance"
+    },
+    {
+      "url": "https://www.instagram.com/thebuyguide/",
+      "source_type": "creator_social",
+      "attribution": "The Buy Guide (@thebuyguide on Instagram)",
+      "access_basis": "none: login-gated platform; no permitted content access established",
+      "fetch": false,
+      "usage_constraints": "Discovery-only. Instagram permission is not interchangeable with website permission.",
+      "discovery_origin": "seed: scour_discovery_playbook cluster product_discovery_moms (thebuyguide)"
+    },
+    {
+      "url": "https://www.youtube.com/results?search_query=working+mom+household+systems",
+      "source_type": "video",
+      "attribution": "YouTube search (discovery query from scour playbook youtube_queries)",
+      "access_basis": "none: no permitted transcript/content access established",
+      "fetch": false,
+      "usage_constraints": "Discovery-only until a permitted video access route exists.",
+      "discovery_origin": "seed: scour_discovery_playbook youtube_queries"
+    }
+  ]
+}

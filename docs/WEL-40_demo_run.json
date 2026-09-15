@@ -1,0 +1,17 @@
+{
+  "run_id": "run_20260915T141431Z_aea966",
+  "status": "ok",
+  "fetched_ok": 6,
+  "blocked": 0,
+  "errors": 1,
+  "skipped_policy": 2,
+  "evidence_new": 6,
+  "evidence_existing": 0,
+  "candidates_new": 6,
+  "candidates_existing": 0,
+  "inference_calls": 6,
+  "failures": [],
+  "robots_requests": 4,
+  "source_requests": 7,
+  "report_path": "/Users/buddystudio1/Projects/wellnest-research-runtime-wel-40/work/report.md"
+}

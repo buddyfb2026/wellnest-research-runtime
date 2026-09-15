@@ -3,3 +3,8 @@ work/
 logs/
 *.tar.gz
 .DS_Store
+
+# WEL-40 research worker
+work/
+__pycache__/
+.pytest_cache/
