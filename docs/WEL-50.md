@@ -70,6 +70,32 @@ WN_RESEARCH_RECIPE_EXTRACTION=false __FILL_PYTHON3__ -m research.worker cycle \
   --db __FILL_SCRATCH_STATE_DIR__/research.sqlite --report __FILL_SCRATCH_STATE_DIR__/report.md
 ```
 
+## WEL-54 opt-in local operating profile (not activated)
+
+Two optional controls. Neither is enabled by default, and neither is used by the disabled plist above.
+
+- `--local-daily-budget N` (`run`/`cycle` CLI flag only; there is no environment variable for it, so `report`, `review` and `reset-source` are unaffected):
+  - applies to `--provider ollama` only;
+  - with it set, any explicit `--max-urls`, `--max-inference` or `--max-inference-per-day` must be a positive whole number (zero or negative exits 2), then the existing clamps apply;
+  - N must be a whole number from 1 to 100 (`research/config.LOCAL_DAILY_BUDGET_CEILING`);
+  - it replaces the fixed daily 10 as the per-UTC-day ceiling, and `--max-inference-per-day` can only lower it;
+  - the per-run limit (10) and URL limit (10) are unchanged;
+  - it limits local model host time, not money;
+  - invalid values exit 2 before any store is opened.
+- `--meals-first` (or `WN_RESEARCH_MEALS_FIRST=true`):
+  - with recipe extraction enabled, the existing recipe step runs before generic proposals, so recipes take calls from the shared caps first;
+  - generic proposals then use whatever remains, and get the existing budget placeholders for the rest;
+  - with no eligible recipe, the run behaves exactly like the default.
+
+The reservation, persisted daily count, UTC day, lock, charged-ambiguous and replay rules are unchanged, and no ledger is reset.
+
+```bash
+... -m research.worker cycle --provider ollama --max-urls 10 --max-inference 10 \
+  --local-daily-budget 60 --meals-first --allowlist ... --db ... --report ...
+```
+
+Choosing N, and enabling this under launchd, are separately authorized operator decisions. Neither has been measured on the host.
+
 ## Manifest (fill from verified, authorized deployment evidence; never invent)
 
 | token | meaning | filled by |
