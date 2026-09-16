@@ -34,15 +34,32 @@ def _number(token: str) -> Optional[float]:
             return None
 
 
+_FRACTION_GLYPHS = "".join(_FRACTIONS)
+# Match a complete fraction before its integer prefix, at either end of a range.
+_QUANTITY_TOKEN = (rf"(?:\d+[ \t]+(?:\d+/\d+|[{_FRACTION_GLYPHS}])|"
+                   rf"\d*[{_FRACTION_GLYPHS}]|\d+/\d+|\d+(?:\.\d+)?)")
+_QUANTITY = re.compile(
+    rf"^({_QUANTITY_TOKEN})(?:[ \t]*(?:-|–|to)[ \t]*({_QUANTITY_TOKEN}))?"
+    rf"(?![\d/.{_FRACTION_GLYPHS}])(?![ \t]+[\d{_FRACTION_GLYPHS}])"
+    r"\s*(?:\([^)]*\)\s*)?(\w+)?\b\s*(.*)$", re.I)
+
+
+def _quantity_number(token: str) -> Optional[float]:
+    parts = [_number(part) for part in token.split()]
+    return sum(parts) if all(part is not None for part in parts) else None
+
+
 def quantity(literal: str) -> Optional[Dict[str, Any]]:
     clean = literal.strip().lstrip("▢☐ ")
-    m = re.match(r"^(\d*[¼½¾⅓⅔⅛⅜⅝⅞]|\d+(?:\.\d+)?(?:\s+\d+/\d+)?|\d+/\d+)(?:\s*(?:-|–|to)\s*(\d*[¼½¾⅓⅔⅛⅜⅝⅞]|\d+(?:\.\d+)?|\d+/\d+))?\s*(?:\([^)]*\)\s*)?(\w+)?\b\s*(.*)$", clean, re.I)
+    unknown = {"amount": None, "amount_max": None, "unit": None, "item": clean}
+    m = _QUANTITY.match(clean)
     if not m:
         # A source may state an ingredient without a quantity; preserve identity but make amount unknown.
-        return {"amount": None, "amount_max": None, "unit": None, "item": clean}
-    low = _number(m.group(1).replace(" ", "+")) if " " not in m.group(1).strip() else sum(
-        (_number(p) or 0) for p in m.group(1).split())
-    high = _number(m.group(2)) if m.group(2) else None
+        return unknown
+    low = _quantity_number(m.group(1))
+    high = _quantity_number(m.group(2)) if m.group(2) else None
+    if low is None or (m.group(2) and high is None):
+        return unknown
     unit_token = (m.group(3) or "").casefold()
     unit = _UNITS.get(unit_token)
     item = m.group(4).strip() if unit else " ".join(x for x in (m.group(3), m.group(4)) if x).strip()
@@ -107,6 +124,10 @@ SERV_FORMS = (
     re.compile(rf"^\(?{_range('a')}{_TRAIL}{_END}", re.I),
 )
 SERV_BARE = re.compile(rf"^\s*{_range('a')}(?:{_TRAIL})?\s*$", re.I)
+# Only these observed decorative label icons may precede the existing closed
+# grammar. Never strip arbitrary symbols (e.g. negation), words, or newlines.
+# Binding still retains and verifies the original, unmodified source quote.
+_LABEL_ICON = re.compile(r"^[⏲🍳🍽]\ufe0f?[ \t]+")
 _HOURS = r"(?:hours?|hrs?)"
 _MINUTES = r"(?:minutes?|mins?)"
 _H = rf"(?P<h>\d{{1,2}})\s*{_HOURS}\b(?:\s+{_HOURS}\b)?"
@@ -130,6 +151,7 @@ def _count_value(match: re.Match) -> Optional[Dict[str, int]]:
 def parse_servings_quote(literal: Any) -> Optional[Dict[str, int]]:
     if not isinstance(literal, str) or "\n" in literal:
         return None
+    literal = _LABEL_ICON.sub("", literal, count=1)
     for form in SERV_FORMS:
         match = form.fullmatch(literal)
         if match:
@@ -156,6 +178,7 @@ def _duration_value(match: re.Match) -> Optional[int]:
 def parse_time_quote(role: str, literal: Any) -> Optional[int]:
     if role not in TIME_FORMS or not isinstance(literal, str) or "\n" in literal:
         return None
+    literal = _LABEL_ICON.sub("", literal, count=1)
     match = TIME_FORMS[role].fullmatch(literal)
     return _duration_value(match) if match else None
 

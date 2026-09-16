@@ -154,21 +154,22 @@ def test_real_adapter_keeps_recipe_content_and_stated_times_then_replays(tmp_pat
     conn.close()
 
 
-def test_extractor_upgrade_preserves_old_version_and_spent_call(tmp_path, monkeypatch):
+@pytest.mark.parametrize("old_version", ["wel48_extractor_v2", "wel48_extractor_v3"])
+def test_extractor_upgrade_preserves_old_version_and_spent_call(tmp_path, monkeypatch, old_version):
     cfg, pages, model, fixture = _setup(tmp_path)
     current_key = recipes.extraction_key
     with monkeypatch.context() as old:
-        old.setattr(recipes, "EXTRACTOR_VERSION", "wel48_extractor_v2")
-        old.setattr(recipes, "extraction_key", partial(current_key, extractor_version="wel48_extractor_v2"))
+        old.setattr(recipes, "EXTRACTOR_VERSION", old_version)
+        old.setattr(recipes, "extraction_key", partial(current_key, extractor_version=old_version))
         assert _run(cfg, pages, model).ok
     conn = db.connect(cfg.db_path)
     previous = dict(conn.execute("SELECT * FROM recipe_versions").fetchone())
     conn.close()
-    assert recipes.EXTRACTOR_VERSION == "wel48_extractor_v3"
+    assert recipes.EXTRACTOR_VERSION == "wel48_extractor_v4"
     assert _run(cfg, pages, ModelClient("fixture", 10, fixture_fn=fixture)).ok
     conn = db.connect(cfg.db_path)
     rows = [dict(x) for x in conn.execute("SELECT * FROM recipe_versions ORDER BY id")]
     assert len(rows) == 2 and rows[0] == previous
-    assert rows[1]["extractor_version"] == "wel48_extractor_v3"
+    assert rows[1]["extractor_version"] == "wel48_extractor_v4"
     assert conn.execute("SELECT COUNT(*) FROM inference_calls WHERE purpose='recipe_extraction'").fetchone()[0] == 2
     conn.close()
