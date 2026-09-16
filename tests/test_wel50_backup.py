@@ -86,8 +86,9 @@ def _seed(path: Path) -> None:
 
 EXPECTED_COUNTS = {"candidates": 1, "evidence": 1, "evidence_current_manifest": 1, "evidence_text": 1,
                    "fetch_attempts": 1, "inference_calls": 1, "locator_manifests": 1, "publishers": 1,
-                   "recipe_versions": 1, "recipes": 1, "runs": 1, "schema_version": 6, "source_hints": 1,
-                   "source_state": 1, "source_surfaces": 1, "surface_aliases": 0}
+                   "recipe_versions": 1, "recipes": 1, "runs": 1, "schema_version": 7, "source_hints": 1,
+                   "source_state": 1, "source_surfaces": 1, "surface_aliases": 0,
+                   "pack_state": 0, "recipe_publications": 0}
 
 
 def _run(*args, timeout=20):
@@ -153,7 +154,7 @@ def test_backup_and_fresh_path_restore_round_trip_representative_rows(tmp_path):
     assert after["state"]["last_evidence_id"] == 7 and after["join"] == 3
     assert json.loads(after["candidate"]["observations"]) == ["Kitchen sponges should be replaced every week"]
     conn = sqlite3.connect(str(fresh))
-    assert conn.execute("SELECT COALESCE(MAX(version),0) FROM schema_version").fetchone()[0] == 6
+    assert conn.execute("SELECT COALESCE(MAX(version),0) FROM schema_version").fetchone()[0] == 7
     conn.close()
     # the backup and the original store are untouched by the restore
     assert _snapshot(db) == before and _snapshot(out) == before
