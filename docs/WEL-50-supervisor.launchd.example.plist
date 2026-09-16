@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  WEL-50 PREPARED / NOT ACTIVATED. This file is an uninstalled example: Disabled=true, never copied
+  into any LaunchAgents/LaunchDaemons directory, never bootstrapped, never loaded. Activation is a
+  separate step that requires Spencer's explicit authorization naming the exact action and the exact
+  host, service account and plist label; review, merge or PR approval is not activation authority
+  (see docs/WEL-50.md, "Activation prerequisites").
+
+  Shape: one OS supervisor (launchd) starts one bounded worker process on a fixed interval; the
+  worker does one `cycle` and exits; launchd sleeps until the next StartInterval. There is no loop,
+  no KeepAlive, no RunAtLoad. Overlap, backoff and inference budgets come from the reviewed worker
+  (research/lock.py, research/schedule.py, research/model.py), not from launchd.
+
+  Every __FILL_*__ token is a manifest field: fill it from verified, authorized deployment evidence
+  (host, account, checkout path, python, allowlist roster, model decision). Do not invent values and
+  do not activate with placeholders present. `plutil -lint` passes with the placeholders in place.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.wellnest.research-cycle</string>
+  <key>Disabled</key><true/>
+
+  <!-- One bounded cycle per launch. Provider `none` makes zero model calls; no model is pinned by
+       WEL-50. Every cap is at (or below) the hard cap in research/config.py and can only be lowered. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>__FILL_PYTHON3__</string>
+    <string>-m</string><string>research.worker</string>
+    <string>cycle</string>
+    <string>--provider</string><string>none</string>
+    <string>--max-urls</string><string>10</string>
+    <string>--max-inference</string><string>10</string>
+    <string>--max-inference-per-day</string><string>10</string>
+    <string>--allowlist</string><string>__FILL_CHECKOUT__/sources/allowlist.json</string>
+    <string>--db</string><string>__FILL_STATE_DIR__/research.sqlite</string>
+    <string>--report</string><string>__FILL_STATE_DIR__/report.md</string>
+  </array>
+
+  <!-- The repo checkout of the reviewed commit; `-m research.worker` resolves from here. -->
+  <key>WorkingDirectory</key><string>__FILL_CHECKOUT__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PYTHONUNBUFFERED</key><string>1</string>
+    <!-- No WN_RESEARCH_* variables: paths and provider are explicit flags above so the store can
+         never silently resolve to a different file. Ollama variables are intentionally absent. -->
+  </dict>
+
+  <!-- Sleep between cycles lives here. 3600 s is the WEL-41 example value; the worker's own
+       schedule (7 d after success, finite backoff on failure) decides whether anything is due. -->
+  <key>StartInterval</key><integer>3600</integer>
+  <key>RunAtLoad</key><false/>
+  <!-- KeepAlive must NOT be set: a nonzero exit (1 failed, 3 locked) is a report, not a restart trigger. -->
+
+  <key>StandardOutPath</key><string>__FILL_STATE_DIR__/cycle.log</string>
+  <key>StandardErrorPath</key><string>__FILL_STATE_DIR__/cycle.err</string>
+  <key>ProcessType</key><string>Background</string>
+</dict>
+</plist>
