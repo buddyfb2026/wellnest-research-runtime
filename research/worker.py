@@ -27,6 +27,8 @@ from . import db as dbm
 from . import discovery
 from . import evidence as ev
 from . import report as rpt
+from . import recipe_extract
+from . import recipes
 from . import rules
 from . import schedule as sch
 from .config import Config
@@ -75,7 +77,8 @@ def _missing_work(conn: sqlite3.Connection, eid: int, generator: str) -> bool:
 def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = None,
         content_kind: str = "live", check_robots: bool = True,
         conn_factory: Callable[[Path], sqlite3.Connection] = dbm.connect,
-        clock: Optional[Callable[[], datetime]] = None, due_only: bool = False) -> RunResult:
+        clock: Optional[Callable[[], datetime]] = None, due_only: bool = False,
+        crash_hook: Optional[Callable[[str], None]] = None) -> RunResult:
     clock = clock or sch.utc_now
     now = clock()
     now_s = sch.iso(now)
@@ -86,6 +89,7 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
                        evidence_new=0, evidence_existing=0, candidates_new=0, candidates_existing=0,
                        candidates_recovered=0, attempts_settled=0, inference_calls=0, inference_used_today=0,
                        budget_deferred=0,
+                       recipe_versions_new=0, recipe_versions_existing=0, recipe_failures=0,
                        routes_fetched=0, discovered_hints=0, assessed_permitted=0, assessed_denied=0,
                        source_requests=0, robots_requests=0, failures=[])
 
@@ -108,7 +112,8 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
             result["status"] = "failed"
             result["failures"].append("database unavailable: %s: %s" % (type(e).__name__, e))
             return result
-        return _run_locked(cfg, conn, transport, model, content_kind, check_robots, clock, due_only, result, run_id)
+        return _run_locked(cfg, conn, transport, model, content_kind, check_robots, clock, due_only, result, run_id,
+                           crash_hook)
     finally:
         if conn is not None:
             try:
@@ -121,7 +126,7 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
 
 def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optional[ModelClient], content_kind: str,
                 check_robots: bool, clock: Callable[[], datetime], due_only: bool, result: RunResult,
-                run_id: str) -> RunResult:
+                run_id: str, crash_hook=None) -> RunResult:
     now = clock()
     now_s = sch.iso(now)
     day = result["day"]
@@ -217,6 +222,8 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
             result["evidence_new" if is_new else "evidence_existing"] += 1
             touched.append(eid)
             conn.execute("COMMIT")   # evidence + schedule are durable here; candidate work below is recoverable
+            if crash_hook:
+                crash_hook("after_evidence_manifest_commit")
         except Exception as e:
             _rollback(conn)
             result["failures"].append("persist %s: %s: %s" % (url, type(e).__name__, e))
@@ -307,6 +314,26 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
             _rollback(conn)
             result["failures"].append("candidate for evidence %d: %s: %s" % (eid, type(e).__name__, e))
 
+    # 5. Recipe work is independently rediscovered from durable latest-evidence/current-manifest
+    # state. It is default-off, does not affect the incumbent candidate path, and does no fetching.
+    if cfg.recipe_extraction_enabled:
+        items = list(recipes.work_items(conn, model.generator_name))
+        for item in items:
+            try:
+                t = clock()
+                version_id = recipe_extract.process_item(conn, run_id, item, model,
+                                                         sch.day_of(t), sch.iso(t), crash_hook)
+                if version_id is None:
+                    result["recipe_failures"] += 1
+                else:
+                    result["recipe_versions_new"] += 1
+            except Exception as e:
+                _rollback(conn)
+                result["recipe_failures"] += 1
+                result["failures"].append("recipe for evidence %d: %s: %s" %
+                                          (item["evidence"]["id"], type(e).__name__, e))
+        result["inference_calls"] = model.calls_used
+
     end = clock()
     result["day"] = sch.day_of(end)                      # the day the usage figure refers to
     result["inference_used_today"] = ModelClient.used_today(conn, result["day"])
@@ -353,7 +380,8 @@ def _prior_attempt(conn: sqlite3.Connection, eid: int, model: ModelClient) -> Op
         return None
     return conn.execute(
         "SELECT id, status, error FROM inference_calls WHERE evidence_id=? AND provider=? AND COALESCE(model,'')=? "
-        "ORDER BY id DESC LIMIT 1", (eid, model.provider, model.model or "")).fetchone()
+        "AND purpose='candidate_proposal' AND attempt_key IS NULL ORDER BY id DESC LIMIT 1",
+        (eid, model.provider, model.model or "")).fetchone()
 
 
 def _settle_prior_attempt(conn: sqlite3.Connection, prior: sqlite3.Row) -> str:

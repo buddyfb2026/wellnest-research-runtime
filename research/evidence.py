@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, Tuple
 
 from .extract import Extracted
 from .fetch import FetchResult, now_iso
+from . import recipes
 
 
 class PersistenceError(RuntimeError):
@@ -47,7 +48,9 @@ def store_evidence(conn: sqlite3.Connection, hint: Dict[str, Any], fetched: Fetc
         "SELECT id FROM evidence WHERE url=? AND content_hash=?", (hint["url"], ex.content_hash)
     ).fetchone()
     if existing:
-        return int(existing["id"]), False
+        eid = int(existing["id"])
+        recipes.attach_manifest(conn, eid, ex.locators, fetched.attempted_at)
+        return eid, False
     prev = conn.execute(
         "SELECT id, version_no FROM evidence WHERE url=? ORDER BY version_no DESC LIMIT 1", (hint["url"],)
     ).fetchone()
@@ -65,6 +68,7 @@ def store_evidence(conn: sqlite3.Connection, hint: Dict[str, Any], fetched: Fetc
     )
     eid = int(cur.lastrowid)
     conn.execute("INSERT INTO evidence_text(evidence_id, text) VALUES(?,?)", (eid, ex.text))
+    recipes.attach_manifest(conn, eid, ex.locators, fetched.attempted_at)
     return eid, True
 
 

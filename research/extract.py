@@ -74,6 +74,7 @@ class Extracted:
     published_at_basis: str
     modified_at: Optional[str]
     injection_flags: List[str] = field(default_factory=list)
+    locators: dict = field(default_factory=dict)
 
 
 def _normalize(text: str) -> str:
@@ -154,4 +155,9 @@ def extract(html: str, excerpt_chars: int = 1200) -> Extracted:
         basis = "unknown"
     content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
     excerpt = text[:excerpt_chars]
-    return Extracted(title, text, excerpt, content_hash, pub, basis or "unknown", mod, scan_for_instructions(text))
+    # Import here to keep the text extractor independent and to guarantee that locator work cannot
+    # alter the established rendered text or its content hash.
+    from .recipe_locate import locate
+    locators = locate(html, text, title)
+    return Extracted(title, text, excerpt, content_hash, pub, basis or "unknown", mod,
+                     scan_for_instructions(text), locators)

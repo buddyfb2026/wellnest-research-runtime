@@ -1,0 +1,9 @@
+{
+  "id": "F2",
+  "coverage": "per-ingredient source conflict (P9 ingredient branch)",
+  "label": "fixture",
+  "live_coverage": false,
+  "reason": "The frozen corpus has no live per-ingredient conflict; its servings count/range readings are compatible.",
+  "structured": "1 cup beans",
+  "visible": "2 cups beans"
+}
