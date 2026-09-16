@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Tuple
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from .fetch import LOGIN_PATH_RE, Fetcher, _origin
+from . import source_registry as registry
 
 
 class _LinkParser(HTMLParser):
@@ -97,7 +98,11 @@ def assess(conn: sqlite3.Connection, fetcher: Fetcher, hint: sqlite3.Row, now_is
     """Record the access assessment. Permitted hints inherit the route's access basis and become
     fetchable; denied ones stay hints. No content request is made here."""
     route_url = hint["discovery_route"]
-    ok, robots_status, why = fetcher.permit(hint["url"], route_url)
+    denied = registry.effective_denied(conn, hint["url"])
+    if denied:
+        ok, robots_status, why = False, "not_checked", denied
+    else:
+        ok, robots_status, why = fetcher.permit(hint["url"], route_url)
     assessment = {"status": "permitted" if ok else "denied", "reason": why or "same origin as declared route; robots allows",
                   "robots_status": robots_status, "checked_at": now_iso, "route": route_url}
     if ok:

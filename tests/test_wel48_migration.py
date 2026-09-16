@@ -1,6 +1,12 @@
-import sqlite3
+import pytest
 
 from research import db
+
+
+@pytest.fixture(autouse=True)
+def historical_migration_5_scope(monkeypatch):
+    """Exercise migration 5 itself, not a no-op hidden by a later schema maximum."""
+    monkeypatch.setattr(db, "MIGRATIONS", [item for item in db.MIGRATIONS if item[0] <= 5])
 
 
 def test_migration_5_is_rerunnable(tmp_path):

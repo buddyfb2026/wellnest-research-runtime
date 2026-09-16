@@ -3,6 +3,24 @@
   "note": "Discovery hints with a per-source access basis. fetch=false means discovery-only: no request is made until a permitted access route is established. Public visibility is not blanket permission. Buy Guide entries are seeds from seeds/scour_discovery_playbook.json, not permission to reuse material. role=discovery_route (WEL-41) marks a declared public index page whose same-origin links become hints; each hint is access-assessed (robots, origin, login path) before it may be collected. Links inside article evidence are never hints.",
   "sources": [
     {
+      "url": "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods/healthy-eating-recipes/pita-pizzas",
+      "source_type": "government",
+      "attribution": "National Heart, Lung, and Blood Institute; National Institutes of Health; U.S. Department of Health and Human Services",
+      "access_basis": "public_domain_us_government (NHLBI content policy, recipe text only, stated exclusions apply); robots checked and allowed, http 200 via the product Fetcher 2026-09-16T01:21:02Z (evidence in /tmp/wel49-coordination/nhlbi-proof/, not refetched)",
+      "fetch": true,
+      "usage_constraints": "COLLECTION: permitted on the recorded robots/transport basis (observed 2026-09-16). TEXT RETENTION AND LOCAL INFERENCE: permitted on the NHLBI public-domain content-policy basis for recipe TEXT only. REQUIRED CREDIT on any reuse: 'Source: National Heart, Lung, and Blood Institute; National Institutes of Health; U.S. Department of Health and Human Services.' EXCLUSIONS: no photos, recipe video, logos, formatted publications (PDF) or third-party material; no advertising and no implication of NHLBI endorsement. EDITORIAL APPROVAL: none; household-facing reuse is not approved by this record and requires separate editorial approval. Preserve the source's prerequisite wording (already-grilled chicken, already-cooked broccoli). The source states no total time; do not derive one from prep 10 + cook 8. Page publication/modification dates unknown.",
+      "discovery_origin": "manual: WEL-49 NHLBI bounded qualification; coordinator input nhlbi-qualification-input.md; evidence captured 2026-09-16T01:21Z by agent:claude-wel49-nhlbi-proof; configured 2026-09-16 by agent:claude-wel49-nhlbi-config, placed first so meals are not starved under the ten-URL cap"
+    },
+    {
+      "url": "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods/healthy-eating-recipes/wiki-fast-rice",
+      "source_type": "government",
+      "attribution": "National Heart, Lung, and Blood Institute; National Institutes of Health; U.S. Department of Health and Human Services",
+      "access_basis": "public_domain_us_government (NHLBI content policy, recipe text only, stated exclusions apply); robots checked and allowed, http 200 via the product Fetcher 2026-09-16T01:21:02Z (evidence in /tmp/wel49-coordination/nhlbi-proof/, not refetched)",
+      "fetch": true,
+      "usage_constraints": "COLLECTION: permitted on the recorded robots/transport basis (observed 2026-09-16). TEXT RETENTION AND LOCAL INFERENCE: permitted on the NHLBI public-domain content-policy basis for recipe TEXT only. REQUIRED CREDIT on any reuse: 'Source: National Heart, Lung, and Blood Institute; National Institutes of Health; U.S. Department of Health and Human Services.' EXCLUSIONS: no photos, recipe video, logos, formatted publications (PDF) or third-party material; no advertising and no implication of NHLBI endorsement. EDITORIAL APPROVAL: none; household-facing reuse is not approved by this record and requires separate editorial approval. Preserve the source's prerequisite wording (cooked brown rice, cooked mixed vegetables). The source states no total time; do not derive one from prep 10 + cook 15. Page publication/modification dates unknown.",
+      "discovery_origin": "manual: WEL-49 NHLBI bounded qualification; coordinator input nhlbi-qualification-input.md; evidence captured 2026-09-16T01:21Z by agent:claude-wel49-nhlbi-proof; configured 2026-09-16 by agent:claude-wel49-nhlbi-config, placed first so meals are not starved under the ten-URL cap"
+    },
+    {
       "url": "https://www.goodhousekeeping.com/home/cleaning/",
       "role": "discovery_route",
       "source_type": "publication",
@@ -76,6 +94,42 @@
       "discovery_origin": "manual: foundational household safety guidance"
     },
     {
+      "url": "https://cookieandkate.com/",
+      "source_type": "publication",
+      "attribution": "Cookie and Kate (Kathryne Taylor)",
+      "access_basis": "integration_hold_conflicting_collection_settings; historical evidence only pending explicit reconciliation",
+      "fetch": false,
+      "usage_constraints": "INTEGRATION HOLD: no new retrieval, inference or publication authorized by this entry. WEL-48 historical-only restriction retained; the prior WEL-49 collection assessment below is audit context, not an active grant. COLLECTION: permitted on the public-web/robots basis; the publisher's policy does not address automated collection. REUSE RESTRICTED by the publisher's own Photo and Recipe Sharing Policy (read 2026-09-15): 'you may not republish the recipe itself'; content is described as copyrighted material; at most one photo may be shared and only with a prominent link back to the original post, and more requires explicit written permission. Therefore: read for evidence; short verbatim quotes with attribution and a link only; NO republication of recipe text; NO image reuse. Do not surface recipe text to a household-facing product surface on this evidence. WEL-48 record: No new source retrieval or publication under WEL-48. Frozen review evidence only.",
+      "discovery_origin": "manual: WEL-49 coverage follow-up 2026-09-15; recipe-supply publisher already represented by four WEL-48 corpus records (R2, R4, R5, R6); integration hold recorded by agent:astra, preserving WEL-48 no-fetch setting"
+    },
+    {
+      "url": "https://www.loveandlemons.com/",
+      "source_type": "publication",
+      "attribution": "Love and Lemons, LLC",
+      "access_basis": "public_web_robots_checked; robots allowed and http 200 observed 2026-09-15. No terms-of-use document located: the home page links only a privacy policy and the conventional /terms-of-use/ path returned http 404. Absence of a published restriction is recorded as absence, not as permission.",
+      "fetch": true,
+      "usage_constraints": "COLLECTION: permitted on the public-web/robots basis; no published collection restriction was located. REUSE: default copyright reserved ('Copyright 2026 Love and Lemons, LLC. All rights reserved.'); no reuse grant of any kind was found. Therefore: read for evidence; short verbatim quotes with attribution only; NO republication; NO image reuse. Treat reuse as prohibited absent an explicit grant.",
+      "discovery_origin": "manual: WEL-49 coverage follow-up 2026-09-15; second recipe publisher, corroborated by WEL-48 corpus record R3"
+    },
+    {
+      "url": "https://busytoddler.com/",
+      "source_type": "creator_site",
+      "attribution": "Busy Toddler (Susie Allison)",
+      "access_basis": "public_web_robots_checked; robots allowed and http 200 observed 2026-09-15 at the APEX origin. Publisher's Disclosure Policy contains no scrape/crawl/spider prohibition. NOTE: the www spelling redirects here and is refused by the incumbent same-origin hop rule, so this apex spelling is the correct entry.",
+      "fetch": true,
+      "usage_constraints": "COLLECTION: permitted on the public-web/robots basis; the publisher's policy does not address automated collection. REUSE RESTRICTED by the publisher's own Disclosure Policy (read 2026-09-15): 'Busy Toddler retains the rights to all activities and posts on the website. Do not repost or republish any Busy Toddler activities without written consent via email.' Therefore: read for evidence; short verbatim quotes with creator credit only; NO reposting or republication of activities; NO image reuse.",
+      "discovery_origin": "manual: WEL-49 coverage follow-up 2026-09-15; weekend activities and seasonal ideas"
+    },
+    {
+      "url": "https://dayswithgrey.com/",
+      "source_type": "creator_site",
+      "attribution": "Days With Grey",
+      "access_basis": "public_web_robots_checked; robots allowed and http 200 observed 2026-09-15 at the APEX origin. Publisher's Disclosure Policy contains no scrape/crawl/spider prohibition. The www spelling redirects here and is refused by the same-origin hop rule.",
+      "fetch": true,
+      "usage_constraints": "COLLECTION: permitted on the public-web/robots basis; the publisher's policy does not address automated collection. REUSE RESTRICTED by the publisher's own Disclosure Policy (read 2026-09-15): 'Days with Grey retains the rights to all activities and posts on the website. Do not repost or republish any Days with Grey activities without written consent via email.' Therefore: read for evidence; short verbatim quotes with creator credit only; NO reposting or republication of activities; NO image reuse.",
+      "discovery_origin": "manual: WEL-49 coverage follow-up 2026-09-15; second activities/seasonal publisher"
+    },
+    {
       "url": "https://www.instagram.com/thebuyguide/",
       "source_type": "creator_social",
       "attribution": "The Buy Guide (@thebuyguide on Instagram)",
@@ -101,15 +155,6 @@
       "fetch": false,
       "usage_constraints": "No further retrieval, publication, or republication. Historical internal corpus access is not a publication grant.",
       "discovery_origin": "WEL-48 frozen corpus R1"
-    },
-    {
-      "url": "https://cookieandkate.com/",
-      "source_type": "publication",
-      "attribution": "Cookie and Kate",
-      "access_basis": "historical_internal_corpus_only; publication rights unknown",
-      "fetch": false,
-      "usage_constraints": "No new source retrieval or publication under WEL-48. Frozen review evidence only.",
-      "discovery_origin": "WEL-48 frozen corpus R2/R4/R5/R6"
     },
     {
       "url": "https://www.loveandlemons.com/black-bean-soup/",

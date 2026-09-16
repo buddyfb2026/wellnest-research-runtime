@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from . import candidates as cands
 from . import schedule as sch
+from . import source_registry as registry
 
 
 def _j(s: Optional[str]):
@@ -117,6 +118,17 @@ def render(conn: sqlite3.Connection, run_id: Optional[str] = None, now: Optional
         for r in runs:
             out.append("| %s | %s | %s | %s |" % (r["run_id"], r["started_at"], r["status"], (r["summary"] or "").replace("|", "/")))
         out.append("")
+
+    out += registry.render_health(conn)
+    if runs:
+        summary = _jobj(runs[0]["summary"]) or {}
+        if summary.get("roster"):
+            out += ["Roster: %s" % summary["roster"]["reason"], ""]
+        if summary.get("source_decisions"):
+            out += ["### Latest cycle decisions", "", "| source | disposition | reason |", "|---|---|---|"]
+            for d in summary["source_decisions"]:
+                out.append("| %s | %s | %s |" % (d["url"], d["decision"], d["reason"].replace("|", "/")))
+            out.append("")
 
     out += ["## Sources (hints are not evidence)", "",
             "| url | type | access basis | fetch? | last attempt | outcome | reason |", "|---|---|---|---|---|---|---|"]
