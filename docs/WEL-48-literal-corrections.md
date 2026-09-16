@@ -86,4 +86,3 @@ source expansion, automatic promotion and app redesign are explicitly out of sco
 
 Independent Grok review pending. No merge, deployment, live database edit or content
 publication is authorized by these author tests.
-

@@ -143,4 +143,3 @@ def test_normalization_revision_changes_work_identity_without_changing_recipe_id
     args = (10, "manifest", "slot", "ollama:test")
     assert recipes.extraction_key(*args) != recipes.extraction_key(*args, extractor_version="wel48_extractor_v3")
     assert recipes.extraction_key(*args) == recipes.extraction_key(*args)
-
