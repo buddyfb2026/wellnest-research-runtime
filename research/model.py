@@ -12,6 +12,7 @@ then stored for audit and deferred. Displayed pending actions come only from res
 import hashlib
 import json
 import sqlite3
+import time
 import urllib.request
 from typing import Any, Callable, Dict, Optional
 
@@ -37,8 +38,8 @@ SYSTEM_PROMPT = (
 )
 
 
-def build_prompt(evidence_text: str, meta: Dict[str, Any], max_chars: int = 6000) -> str:
-    body = evidence_text[:max_chars]
+def build_prompt(evidence_text: str, meta: Dict[str, Any], max_chars: Optional[int] = 6000) -> str:
+    body = evidence_text if max_chars is None else evidence_text[:max_chars]
     return (
         "Source metadata (trusted, from our allowlist): %s\n\n<<<EVIDENCE>>>\n%s\n<<<END EVIDENCE>>>\n\n"
         "Return the JSON object now." % (json.dumps(meta, sort_keys=True), body)
@@ -59,7 +60,7 @@ class ModelClient:
                  ollama_url: str = "http://127.0.0.1:11434",
                  fixture_fn: Optional[Callable[[str, Dict[str, Any]], Optional[Dict[str, Any]]]] = None,
                  http_post: Optional[Callable[[str, Dict[str, Any], int], Dict[str, Any]]] = None,
-                 daily_cap: int = 10):
+                 daily_cap: int = 10, crash_hook: Optional[Callable[[str], None]] = None):
         if provider not in ("none", "fixture", "ollama"):
             raise ValueError("unknown provider: %s" % provider)
         self.provider = provider
@@ -72,6 +73,14 @@ class ModelClient:
         self.fixture_fn = fixture_fn
         self.http_post = http_post or self._default_post
         self.last_error: Optional[str] = None
+        self.last_call_id: Optional[int] = None
+        self.last_raw_response: str = ""
+        self.machine_class = "test-fixture" if provider == "fixture" else "unknown"
+        self.model_digest = hashlib.sha256((self.model or provider).encode("utf-8")).hexdigest()
+        self.quantization = "n/a" if provider != "ollama" else "unknown"
+        self.runtime_version = "fixture" if provider == "fixture" else "unknown"
+        self.context_tokens = 8192
+        self.crash_hook = crash_hook
 
     @property
     def generator_name(self) -> str:
@@ -89,7 +98,10 @@ class ModelClient:
         return int(conn.execute("SELECT COUNT(*) FROM inference_calls WHERE day=?", (day,)).fetchone()[0])
 
     def _reserve(self, conn: sqlite3.Connection, run_id: str, evidence_id: int, prompt_hash: str,
-                 day: str, called_at: str) -> int:
+                 day: str, called_at: str, purpose: str = "candidate_proposal",
+                 attempt_key: Optional[str] = None,
+                 prompt_schema_version: Optional[str] = None,
+                 context_tokens: Optional[int] = None) -> int:
         """Atomic check-and-reserve in its own transaction. Caller must not be inside a transaction."""
         if conn.in_transaction:
             raise RuntimeError("inference reservation must be committed on its own, not inside a candidate transaction")
@@ -100,8 +112,12 @@ class ModelClient:
                 raise BudgetExhausted("daily inference cap of %d reached for %s (%d used)" % (self.daily_cap, day, used))
             cur = conn.execute(
                 """INSERT INTO inference_calls(run_id, provider, model, purpose, evidence_id, prompt_hash, called_at,
-                       ok, error, response_chars, day, status) VALUES(?,?,?,?,?,?,?,0,'reserved',0,?,'reserved')""",
-                (run_id, self.provider, self.model, "candidate_proposal", evidence_id, prompt_hash, called_at, day))
+                       ok, error, response_chars, day, status, attempt_key, prompt_schema_version,
+                       machine_class,model_digest,quantization,runtime_version,context_tokens,latency_ms,peak_bytes)
+                       VALUES(?,?,?,?,?,?,?,0,'reserved',0,?,'reserved',?,?,?,?,?,?,?,NULL,NULL)""",
+                (run_id, self.provider, self.model, purpose, evidence_id, prompt_hash, called_at, day,
+                 attempt_key, prompt_schema_version, self.machine_class, self.model_digest,
+                 self.quantization, self.runtime_version, context_tokens or self.context_tokens))
             conn.execute("COMMIT")
             return int(cur.lastrowid)
         except BaseException:
@@ -112,7 +128,12 @@ class ModelClient:
             raise
 
     def propose(self, conn: sqlite3.Connection, run_id: str, evidence_id: int, evidence_text: str,
-                meta: Dict[str, Any], day: Optional[str] = None, called_at: Optional[str] = None
+                meta: Dict[str, Any], day: Optional[str] = None, called_at: Optional[str] = None,
+                purpose: str = "candidate_proposal", attempt_key: Optional[str] = None,
+                prompt_schema_version: Optional[str] = None,
+                system_prompt: Optional[str] = None, max_chars: Optional[int] = 6000,
+                num_predict: int = 900, num_ctx: Optional[int] = None,
+                think: Optional[bool] = None
                 ) -> Optional[Dict[str, Any]]:
         """One call, one chance. Returns parsed proposal or None (and records why).
         Raises BudgetExhausted before any reservation when either ceiling is reached."""
@@ -124,28 +145,40 @@ class ModelClient:
             raise BudgetExhausted("inference budget of %d calls exhausted" % self.budget)
         called_at = called_at or now_iso()
         day = day or called_at[:10]
-        prompt = build_prompt(evidence_text, meta)
+        prompt = build_prompt(evidence_text, meta, max_chars=max_chars)
         prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-        row_id = self._reserve(conn, run_id, evidence_id, prompt_hash, day, called_at)   # committed first
+        row_id = self._reserve(conn, run_id, evidence_id, prompt_hash, day, called_at, purpose,
+                               attempt_key, prompt_schema_version, num_ctx)   # committed first
+        self.last_call_id = row_id
         self.calls_used += 1
+        if self.crash_hook:
+            self.crash_hook("after_reservation_before_send:" + purpose)
+        started_ns = time.perf_counter_ns()
         ok, err, raw, status = 0, None, "", "error"
         proposal = None
         try:
             if self.provider == "fixture":
                 proposal = self.fixture_fn(evidence_text, meta) if self.fixture_fn else None
                 raw = json.dumps(proposal) if proposal is not None else ""
+                if self.crash_hook:
+                    self.crash_hook("after_response:" + purpose)
                 ok = 1 if proposal is not None else 0
                 err = None if proposal is not None else "fixture returned no proposal"
                 status = "ok" if ok else "error"
             else:
+                options = {"temperature": 0, "seed": 7, "num_predict": num_predict}
+                if num_ctx is not None:
+                    options["num_ctx"] = num_ctx
                 payload = {
                     "model": self.model,
-                    "system": SYSTEM_PROMPT,
+                    "system": system_prompt or SYSTEM_PROMPT,
                     "prompt": prompt,
                     "stream": False,
                     "format": "json",
-                    "options": {"temperature": 0, "seed": 7, "num_predict": 900},
+                    "options": options,
                 }
+                if think is not None:
+                    payload["think"] = think
                 try:
                     res = self.http_post(self.ollama_url + "/api/generate", payload, 300)
                 except Exception as e:
@@ -153,6 +186,8 @@ class ModelClient:
                     # stays spent and the outcome is reported as ambiguous. Never replayed.
                     raise _Ambiguous("%s: %s" % (type(e).__name__, e))
                 raw = res.get("response", "")
+                if self.crash_hook:
+                    self.crash_hook("after_response:" + purpose)
                 proposal = json.loads(raw)
                 if not isinstance(proposal, dict):
                     raise ValueError("model did not return a JSON object")
@@ -161,9 +196,10 @@ class ModelClient:
             ok, err, proposal, status = 0, "ambiguous_response: %s" % e, None, "ambiguous"
         except Exception as e:  # no retry, by design
             ok, err, proposal, status = 0, "%s: %s" % (type(e).__name__, e), None, "error"
-        self.last_error, self.last_status = err, status
-        conn.execute("UPDATE inference_calls SET ok=?, error=?, response_chars=?, status=? WHERE id=?",
-                     (ok, err, len(raw), status, row_id))
+        latency_ms = int(round((time.perf_counter_ns() - started_ns) / 1_000_000.0))
+        self.last_error, self.last_status, self.last_raw_response = err, status, raw
+        conn.execute("UPDATE inference_calls SET ok=?, error=?, response_chars=?, status=?, latency_ms=? WHERE id=?",
+                     (ok, err, len(raw), status, latency_ms, row_id))
         return proposal
 
 

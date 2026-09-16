@@ -30,8 +30,8 @@ def test_migrate_is_idempotent_and_state_survives_reopen(cfg, tmp_path):
     res, _ = _run(cfg, {U1: (200, U1, HTML, ARTICLE)})
     assert res.ok, res
     conn = dbm.connect(cfg.db_path)
-    assert dbm.migrate(conn) == 4
-    assert dbm.migrate(conn) == 4
+    assert dbm.migrate(conn) == 5
+    assert dbm.migrate(conn) == 5
     conn.close()
     conn = dbm.connect(cfg.db_path)  # simulated restart
     assert conn.execute("SELECT COUNT(*) FROM evidence").fetchone()[0] == 1

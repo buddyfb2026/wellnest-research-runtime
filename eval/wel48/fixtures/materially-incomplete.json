@@ -1,0 +1,8 @@
+{
+  "id": "F1",
+  "coverage": "materially incomplete recipe (P11)",
+  "label": "fixture",
+  "live_coverage": false,
+  "reason": "No live record in the frozen corpus omits a required role.",
+  "missing_role": "servings"
+}

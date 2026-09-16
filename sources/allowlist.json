@@ -92,6 +92,33 @@
       "fetch": false,
       "usage_constraints": "Discovery-only until a permitted video access route exists.",
       "discovery_origin": "seed: scour_discovery_playbook youtube_queries"
+    },
+    {
+      "url": "https://www.budgetbytes.com/poor-mans-burrito-bowls/",
+      "source_type": "publication",
+      "attribution": "Budget Bytes",
+      "access_basis": "historical_internal_corpus_only; current terms prohibit further crawl",
+      "fetch": false,
+      "usage_constraints": "No further retrieval, publication, or republication. Historical internal corpus access is not a publication grant.",
+      "discovery_origin": "WEL-48 frozen corpus R1"
+    },
+    {
+      "url": "https://cookieandkate.com/",
+      "source_type": "publication",
+      "attribution": "Cookie and Kate",
+      "access_basis": "historical_internal_corpus_only; publication rights unknown",
+      "fetch": false,
+      "usage_constraints": "No new source retrieval or publication under WEL-48. Frozen review evidence only.",
+      "discovery_origin": "WEL-48 frozen corpus R2/R4/R5/R6"
+    },
+    {
+      "url": "https://www.loveandlemons.com/black-bean-soup/",
+      "source_type": "publication",
+      "attribution": "Love and Lemons",
+      "access_basis": "historical_internal_corpus_only; publication rights unknown",
+      "fetch": false,
+      "usage_constraints": "No new source retrieval or publication under WEL-48. Frozen review evidence only.",
+      "discovery_origin": "WEL-48 frozen corpus R3"
     }
   ]
 }
