@@ -1,0 +1,8 @@
+{
+  "name": "Fixture Skillet Supper",
+  "template": "fixture skillet supper",
+  "ingredient_count": 15,
+  "step_count": 3,
+  "total_time": 30,
+  "unknown_servings": false
+}

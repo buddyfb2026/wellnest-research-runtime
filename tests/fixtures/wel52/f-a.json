@@ -1,0 +1,8 @@
+{
+  "name": "Fixture Harvest Bowl",
+  "template": "fixture harvest bowl",
+  "ingredient_count": 9,
+  "step_count": 4,
+  "total_time": 20,
+  "unknown_servings": false
+}
