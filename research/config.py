@@ -32,6 +32,7 @@ class Config:
     fetch_timeout_s: int = 20
     max_body_bytes: int = 2_000_000
     user_agent: str = USER_AGENT
+    recipe_extraction_enabled: bool = False
 
     @classmethod
     def from_env(cls, **overrides) -> "Config":
@@ -44,6 +45,9 @@ class Config:
             cfg.ollama_model = os.environ["WN_RESEARCH_OLLAMA_MODEL"]
         if os.environ.get("WN_RESEARCH_OLLAMA_URL"):
             cfg.ollama_url = os.environ["WN_RESEARCH_OLLAMA_URL"]
+        if os.environ.get("WN_RESEARCH_RECIPE_EXTRACTION"):
+            cfg.recipe_extraction_enabled = os.environ["WN_RESEARCH_RECIPE_EXTRACTION"].strip().lower() in (
+                "1", "true", "yes", "on")
         for k, v in overrides.items():
             if v is not None:
                 setattr(cfg, k, v)

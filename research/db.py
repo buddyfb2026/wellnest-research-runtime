@@ -160,6 +160,98 @@ MIGRATIONS = [
             "ALTER TABLE source_hints ADD COLUMN access_assessment TEXT",  # JSON {status, reason, robots_status, checked_at}
         ],
     ),
+    (
+        5,
+        # WEL-48: source-supported recipe extraction. All changes are additive and every CREATE
+        # is restart-safe because the migration runner applies statements one at a time.
+        [
+            """CREATE TABLE IF NOT EXISTS locator_manifests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                evidence_id INTEGER NOT NULL REFERENCES evidence(id),
+                manifest_hash TEXT NOT NULL,
+                locator_version TEXT NOT NULL,
+                revision_no INTEGER NOT NULL,
+                supersedes_id INTEGER REFERENCES locator_manifests(id),
+                manifest TEXT NOT NULL,
+                first_observed_at TEXT NOT NULL,
+                UNIQUE(evidence_id, manifest_hash),
+                UNIQUE(evidence_id, revision_no)
+            )""",
+            """CREATE TABLE IF NOT EXISTS evidence_current_manifest (
+                evidence_id INTEGER PRIMARY KEY REFERENCES evidence(id),
+                locator_manifest_id INTEGER NOT NULL REFERENCES locator_manifests(id),
+                manifest_hash TEXT NOT NULL,
+                observed_at TEXT NOT NULL
+            )""",
+            """CREATE TABLE IF NOT EXISTS recipes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipe_key TEXT NOT NULL UNIQUE,
+                source_url TEXT NOT NULL,
+                recipe_slot TEXT NOT NULL,
+                slot_disambiguated INTEGER NOT NULL DEFAULT 0,
+                first_seen_evidence_id INTEGER NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(source_url, recipe_slot)
+            )""",
+            """CREATE TABLE IF NOT EXISTS recipe_versions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recipe_id INTEGER NOT NULL REFERENCES recipes(id),
+                evidence_id INTEGER NOT NULL REFERENCES evidence(id),
+                locator_manifest_id INTEGER NOT NULL REFERENCES locator_manifests(id),
+                manifest_hash TEXT NOT NULL,
+                version_no INTEGER NOT NULL,
+                supersedes_id INTEGER REFERENCES recipe_versions(id),
+                extraction_key TEXT NOT NULL UNIQUE,
+                content_fingerprint TEXT NOT NULL,
+                content_unchanged_from INTEGER REFERENCES recipe_versions(id),
+                extractor_version TEXT NOT NULL,
+                prompt_schema_version TEXT,
+                generator TEXT NOT NULL,
+                content TEXT NOT NULL,
+                adaptations TEXT,
+                completeness TEXT NOT NULL,
+                unknown_fields TEXT NOT NULL,
+                conflicts TEXT NOT NULL,
+                state TEXT NOT NULL,
+                state_reason TEXT,
+                state_set_by TEXT NOT NULL,
+                publishable INTEGER NOT NULL DEFAULT 0,
+                inference_call_id INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE(recipe_id, version_no)
+            )""",
+            "CREATE INDEX IF NOT EXISTS idx_recipe_versions_recipe ON recipe_versions(recipe_id, version_no)",
+            "CREATE INDEX IF NOT EXISTS idx_recipe_versions_manifest ON recipe_versions(evidence_id, manifest_hash)",
+            "CREATE INDEX IF NOT EXISTS idx_locator_manifests_evidence ON locator_manifests(evidence_id, revision_no)",
+            "ALTER TABLE inference_calls ADD COLUMN attempt_key TEXT",
+            "ALTER TABLE inference_calls ADD COLUMN prompt_schema_version TEXT",
+            "ALTER TABLE inference_calls ADD COLUMN machine_class TEXT",
+            "ALTER TABLE inference_calls ADD COLUMN model_digest TEXT",
+            "ALTER TABLE inference_calls ADD COLUMN quantization TEXT",
+            "ALTER TABLE inference_calls ADD COLUMN runtime_version TEXT",
+            "ALTER TABLE inference_calls ADD COLUMN context_tokens INTEGER",
+            "ALTER TABLE inference_calls ADD COLUMN latency_ms INTEGER",
+            "ALTER TABLE inference_calls ADD COLUMN peak_bytes INTEGER",
+        ],
+    ),
+    # WEL-49 owns migration 6; integration must place WEL-48's migration 5 before this.
+    (6, """
+        CREATE TABLE IF NOT EXISTS publishers (
+            publisher_id TEXT PRIMARY KEY, canonical_name TEXT NOT NULL, official_url TEXT,
+            parent_publisher TEXT REFERENCES publishers(publisher_id), identity_basis TEXT NOT NULL,
+            assessed_at TEXT NOT NULL, assessed_by TEXT NOT NULL, notes TEXT
+        );
+        CREATE TABLE IF NOT EXISTS source_surfaces (
+            url TEXT PRIMARY KEY, publisher_id TEXT REFERENCES publishers(publisher_id),
+            surface_kind TEXT NOT NULL, topics TEXT NOT NULL, roster_status TEXT NOT NULL,
+            roster_reason TEXT NOT NULL, access_status TEXT NOT NULL, access_basis TEXT,
+            assessed_at TEXT NOT NULL, assessed_by TEXT NOT NULL, cadence_seconds INTEGER, cadence_reason TEXT
+        );
+        CREATE TABLE IF NOT EXISTS surface_aliases (
+            alias_url TEXT PRIMARY KEY, url TEXT NOT NULL REFERENCES source_surfaces(url), alias_reason TEXT NOT NULL
+        );
+    """),
 ]
 
 

@@ -12,6 +12,8 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Dict, List, Optional
 
+from . import source_registry as registry
+
 Clock = Callable[[], datetime]
 
 SUCCESS_INTERVAL = timedelta(days=7)
@@ -79,7 +81,7 @@ def select_cycle_urls(conn: sqlite3.Connection, now: datetime, limit: int) -> Di
     Requests stay in the incumbent order; the reserve only decides membership.
     """
     limit = max(0, int(limit))
-    rows = eligible_rows(conn, now)
+    rows = [r for r in eligible_rows(conn, now) if not registry.effective_denied(conn, r["url"])]
     if limit == 0 or not rows:
         return {"selected": [], "exploration": [], "exploitation": [], "reserved_slots": 0, "eligible": len(rows)}
     unexplored = [r["url"] for r in rows if not r["attempts"]]
@@ -101,14 +103,17 @@ def select_cycle_urls(conn: sqlite3.Connection, now: datetime, limit: int) -> Di
 
 
 def record_outcome(conn: sqlite3.Connection, url: str, outcome: str, reason: Optional[str], attempted_at: str,
-                   now: datetime, evidence_id: Optional[int] = None) -> Dict[str, object]:
+                   now: datetime, evidence_id: Optional[int] = None, *,
+                   retry_after_deadline: Optional[datetime] = None,
+                   retry_after_error: Optional[str] = None) -> Dict[str, object]:
     """Advance the schedule for one attempt. Must run inside the attempt's transaction."""
     row = conn.execute("SELECT * FROM source_state WHERE url=?", (url,)).fetchone()
     failures = int(row["consecutive_failures"]) if row else 0
     stalled = 0
     if outcome == "ok":
         failures = 0
-        next_at = now + SUCCESS_INTERVAL
+        cadence = registry.resolve(conn, url)["cadence_seconds"]
+        next_at = now + (timedelta(seconds=cadence) if cadence is not None else SUCCESS_INTERVAL)
     elif outcome == "blocked":
         failures += 1
         if failures >= BLOCKED_STALL_AFTER:
@@ -119,6 +124,12 @@ def record_outcome(conn: sqlite3.Connection, url: str, outcome: str, reason: Opt
     else:
         failures += 1
         next_at = now + ERROR_BACKOFF[min(failures, len(ERROR_BACKOFF)) - 1]
+    if retry_after_deadline is not None:
+        next_at = max(next_at, retry_after_deadline)
+    if retry_after_error is not None:
+        stalled = 1
+        reason = retry_after_error
+        next_at = datetime.max.replace(tzinfo=timezone.utc, microsecond=0)
     conn.execute(
         """INSERT INTO source_state(url, next_check_at, consecutive_failures, attempts, last_attempt_at, last_outcome,
                last_reason, last_success_at, last_evidence_id, stalled, updated_at)

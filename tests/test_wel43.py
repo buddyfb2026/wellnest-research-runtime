@@ -441,9 +441,9 @@ def test_recorded_comparison_and_manifest_are_preserved_as_history():
     historical = Path(evaluate.REPO_ROOT) / "docs" / "WEL-43-eval" / "manifest.json"
     recorded = json.loads(historical.read_text())
     drift = evaluate.check_manifest(historical)
-    assert drift == ["research/evaluate.py"], \
-        "only the decision logic changed; variants, rubric and cases keep their frozen hashes"
-    for name in ("research/rules.py", "research/sentence_integrity.py", "eval/wel43/rubric.md",
+    assert set(drift) == {"research/evaluate.py", "research/rules.py"}, \
+        "WEL-43 repair changed the evaluator and WEL-42 later added a rule; historical inputs stay frozen"
+    for name in ("research/sentence_integrity.py", "eval/wel43/rubric.md",
                  "eval/wel43/dev_cases.json"):
         assert evaluate.sha256_file(evaluate.REPO_ROOT / name) == recorded["files"][name]
     comparison = (Path(evaluate.REPO_ROOT) / "docs" / "WEL-43-eval" / "comparison.md").read_text()

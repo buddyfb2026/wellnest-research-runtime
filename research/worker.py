@@ -27,8 +27,11 @@ from . import db as dbm
 from . import discovery
 from . import evidence as ev
 from . import report as rpt
+from . import recipe_extract
+from . import recipes
 from . import rules
 from . import schedule as sch
+from . import source_registry as registry
 from .config import Config
 from .extract import extract
 from .fetch import Fetcher, FetchResult, urllib_transport
@@ -75,7 +78,8 @@ def _missing_work(conn: sqlite3.Connection, eid: int, generator: str) -> bool:
 def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = None,
         content_kind: str = "live", check_robots: bool = True,
         conn_factory: Callable[[Path], sqlite3.Connection] = dbm.connect,
-        clock: Optional[Callable[[], datetime]] = None, due_only: bool = False) -> RunResult:
+        clock: Optional[Callable[[], datetime]] = None, due_only: bool = False,
+        crash_hook: Optional[Callable[[str], None]] = None) -> RunResult:
     clock = clock or sch.utc_now
     now = clock()
     now_s = sch.iso(now)
@@ -86,6 +90,7 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
                        evidence_new=0, evidence_existing=0, candidates_new=0, candidates_existing=0,
                        candidates_recovered=0, attempts_settled=0, inference_calls=0, inference_used_today=0,
                        budget_deferred=0,
+                       recipe_versions_new=0, recipe_versions_existing=0, recipe_failures=0,
                        routes_fetched=0, discovered_hints=0, assessed_permitted=0, assessed_denied=0,
                        source_requests=0, robots_requests=0, failures=[])
 
@@ -108,7 +113,8 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
             result["status"] = "failed"
             result["failures"].append("database unavailable: %s: %s" % (type(e).__name__, e))
             return result
-        return _run_locked(cfg, conn, transport, model, content_kind, check_robots, clock, due_only, result, run_id)
+        return _run_locked(cfg, conn, transport, model, content_kind, check_robots, clock, due_only, result, run_id,
+                           crash_hook)
     finally:
         if conn is not None:
             try:
@@ -121,14 +127,22 @@ def run(cfg: Config, transport=urllib_transport, model: Optional[ModelClient] = 
 
 def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optional[ModelClient], content_kind: str,
                 check_robots: bool, clock: Callable[[], datetime], due_only: bool, result: RunResult,
-                run_id: str) -> RunResult:
+                run_id: str, crash_hook=None) -> RunResult:
     now = clock()
     now_s = sch.iso(now)
     day = result["day"]
     allow = load_allowlist(cfg.allowlist_path)
     allow_urls = {s["url"] for s in allow}
     sources = allow + [d for d in discovery.permitted_discovered(conn) if d["url"] not in allow_urls]
-    fetcher = Fetcher(transport, cfg.user_agent, cfg.fetch_timeout_s, cfg.max_body_bytes, check_robots, clock=clock)
+    try:
+        result["roster"] = registry.load(conn, cfg.allowlist_path.parent / "roster.json")
+    except Exception as e:
+        result["roster"] = {"status": "invalid", "reason": "roster: invalid; last valid configuration retained: %s" % e}
+        result["failures"].append(result["roster"]["reason"])
+    result["registry_denied"] = 0
+    result["source_decisions"] = []
+    fetcher = Fetcher(transport, cfg.user_agent, cfg.fetch_timeout_s, cfg.max_body_bytes, check_robots,
+                      clock=clock, deny_fn=lambda url: registry.effective_denied(conn, url))
     model = model or ModelClient(cfg.provider, cfg.max_inference, cfg.ollama_model, cfg.ollama_url,
                                  daily_cap=cfg.max_inference_per_day)
 
@@ -138,7 +152,7 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
             conn.execute("BEGIN")
             if not hint.get("discovered"):
                 ev.upsert_source_hint(conn, hint)
-            if hint.get("fetch", False):
+            if hint.get("fetch", False) and not registry.effective_denied(conn, hint["url"]):
                 sch.ensure_state(conn, hint["url"], now)
             conn.execute("COMMIT")
         except Exception as e:
@@ -155,11 +169,11 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
         result["exploitation_selected"] = len(selection["exploitation"])
         by_url = {s["url"]: s for s in sources if s.get("fetch", False)}
         selected = [by_url[u] for u in due if u in by_url]
-        permitted = [s for s in sources if s.get("fetch", False)]
+        permitted = [s for s in sources if s.get("fetch", False) and not registry.effective_denied(conn, s["url"])]
         stalled = {r["url"] for r in conn.execute("SELECT url FROM source_state WHERE stalled=1").fetchall()}
         result["stalled"] = sum(1 for s in permitted if s["url"] in stalled)
         result["not_due"] = len(permitted) - len(selected) - result["stalled"]
-        result["skipped_policy"] = sum(1 for s in sources if not s.get("fetch", False))   # never requested, no row
+        result["skipped_policy"] = sum(1 for s in sources if not s.get("fetch", False) or registry.effective_denied(conn, s["url"]))   # never requested, no row
     else:
         selected = sources
 
@@ -169,6 +183,14 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
         url = hint["url"]
         try:
             conn.execute("BEGIN")
+            denied = registry.effective_denied(conn, url)
+            grant = conn.execute("SELECT fetch_permitted FROM source_hints WHERE url=?", (url,)).fetchone()
+            if denied or (hint.get("fetch", False) and (not grant or not grant["fetch_permitted"])):
+                reason = denied or "no persisted collection grant"
+                ev.record_fetch_attempt(conn, run_id, url, "skipped_policy", now_s, reason=reason)
+                result["skipped_policy"] += 1
+                conn.execute("COMMIT")
+                continue
             if not hint.get("fetch", False):
                 ev.record_fetch_attempt(conn, run_id, url, "skipped_policy", now_s,
                                         reason="no permitted access basis: %s" % hint["access_basis"])
@@ -183,10 +205,11 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
             attempted += 1
             fr: FetchResult = fetcher.fetch(url)
             at = sch.parse(fr.attempted_at)
+            retry = {"retry_after_deadline": fr.retry_after_deadline, "retry_after_error": fr.retry_after_error}
             if fr.outcome != "ok":
                 ev.record_fetch_attempt(conn, run_id, fr.url, fr.outcome, fr.attempted_at, fr.http_status,
                                         fr.final_url, fr.robots_status, fr.reason)
-                sch.record_outcome(conn, url, fr.outcome, fr.reason, fr.attempted_at, at)
+                sch.record_outcome(conn, url, fr.outcome, fr.reason, fr.attempted_at, at, **retry)
                 result["blocked" if fr.outcome == "blocked" else "errors"] += 1
                 conn.execute("COMMIT")
                 continue
@@ -195,7 +218,7 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
                 new = sum(1 for link in links if discovery.record_hint(conn, link, hint, fr.attempted_at))
                 ev.record_fetch_attempt(conn, run_id, fr.url, "ok", fr.attempted_at, fr.http_status, fr.final_url,
                                         fr.robots_status, "discovery route: %d same-origin links, %d new hints" % (len(links), new))
-                sch.record_outcome(conn, url, "ok", None, fr.attempted_at, at)
+                sch.record_outcome(conn, url, "ok", None, fr.attempted_at, at, **retry)
                 result["routes_fetched"] += 1
                 result["discovered_hints"] += new
                 conn.execute("COMMIT")
@@ -205,18 +228,20 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
                 reason = "no usable text extracted"
                 ev.record_fetch_attempt(conn, run_id, fr.url, "error", fr.attempted_at, fr.http_status,
                                         fr.final_url, fr.robots_status, reason)
-                sch.record_outcome(conn, url, "error", reason, fr.attempted_at, at)
+                sch.record_outcome(conn, url, "error", reason, fr.attempted_at, at, **retry)
                 result["errors"] += 1
                 conn.execute("COMMIT")
                 continue
             eid, is_new = ev.store_evidence(conn, hint, fr, ex, content_kind)
             ev.record_fetch_attempt(conn, run_id, fr.url, "ok", fr.attempted_at, fr.http_status, fr.final_url,
                                     fr.robots_status, None if is_new else "content unchanged (hash match)", eid)
-            sch.record_outcome(conn, url, "ok", None, fr.attempted_at, at, eid)
+            sch.record_outcome(conn, url, "ok", None, fr.attempted_at, at, eid, **retry)
             result["fetched_ok"] += 1
             result["evidence_new" if is_new else "evidence_existing"] += 1
             touched.append(eid)
             conn.execute("COMMIT")   # evidence + schedule are durable here; candidate work below is recoverable
+            if crash_hook:
+                crash_hook("after_evidence_manifest_commit")
         except Exception as e:
             _rollback(conn)
             result["failures"].append("persist %s: %s: %s" % (url, type(e).__name__, e))
@@ -307,6 +332,49 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
             _rollback(conn)
             result["failures"].append("candidate for evidence %d: %s: %s" % (eid, type(e).__name__, e))
 
+    # 5. Recipe work is independently rediscovered from durable latest-evidence/current-manifest
+    # state. It is default-off, does not affect the incumbent candidate path, and does no fetching.
+    if cfg.recipe_extraction_enabled:
+        items = list(recipes.work_items(conn, model.generator_name))
+        for item in items:
+            try:
+                t = clock()
+                version_id = recipe_extract.process_item(conn, run_id, item, model,
+                                                         sch.day_of(t), sch.iso(t), crash_hook)
+                if version_id is None:
+                    result["recipe_failures"] += 1
+                else:
+                    result["recipe_versions_new"] += 1
+            except Exception as e:
+                _rollback(conn)
+                result["recipe_failures"] += 1
+                result["failures"].append("recipe for evidence %d: %s: %s" %
+                                          (item["evidence"]["id"], type(e).__name__, e))
+        result["inference_calls"] = model.calls_used
+
+    # Explain one disposition per source without creating fake fetch attempts for policy skips.
+    for source in sources:
+        url = source["url"]
+        denied = registry.effective_denied(conn, url)
+        attempt = conn.execute("SELECT outcome,reason,evidence_id FROM fetch_attempts WHERE run_id=? AND url=? ORDER BY id DESC LIMIT 1",
+                               (run_id, url)).fetchone()
+        state = conn.execute("SELECT stalled,next_check_at FROM source_state WHERE url=?", (url,)).fetchone()
+        if denied:
+            decision, reason = "skipped", denied
+            result["registry_denied"] += 1
+        elif attempt:
+            decision = "skipped" if attempt["outcome"] == "skipped_policy" else "checked"
+            reason = attempt["reason"] or ("collected evidence %s" % attempt["evidence_id"] if attempt["evidence_id"] else attempt["outcome"])
+        elif not source.get("fetch", False):
+            decision, reason = "skipped", "no permitted access basis"
+        elif state and state["stalled"]:
+            decision, reason = "stalled", "explicit review/reset required"
+        elif state and state["next_check_at"] > now_s:
+            decision, reason = "not_due", "next check %s" % state["next_check_at"]
+        else:
+            decision, reason = "skipped", "not selected under this cycle's bounded slots"
+        result["source_decisions"].append({"url": url, "decision": decision, "reason": reason})
+    result["publisher_evidence"] = registry.independent_publishers(conn)
     end = clock()
     result["day"] = sch.day_of(end)                      # the day the usage figure refers to
     result["inference_used_today"] = ModelClient.used_today(conn, result["day"])
@@ -353,7 +421,8 @@ def _prior_attempt(conn: sqlite3.Connection, eid: int, model: ModelClient) -> Op
         return None
     return conn.execute(
         "SELECT id, status, error FROM inference_calls WHERE evidence_id=? AND provider=? AND COALESCE(model,'')=? "
-        "ORDER BY id DESC LIMIT 1", (eid, model.provider, model.model or "")).fetchone()
+        "AND purpose='candidate_proposal' AND attempt_key IS NULL ORDER BY id DESC LIMIT 1",
+        (eid, model.provider, model.model or "")).fetchone()
 
 
 def _settle_prior_attempt(conn: sqlite3.Connection, prior: sqlite3.Row) -> str:

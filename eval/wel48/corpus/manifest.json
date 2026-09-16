@@ -1,0 +1,475 @@
+{
+  "corpus_version": 1,
+  "frozen_at": "2026-09-15",
+  "baseline": "2b7602f42856ce34c6a18c810f7181bca418bd6f",
+  "retrieval_boundary": "research.fetch.Fetcher \u2014 scheme/private-host/origin/login-path/robots gates, redirects re-checked per hop, no auto-follow",
+  "budget_spent": {
+    "page_requests": 10,
+    "robots_requests": 6
+  },
+  "budget_cap": {
+    "page_requests": 10,
+    "robots_requests": "uncapped, recorded"
+  },
+  "records": [
+    {
+      "id": "R1",
+      "role": "dev",
+      "why_selected": "recipe after a long introduction (first ingredient at char 2870 of 11793); complete",
+      "note": "PREVIOUSLY TUNED \u2014 inspected across three design rounds; must never be held out",
+      "publisher_host": "budgetbytes.com",
+      "source_url": "https://www.budgetbytes.com/poor-mans-burrito-bowls/",
+      "final_url": "https://www.budgetbytes.com/poor-mans-burrito-bowls/",
+      "redirect_hops": 1,
+      "retrieval": {
+        "via": "research.fetch.Fetcher (repository retrieval boundary)",
+        "http_status": 200,
+        "robots_status": "allowed",
+        "outcome": "ok",
+        "fetched_at": "2026-09-15T18:26:09Z"
+      },
+      "immutable_bytes": {
+        "raw_file": "/tmp/wel42-coordination/evidence-raw/burrito_bowls.html",
+        "sha256_raw_bytes": "734609b95490b8837faab81eecd16b91a9bc7132260016d884c215c9a1880aef",
+        "bytes": 643696
+      },
+      "extracted": {
+        "extractor": "research.extract.extract @ baseline 2b7602f4",
+        "content_hash": "fcc262853a138ffe6f202e924465d5051ad7d7e184f6d8b33a58fa6a7928878c",
+        "text_chars": 11793,
+        "title": "Poor Man's Burrito Bowls - Budget Bytes",
+        "published_at": "2019-11-29T18:55:00+00:00",
+        "published_at_basis": "meta:article:published_time",
+        "modified_at": "2026-06-05T14:37:32+00:00",
+        "injection_flags": []
+      },
+      "locator_tier": "jsonld",
+      "expected": {
+        "recipe_name": "Poor Man's Burrito Bowls",
+        "ingredient_units_located": 9,
+        "step_units_located": 4,
+        "ingredient_correspondence": {
+          "exact": 9,
+          "ambiguous": 0,
+          "unmatched": 0
+        },
+        "steps_matched_exact": 4,
+        "yield_structured": [
+          "6"
+        ],
+        "yield_rendered": "6",
+        "times": {
+          "prepTime": {
+            "structured": "PT5M",
+            "structured_minutes": 5,
+            "rendered_raw": null,
+            "rendered_minutes": null,
+            "agree": false
+          },
+          "cookTime": {
+            "structured": "PT20M",
+            "structured_minutes": 20,
+            "rendered_raw": null,
+            "rendered_minutes": null,
+            "agree": false
+          },
+          "totalTime": {
+            "structured": "PT25M",
+            "structured_minutes": 25,
+            "rendered_raw": null,
+            "rendered_minutes": null,
+            "agree": false
+          }
+        }
+      }
+    },
+    {
+      "id": "R2",
+      "role": "HELD OUT",
+      "why_selected": "complete, JSON-LD; longest document in the corpus (22808 chars)",
+      "note": "complete held-out #1; not previously tuned",
+      "publisher_host": "cookieandkate.com",
+      "source_url": "https://cookieandkate.com/best-ratatouille-recipe/",
+      "final_url": "https://cookieandkate.com/best-ratatouille-recipe/",
+      "redirect_hops": 1,
+      "retrieval": {
+        "via": "research.fetch.Fetcher (repository retrieval boundary)",
+        "http_status": 200,
+        "robots_status": "allowed",
+        "outcome": "ok",
+        "fetched_at": "2026-09-15T20:45:03Z"
+      },
+      "immutable_bytes": {
+        "raw_file": "corpus/raw/cookieandkate_com_best_ratatouille_recipe.html",
+        "sha256_raw_bytes": "a3d44937b5fab2781b5f4b44fec5e7c8d3e93e2497a14453f4cbe264b2df32c1",
+        "bytes": 552810
+      },
+      "extracted": {
+        "extractor": "research.extract.extract @ baseline 2b7602f4",
+        "content_hash": "aee1edae865e8d084b562c3d690f6355a845a31d430257038f2565ffeb592870",
+        "text_chars": 22808,
+        "title": "Best Ratatouille Recipe - Cookie and Kate",
+        "published_at": "2019-09-17T21:18:08+00:00",
+        "published_at_basis": "meta:article:published_time",
+        "modified_at": "2024-08-29T20:18:05+00:00",
+        "injection_flags": []
+      },
+      "locator_tier": "jsonld",
+      "expected": {
+        "recipe_name": "Ratatouille",
+        "ingredient_units_located": 13,
+        "step_units_located": 11,
+        "ingredient_correspondence": {
+          "exact": 13,
+          "ambiguous": 0,
+          "unmatched": 0
+        },
+        "steps_matched_exact": 11,
+        "yield_structured": [
+          "4",
+          "4 servings"
+        ],
+        "yield_rendered": "4 servings",
+        "times": {
+          "prepTime": {
+            "structured": "PT20M",
+            "structured_minutes": 20,
+            "rendered_raw": "20 minutes",
+            "rendered_minutes": 20,
+            "agree": true
+          },
+          "cookTime": {
+            "structured": "PT40M",
+            "structured_minutes": 40,
+            "rendered_raw": "40 minutes",
+            "rendered_minutes": 40,
+            "agree": true
+          },
+          "totalTime": {
+            "structured": "PT1H",
+            "structured_minutes": 60,
+            "rendered_raw": "1 hour",
+            "rendered_minutes": 60,
+            "agree": true
+          }
+        }
+      }
+    },
+    {
+      "id": "R3",
+      "role": "dev",
+      "why_selected": "heading-tier result: one JSON-LD Recipe node with 15 ingredient entries is rejected by the locator; the rendered recipe is recovered from headings",
+      "note": "exercises locator tier 3; canonical L8 identity yields 15 exact, 0 ambiguous, 0 unmatched ingredient pairs",
+      "publisher_host": "loveandlemons.com",
+      "source_url": "https://www.loveandlemons.com/black-bean-soup/",
+      "final_url": "https://www.loveandlemons.com/black-bean-soup-recipe/",
+      "redirect_hops": 2,
+      "retrieval": {
+        "via": "research.fetch.Fetcher (repository retrieval boundary)",
+        "http_status": 200,
+        "robots_status": "allowed",
+        "outcome": "ok",
+        "fetched_at": "2026-09-15T20:44:05Z"
+      },
+      "immutable_bytes": {
+        "raw_file": "corpus/raw/www_loveandlemons_com_black_bean_soup.html",
+        "sha256_raw_bytes": "f0da2939b93c46443106981c140dd7b43ffa01d02146ef3974b9464ee0cc58a4",
+        "bytes": 667452
+      },
+      "extracted": {
+        "extractor": "research.extract.extract @ baseline 2b7602f4",
+        "content_hash": "1fd0a4f155ae18d89b222a2d829edea358977b90b5b1b0ce7ba8dcb1b263eb3d",
+        "text_chars": 11581,
+        "title": "Black Bean Soup Recipe - Love and Lemons",
+        "published_at": "2020-10-20T13:09:31+00:00",
+        "published_at_basis": "meta:article:published_time",
+        "modified_at": "2026-02-20T16:06:18+00:00",
+        "injection_flags": []
+      },
+      "locator_tier": "non_jsonld",
+      "expected": {
+        "recipe_name": "Black Bean Soup Recipe - Love and Lemons",
+        "ingredient_units_located": 15,
+        "step_units_located": 3,
+        "ingredient_correspondence": {
+          "exact": 15,
+          "ambiguous": 0,
+          "unmatched": 0
+        },
+        "steps_matched_exact": null,
+        "yield_structured": null,
+        "yield_rendered": "Serves 4",
+        "times": {
+          "Prep Time": {
+            "raw": "15 minutes mins",
+            "minutes": 15
+          },
+          "Cook Time": {
+            "raw": "45 minutes mins",
+            "minutes": 45
+          },
+          "Total Time": {
+            "raw": "1 hour hr",
+            "minutes": 60
+          }
+        },
+        "note": "counts are reviewer-read from the rendered Ingredients/Instructions headings; there is no structured reading to compare against"
+      }
+    },
+    {
+      "id": "R4",
+      "role": "dev",
+      "why_selected": "complete, JSON-LD; carries the corpus's only AMBIGUOUS ingredient correspondence (1 structured string matches >1 visible unit)",
+      "note": "exercises the ambiguous-correspondence branch",
+      "publisher_host": "cookieandkate.com",
+      "source_url": "https://cookieandkate.com/best-lentil-soup-recipe/",
+      "final_url": "https://cookieandkate.com/best-lentil-soup-recipe/",
+      "redirect_hops": 1,
+      "retrieval": {
+        "via": "research.fetch.Fetcher (repository retrieval boundary)",
+        "http_status": 200,
+        "robots_status": "allowed",
+        "outcome": "ok",
+        "fetched_at": "2026-09-15T20:43:47Z"
+      },
+      "immutable_bytes": {
+        "raw_file": "corpus/raw/cookieandkate_com_best_lentil_soup_recipe.html",
+        "sha256_raw_bytes": "ba98866d48491da5de13fd50b6cce260a879d43bbf6d7977b9279cd9b69cd460",
+        "bytes": 417879
+      },
+      "extracted": {
+        "extractor": "research.extract.extract @ baseline 2b7602f4",
+        "content_hash": "6423ef8cfeb417b70fab906b579281f67d1378983f306349dc707502d8d03b2e",
+        "text_chars": 14416,
+        "title": "Best Lentil Soup Recipe - Cookie and Kate",
+        "published_at": "2019-01-11T15:41:52+00:00",
+        "published_at_basis": "meta:article:published_time",
+        "modified_at": "2024-10-04T02:42:34+00:00",
+        "injection_flags": []
+      },
+      "locator_tier": "jsonld",
+      "expected": {
+        "recipe_name": "Best Lentil Soup",
+        "ingredient_units_located": 16,
+        "step_units_located": 7,
+        "ingredient_correspondence": {
+          "exact": 15,
+          "ambiguous": 1,
+          "unmatched": 0
+        },
+        "steps_matched_exact": 7,
+        "yield_structured": [
+          "4",
+          "4 servings"
+        ],
+        "yield_rendered": "4 servings",
+        "times": {
+          "prepTime": {
+            "structured": "PT10M",
+            "structured_minutes": 10,
+            "rendered_raw": "10 mins",
+            "rendered_minutes": 10,
+            "agree": true
+          },
+          "cookTime": {
+            "structured": "PT45M",
+            "structured_minutes": 45,
+            "rendered_raw": "45 mins",
+            "rendered_minutes": 45,
+            "agree": true
+          },
+          "totalTime": {
+            "structured": "PT55M",
+            "structured_minutes": 55,
+            "rendered_raw": "55 minutes",
+            "rendered_minutes": 55,
+            "agree": true
+          }
+        }
+      }
+    },
+    {
+      "id": "R5",
+      "role": "dev",
+      "why_selected": "complete, JSON-LD; servings compatibility record: count 4 is inside the explicit 4 to 6 servings range",
+      "note": "compatible count-in-range readings, not a genuine conflict; the live corpus has no genuine disjoint servings conflict",
+      "publisher_host": "cookieandkate.com",
+      "source_url": "https://cookieandkate.com/vegetarian-chili-recipe/",
+      "final_url": "https://cookieandkate.com/vegetarian-chili-recipe/",
+      "redirect_hops": 1,
+      "retrieval": {
+        "via": "research.fetch.Fetcher (repository retrieval boundary)",
+        "http_status": 200,
+        "robots_status": "allowed",
+        "outcome": "ok",
+        "fetched_at": "2026-09-15T20:45:03Z"
+      },
+      "immutable_bytes": {
+        "raw_file": "corpus/raw/cookieandkate_com_vegetarian_chili_recipe.html",
+        "sha256_raw_bytes": "6d6e235bebaf59a273a13afa1874e164ca7c6d63c1d6e6f38b4914669c64826b",
+        "bytes": 517847
+      },
+      "extracted": {
+        "extractor": "research.extract.extract @ baseline 2b7602f4",
+        "content_hash": "679feb32bbfcd65f7e1a0a99a488b8eebe065b7fea51f7789fb52106b26e78f0",
+        "text_chars": 14800,
+        "title": "Homemade Vegetarian Chili - Cookie and Kate",
+        "published_at": "2019-01-24T19:41:52+00:00",
+        "published_at_basis": "meta:article:published_time",
+        "modified_at": "2024-10-04T02:37:14+00:00",
+        "injection_flags": []
+      },
+      "locator_tier": "jsonld",
+      "expected": {
+        "recipe_name": "Homemade Vegetarian Chili",
+        "ingredient_units_located": 19,
+        "step_units_located": 5,
+        "ingredient_correspondence": {
+          "exact": 19,
+          "ambiguous": 0,
+          "unmatched": 0
+        },
+        "steps_matched_exact": 5,
+        "yield_structured": [
+          "4",
+          "4 to 6 servings"
+        ],
+        "yield_rendered": "4 to 6 servings",
+        "times": {
+          "prepTime": {
+            "structured": "PT20M",
+            "structured_minutes": 20,
+            "rendered_raw": "20 mins",
+            "rendered_minutes": 20,
+            "agree": true
+          },
+          "cookTime": {
+            "structured": "PT40M",
+            "structured_minutes": 40,
+            "rendered_raw": "40 mins",
+            "rendered_minutes": 40,
+            "agree": true
+          },
+          "totalTime": {
+            "structured": "PT1H",
+            "structured_minutes": 60,
+            "rendered_raw": "1 hour",
+            "rendered_minutes": 60,
+            "agree": true
+          }
+        }
+      }
+    },
+    {
+      "id": "R6",
+      "role": "HELD OUT",
+      "why_selected": "complete, JSON-LD; smallest document in the corpus (8128 chars)",
+      "note": "complete held-out #2; not previously tuned",
+      "publisher_host": "cookieandkate.com",
+      "source_url": "https://cookieandkate.com/spicy-vegan-black-bean-soup/",
+      "final_url": "https://cookieandkate.com/spicy-vegan-black-bean-soup/",
+      "redirect_hops": 1,
+      "retrieval": {
+        "via": "research.fetch.Fetcher (repository retrieval boundary)",
+        "http_status": 200,
+        "robots_status": "allowed",
+        "outcome": "ok",
+        "fetched_at": "2026-09-15T20:45:03Z"
+      },
+      "immutable_bytes": {
+        "raw_file": "corpus/raw/cookieandkate_com_spicy_vegan_black_bean_soup.html",
+        "sha256_raw_bytes": "fc2ec5b61db2aa90ddd9a0643ec222c15bf6612f019feb6552528d6a850d92a2",
+        "bytes": 467853
+      },
+      "extracted": {
+        "extractor": "research.extract.extract @ baseline 2b7602f4",
+        "content_hash": "409b13e3152e14b3fd2986ae6e34509ed7df95b410e8467c4fdd1c2b74d1ad19",
+        "text_chars": 8128,
+        "title": "Spicy Black Bean Soup Recipe - Cookie and Kate",
+        "published_at": "2019-02-05T19:48:27+00:00",
+        "published_at_basis": "meta:article:published_time",
+        "modified_at": "2024-07-11T02:39:54+00:00",
+        "injection_flags": []
+      },
+      "locator_tier": "jsonld",
+      "expected": {
+        "recipe_name": "Spicy Black Bean Soup",
+        "ingredient_units_located": 13,
+        "step_units_located": 4,
+        "ingredient_correspondence": {
+          "exact": 13,
+          "ambiguous": 0,
+          "unmatched": 0
+        },
+        "steps_matched_exact": 4,
+        "yield_structured": [
+          "6",
+          "6 servings"
+        ],
+        "yield_rendered": "6 servings",
+        "times": {
+          "prepTime": {
+            "structured": "PT10M",
+            "structured_minutes": 10,
+            "rendered_raw": "10 mins",
+            "rendered_minutes": 10,
+            "agree": true
+          },
+          "cookTime": {
+            "structured": "PT45M",
+            "structured_minutes": 45,
+            "rendered_raw": "45 mins",
+            "rendered_minutes": 45,
+            "agree": true
+          },
+          "totalTime": {
+            "structured": "PT55M",
+            "structured_minutes": 55,
+            "rendered_raw": "55 minutes",
+            "rendered_minutes": 55,
+            "agree": true
+          }
+        }
+      }
+    }
+  ],
+  "publishers": [
+    "budgetbytes.com",
+    "cookieandkate.com",
+    "loveandlemons.com"
+  ],
+  "held_out": [
+    "R2",
+    "R6"
+  ],
+  "blocked_or_failed": [
+    {
+      "url": "https://www.allrecipes.com/recipe/223042/chicken-parmesan/",
+      "outcome": "blocked",
+      "http_status": 403,
+      "robots_status": "allowed",
+      "reason": "http 403: access denied / login required"
+    },
+    {
+      "url": "https://www.myplate.gov/myplate-kitchen/recipes",
+      "outcome": "blocked",
+      "http_status": 403,
+      "robots_status": "allowed_no_robots",
+      "reason": "http 403: access denied / login required"
+    },
+    {
+      "url": "https://cookieandkate.com/best-vegetarian-chili-recipe/",
+      "outcome": "error",
+      "http_status": 404,
+      "robots_status": "allowed",
+      "reason": "http 404: not found"
+    },
+    {
+      "url": "https://cookieandkate.com/easy-guacamole-recipe/",
+      "outcome": "error",
+      "http_status": 404,
+      "robots_status": "allowed",
+      "reason": "http 404: not found"
+    }
+  ]
+}

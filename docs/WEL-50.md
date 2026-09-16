@@ -1,7 +1,8 @@
 # WEL-50 — Continuous runtime preparation (PREPARED / NOT ACTIVATED)
 
-Base: remote `main` `2b7602f42856ce34c6a18c810f7181bca418bd6f`. Nothing here is installed, loaded,
-bootstrapped, started or stopped. No model call, no source request, no service command was made
+Preparation input: WEL-50 candidate `af152a2a6461bc05d3b13fee93867bfc80f64a6e` with new `main`
+`2010943a974b70778aa67f74d6a20e19e6c246c7` merged locally without a commit. Nothing here is installed, loaded,
+bootstrapped, started or stopped. No external source request, local/hosted model call, or service command was made
 while preparing this. Activation is a separate step that needs Spencer's explicit authorization
 naming the exact action and the exact host, service account and plist (see the last section).
 Review, merge or PR approval is not activation authority. Nothing starts a service automatically.
@@ -26,27 +27,48 @@ Files:
 |---|---|
 | `docs/WEL-50-supervisor.launchd.example.plist` | uninstalled, `Disabled=true` supervisor definition; `plutil -lint` clean; every host-specific value is a `__FILL_*__` manifest token |
 | `scripts/wel50_store_backup.py` | offline `backup` of the isolated SQLite store and `restore` into a fresh path only; takes the same store lock as the worker, exits 3 if a cycle is running; SQLite backup API + `integrity_check`; never overwrites an existing backup or store, and restore removes no files |
-| `tests/test_wel50_backup.py` | 4 tests on pytest scratch paths: representative-row round trip, refusal of existing / same-file / companion destinations without mutation, lock refusal, corrupt backup never restored |
+| `tests/test_wel50_backup.py` | 7 tests on pytest scratch paths: schema-6 representative-row round trip, refusal of existing / same-file / companion destinations without mutation, lock refusal, corrupt backup never restored, exact disabled-plist configuration parsing, adjacent allowlist/roster pairing, and stubbed recipe-adapter payload settings |
 | this file | procedure, status semantics, manifest, gaps |
 
 `bin/ri_run_research_cycle_launchd.sh` is an old script for a different runtime (`/Users/buddystudio1/ri_db`,
 PostgreSQL). It is not used, not repaired and must not be installed. The only entrance is
 `python3 -m research.worker cycle` on an isolated SQLite file.
 
-## Command shape (current flags only)
+## Prepared runtime command shape (disabled example; not executed)
 
 ```bash
+WN_RESEARCH_OLLAMA_MODEL=qwen3.8:27b \
+WN_RESEARCH_OLLAMA_URL=http://127.0.0.1:11434 \
+WN_RESEARCH_RECIPE_EXTRACTION=true \
 __FILL_PYTHON3__ -m research.worker cycle \
-  --provider none --max-urls 10 --max-inference 10 --max-inference-per-day 10 \
+  --provider ollama --max-urls 10 --max-inference 10 --max-inference-per-day 10 \
   --allowlist __FILL_CHECKOUT__/sources/allowlist.json \
   --db __FILL_STATE_DIR__/research.sqlite \
   --report __FILL_STATE_DIR__/report.md
 ```
 
 Paths are explicit flags, not `WN_RESEARCH_*` environment variables, so the supervised worker can
-never silently resolve to another store. Exit codes: 0 ok, 1 failed (`failures` lists why), 3 locked.
-`--provider none` makes zero model calls; WEL-50 pins no model (Qwen/Gemma runs are experiments,
-not configuration). Switching to `--provider ollama` is an activation decision recorded in the manifest.
+never silently resolve to another store. The adjacent `sources/roster.json` is loaded automatically
+from the allowlist's directory; the focused test projects that real pair and verifies every current
+`fetch=true` grant has a retained/permitted roster surface. Exit codes: 0 ok, 1 failed (`failures`
+lists why), 3 locked.
+
+These are existing runtime controls, not invented flags. `Config.from_env` reads model, URL and the
+recipe switch; the reviewed recipe adapter supplies `num_ctx=16384`, `num_predict=4096` and
+`think=false`. The candidate is the already-tested installed `qwen3.8:27b`, Ollama 0.32.14,
+Q4_K_M, digest `22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643` on the proposed
+96 GB M3 Ultra. This records preparation evidence and a recommendation only: it does not prove the
+future host has that digest, pin or download a model, authorize a rebenchmark, or activate Ollama.
+
+Provider-none is only a zero-model diagnostic, not the continuous recipe outcome. Run it, if needed,
+with recipe extraction explicitly off so it does not create failed recipe placeholders:
+
+```bash
+WN_RESEARCH_RECIPE_EXTRACTION=false __FILL_PYTHON3__ -m research.worker cycle \
+  --provider none --max-urls 10 --max-inference 10 --max-inference-per-day 10 \
+  --allowlist __FILL_CHECKOUT__/sources/allowlist.json \
+  --db __FILL_SCRATCH_STATE_DIR__/research.sqlite --report __FILL_SCRATCH_STATE_DIR__/report.md
+```
 
 ## Manifest (fill from verified, authorized deployment evidence; never invent)
 
@@ -58,8 +80,8 @@ not configuration). Switching to `--provider ollama` is an activation decision r
 | host | isolated office Mac (current candidate host is a 96 GB M3 Ultra; a 24 GB mini only if actual model quality/headroom proves fit) | hardware decision |
 | account | dedicated service account; no reuse of an existing mixed-use HOME/USER | deployment record |
 | interval | `StartInterval` seconds (example 3600) | operator decision |
-| provider / model | `none` until a model is chosen by evidence | model decision |
-| allowlist roster | `sources/allowlist.json` at the reviewed commit | review |
+| provider / model | prepared candidate: Ollama + `qwen3.8:27b`; activation must verify exact installed digest/runtime on the target | model + host evidence |
+| allowlist / roster | paired `sources/allowlist.json` and adjacent `sources/roster.json` from the exact reviewed checkout | deployment record |
 
 ## Start / stop procedure (documented only; NOT executed in WEL-50; each live step needs Spencer's exact authorization)
 
@@ -101,13 +123,15 @@ touches the backup. Making a configured service use a restored candidate file (a
 in the installed plist, after `bootout`, followed by `bootstrap`) is a later operation on an
 exact target that needs its own Spencer authorization; WEL-50 does not prepare an in-place swap.
 
-The store is the only durable state. `report.md` is derived and regenerable; the allowlist lives in
+The store is the only durable runtime state. `report.md` is derived and regenerable; the allowlist and roster live in
 the git checkout; `cycle.log` holds one JSON result per cycle and is not needed for recovery. A
-backup is a consistent SQLite copy (backup API) verified with `PRAGMA integrity_check`; a file that
+backup is a consistent SQLite copy (backup API) verified with `PRAGMA integrity_check`; a newly
+created invalid backup may be removed, but an existing backup/store is never overwritten; a file that
 fails the check is never restored. What was exercised: whole-store copy of a synthetic scratch store
 holding one run, one hint, one fetch attempt, one evidence version with text, one rule candidate, one
-inference row and one schedule row, with values and the evidence↔candidate↔schedule relationships
-asserted equal after restore. Recovery of a real collected store, and any WEL-48/49 state, is untested.
+inference row, one schedule row, one WEL-48 manifest/recipe/version identity, and one WEL-49
+publisher/surface identity, with values and cross-table relationships asserted equal after restore at
+schema 6. Recovery of a real collected store remains untested.
 
 ## Status: four separate questions, four separate sources of truth
 
@@ -117,23 +141,27 @@ asserted equal after restore. Recovery of a real collected store, and any WEL-48
 |---|---|---|
 | 1. is the process alive / did it run | `launchctl print …` (pid, last exit status); last JSON line in `cycle.log`; `runs` table (`status` ok / failed / running) | exit 0 or 1 leaves a `runs` row; exit 3 (overlap) is visible only in `cycle.log` and the exit status and writes no run row. A `running` row with no live pid means an interrupted cycle. |
 | 2. did a fetch succeed | `runs.summary.fetched_ok`, `source_requests`, `errors`, `blocked`; `fetch_attempts` rows; health table state `not_due` with a recent "last success" | `fetched_ok > 0` in some cycle; `not_due` with `source_requests = 0` is normal when nothing is due |
-| 3. did model inference happen | `inference_calls` rows by `status` (`reserved` / `ok` / `error` / `ambiguous`), `inference_used_today`, "Inference budget" line in the report | with `--provider none` this is always 0 by design; `ambiguous` rows need a human decision |
-| 4. was durable output useful | `evidence_new`, `candidates_new`, `candidates_recovered`; `candidates` rows `pending` (rule registry) or `deferred` (free text) | evidence versions and pending rule candidates; "Budget stopped" counts placeholders waiting |
+| 3. did model inference happen | `inference_calls` by `purpose` and `status` (`reserved` / `ok` / `error` / `ambiguous`), `inference_used_today`, "Inference budget" in the report | recipe extraction and candidate proposal consume the same persisted caps; `ambiguous` needs human review and is never automatically replayed |
+| 4. was durable output useful | run summary `recipe_versions_new`, `recipe_versions_existing`, `recipe_failures`, `publisher_evidence`, `evidence_new`, `candidates_new`, `candidates_recovered`; `recipe_versions` completeness/state/publishable and report registry counts | source-backed recipe versions plus independent-publisher evidence; recipe `pending` still has `publishable=0`, and counts do not establish editorial approval or app delivery |
 
-A cycle that exits 0 with all counters 0 (as in the verification below) proves only question 1.
+A cycle that exits 0 with all counters 0 proves only question 1. A provider-none diagnostic cannot
+prove question 3 or the recipe part of question 4.
+
+Operating limits of the existing worker: generic candidate proposals run before recipe extraction
+and share the persisted 10-call daily budget. A first cycle with 10 fetched pages can spend that
+budget before any recipe extraction; deferred recipe placeholders can resume on a later cycle/day.
+Do not reset the ledger or raise its hard cap to make a run appear successful. Also,
+`recipe_versions_new` counts deferred/failed placeholders, not only usable recipes: inspect the
+stored content, completeness and failure reasons before reporting useful output.
 
 ## Verification performed here (offline, scratch paths, no network, no model, no service)
 
 | check | command | result |
 |---|---|---|
 | plist lint | `plutil -lint docs/WEL-50-supervisor.launchd.example.plist docs/WEL-41-scheduler.launchd.example.plist` | both `OK` |
-| worker entrance | `python3 -m research.worker cycle --provider none --allowlist <scratch>/allowlist.json` (`{"sources": []}`) `--db <scratch>/work/research.sqlite --report …` | exit 0, `status ok`, `source_requests 0`, `robots_requests 0`, `inference_calls 0`, one `runs` row `ok`, `report.md` written |
-| overlap | same command while another process holds `research.sqlite.lock` | exit 3, `status locked`, `source_requests 0`, failure text "held by another worker process … nothing requested" |
-| report | `python3 -m research.worker report --db … --report …` | exit 0, renders the run row |
-| backup / restore (first pass) | `scripts/wel50_store_backup.py backup …` then `restore …` into a fresh path on a run-only scratch store | exit 0 both; `integrity ok`; identical table counts (schema_version 4); proves copy of that fixture only |
-| focused tests (repair one) | `python3 -m pytest tests/test_wel50_backup.py -q` | 4 passed: representative rows (evidence, text, candidate, hint, attempt, inference, schedule) equal after fresh-path restore; existing / same-file (direct, relative alias, symlink) / companion destinations refused with no mutation and no lock file; lock refusal exit 3; corrupt backup refused |
-| full suite (first pass only, not repeated) | `python3 -m pytest tests -q` | 188 passed, 1 failed (`test_wel43.py::test_recorded_comparison_and_manifest_are_preserved_as_history`, pre-existing on `main`; unrelated, not touched) |
-| not installed | `ls ~/Library/LaunchAgents \| grep -i wellnest.research` | no match; `launchctl` was never invoked |
+| focused preparation | `PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider tests/test_wel50_backup.py` | 7 passed: schema-6 recipe/source identity round trip, refusal/lock/corruption rules, exact disabled invocation parsing, actual adjacent allowlist/roster projection, and stubbed adapter proof of 16384/4096/false |
+| merged-boundary smoke | `PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider tests/test_wel50_backup.py tests/test_wel48_wel49_integration.py` | 12 passed; offline only; verifies merged CLI/config, recipe adapter settings, roster coexistence, schema 6 and backup fidelity |
+| no live assertion | no external source, local/hosted model, process, service, or existing-store command was run; tests use only synthetic in-memory transport and a stubbed model boundary | these checks establish configuration and scratch-store behavior only |
 
 ## NOT TESTED (stays NOT TESTED until an authorized activation runs it)
 
@@ -143,33 +171,32 @@ A cycle that exits 0 with all counters 0 (as in the verification below) proves o
   disk use, wake-from-sleep timing.
 - Hardware and account: M3 Ultra vs 24 GB mini headroom, dedicated service account, file ownership
   and permissions on `__FILL_STATE_DIR__`.
-- Live source requests under the supervisor and any model provider other than `none`.
+- Live source requests or any local-model request under the supervisor, including the prepared Ollama recipe path.
+- Exact target model digest/runtime availability, model process ownership, local endpoint health and model quality on the eventual deployment host.
 - `launchctl bootstrap / kickstart / bootout / print` commands above: documented from launchd's
   interface, not executed.
 
-## Unmet WEL-48 / WEL-49 contracts (explicit)
+## WEL-48 / WEL-49 preparation boundary
 
-WEL-48 and WEL-49 are uncommitted in separate worktrees and are not part of base `2b7602f`. This
-preparation used **current flags only** and did not read, copy or integrate their code. Therefore:
-
-- any CLI flag, environment variable or provider option they add is absent from the plist and untested;
-- any durable state they add (tables, files beside the store, identity or recovery records) is
-  outside the backup/restore procedure above until re-verified;
-- any status or health output they add is not part of the four-question table above;
-- the "combined reviewed branch" does not exist yet, so the command shape must be re-linted and the
-  scratch verification re-run on it before the manifest is filled.
-
-Integration of WEL-48/49-specific behaviour is NOT TESTED by definition here.
+The new main commit is locally integrated into this uncommitted preparation tree. The disabled
+supervisor now uses the merged configuration surface; backup/restore covers schema 6 recipe and
+publisher identities; status semantics include recipe and publisher counters. The real allowlist has
+18 entries, 13 `fetch=true`; the roster has 22 surfaces, and the 10-URL working set currently has 9
+collection flags across 6 root publishers. That is configured coverage, not live collection proof.
+Cookie and Kate remains on the combined integration hold (`fetch=false`) even though its roster row is
+retained/permitted. No access was expanded here.
 
 ## Activation prerequisites (separate step, separate authorization)
 
-1. Reviewed combined branch containing WEL-48/49 merged into `main`, suite green on that commit.
+1. Independent review of this WEL-50-on-new-main preparation delta, then an exact reviewed commit/checkout selected for deployment. The current local merge has no commit by design.
 2. Manifest above filled from verified host/account/checkout evidence; no `__FILL_*__` left.
 3. Dedicated service account on the isolated host; no shared HOME/USER and no other launchd job
    (for example an existing Ollama service) sharing the store, the port or the account.
-4. Tested local-model decision recorded, with its model name and URL supplied as explicit
-   flags/variables in the installed copy, never in this example. Provider `none` is valid only for
-   preparation/diagnostic runs; it cannot satisfy the continuous local-model research outcome.
+4. On the exact target, verify Ollama 0.32.14 and the installed `qwen3.8:27b` digest, then confirm the
+   installed copy's existing environment controls. The disabled example records the proposed values;
+   it neither installs nor pins them. Provider `none` is diagnostic only and cannot satisfy the outcome.
+   Specifically confirm `WN_RESEARCH_OLLAMA_MODEL` survived the copy: omitting it uses the existing
+   `qwen2.5:14b` default, not the reviewed Qwen 27B candidate.
 5. `Disabled` flipped to `false` only in the installed copy; the example in `docs/` stays disabled.
 6. First backup taken before the first supervised cycle; backup location and cadence decided.
 7. Spencer's explicit authorization naming the exact action (`launchctl bootstrap`), the exact host,

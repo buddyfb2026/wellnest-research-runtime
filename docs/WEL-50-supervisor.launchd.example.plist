@@ -21,14 +21,16 @@
   <key>Label</key><string>com.wellnest.research-cycle</string>
   <key>Disabled</key><true/>
 
-  <!-- One bounded cycle per launch. Provider `none` makes zero model calls; no model is pinned by
-       WEL-50. Every cap is at (or below) the hard cap in research/config.py and can only be lowered. -->
+  <!-- One bounded cycle per launch. This disabled preparation uses the already-reviewed Ollama
+       recipe path and its evidence-backed candidate model; it does not install, load, download,
+       contact, or pin that model on any host. Every cap is at (or below) the hard cap in
+       research/config.py and can only be lowered. -->
   <key>ProgramArguments</key>
   <array>
     <string>__FILL_PYTHON3__</string>
     <string>-m</string><string>research.worker</string>
     <string>cycle</string>
-    <string>--provider</string><string>none</string>
+    <string>--provider</string><string>ollama</string>
     <string>--max-urls</string><string>10</string>
     <string>--max-inference</string><string>10</string>
     <string>--max-inference-per-day</string><string>10</string>
@@ -43,8 +45,11 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>PYTHONUNBUFFERED</key><string>1</string>
-    <!-- No WN_RESEARCH_* variables: paths and provider are explicit flags above so the store can
-         never silently resolve to a different file. Ollama variables are intentionally absent. -->
+    <!-- These are existing Config.from_env controls. The recipe adapter itself supplies
+         num_ctx=16384, num_predict=4096 and think=false; no invented CLI flags are used here. -->
+    <key>WN_RESEARCH_OLLAMA_MODEL</key><string>qwen3.8:27b</string>
+    <key>WN_RESEARCH_OLLAMA_URL</key><string>http://127.0.0.1:11434</string>
+    <key>WN_RESEARCH_RECIPE_EXTRACTION</key><string>true</string>
   </dict>
 
   <!-- Sleep between cycles lives here. 3600 s is the WEL-41 example value; the worker's own
