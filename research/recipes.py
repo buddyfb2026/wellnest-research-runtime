@@ -6,7 +6,7 @@ from typing import Any, Dict, Iterable, Optional, Tuple
 
 from .fetch import now_iso
 
-EXTRACTOR_VERSION = "wel48_extractor_v3"
+EXTRACTOR_VERSION = "wel48_extractor_v4"
 PROMPT_SCHEMA_VERSION = "wel48_recipe_literals_v3"
 BUDGET_PLACEHOLDER_PREFIX = "inference_budget_exhausted"
 
