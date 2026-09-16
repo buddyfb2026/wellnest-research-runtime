@@ -51,8 +51,9 @@ class BudgetExhausted(RuntimeError):
 
 
 class ModelClient:
-    """Two ceilings, both may be lowered and never raised: `budget` per process and `daily_cap`
-    per UTC day persisted in `inference_calls`. The daily row is committed BEFORE the request
+    """A finite `budget` per process and an optional `daily_cap` per UTC day.
+    Local Ollama development may explicitly use daily_cap=None; accounting still persists in
+    `inference_calls`. The daily row is committed BEFORE the request
     (status=reserved) and updated after; it is never deleted, so restart, overlap, timeout or a
     later rollback cannot refund it."""
 
@@ -60,12 +61,14 @@ class ModelClient:
                  ollama_url: str = "http://127.0.0.1:11434",
                  fixture_fn: Optional[Callable[[str, Dict[str, Any]], Optional[Dict[str, Any]]]] = None,
                  http_post: Optional[Callable[[str, Dict[str, Any], int], Dict[str, Any]]] = None,
-                 daily_cap: int = 10, crash_hook: Optional[Callable[[str], None]] = None):
+                 daily_cap: Optional[int] = 10, crash_hook: Optional[Callable[[str], None]] = None):
         if provider not in ("none", "fixture", "ollama"):
             raise ValueError("unknown provider: %s" % provider)
         self.provider = provider
         self.budget = int(budget)
-        self.daily_cap = int(daily_cap)
+        if daily_cap is None and provider != "ollama":
+            raise ValueError("unlimited daily calls apply only to provider=ollama")
+        self.daily_cap = None if daily_cap is None else int(daily_cap)
         self.calls_used = 0
         self.last_status: Optional[str] = None   # ok | error | ambiguous
         self.model = model if provider == "ollama" else (provider if provider != "none" else None)
@@ -108,7 +111,7 @@ class ModelClient:
         conn.execute("BEGIN IMMEDIATE")
         try:
             used = self.used_today(conn, day)
-            if used >= self.daily_cap:
+            if self.daily_cap is not None and used >= self.daily_cap:
                 raise BudgetExhausted("daily inference cap of %d reached for %s (%d used)" % (self.daily_cap, day, used))
             cur = conn.execute(
                 """INSERT INTO inference_calls(run_id, provider, model, purpose, evidence_id, prompt_hash, called_at,

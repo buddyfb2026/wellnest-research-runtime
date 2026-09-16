@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = REPO_ROOT / "work" / "research.sqlite"
@@ -15,8 +15,8 @@ MAX_URLS_HARD_CAP = 10
 MAX_INFERENCE_HARD_CAP = 10            # per run (process)
 MAX_INFERENCE_PER_DAY_HARD_CAP = 10    # per UTC day, persisted across runs, restarts and overlaps
 # WEL-54: an operator may opt in to a larger per-UTC-day allowance for the LOCAL Ollama provider
-# only. This bounds local model throughput (host time), not money. It never changes the per-run or
-# page caps, and it is never read from a source-controlled file.
+# only, or explicitly disable the daily quota for local development. Neither mode changes the
+# per-run/page caps or accounting, and neither is read from a source-controlled file.
 LOCAL_DAILY_BUDGET_CEILING = 100
 MAX_DISCOVERY_ASSESSMENTS_PER_CYCLE = 3
 MAX_DISCOVERY_HINTS_PER_ROUTE = 20
@@ -29,7 +29,7 @@ class Config:
     report_path: Path = DEFAULT_REPORT
     max_urls: int = MAX_URLS_HARD_CAP
     max_inference: int = MAX_INFERENCE_HARD_CAP
-    max_inference_per_day: int = MAX_INFERENCE_PER_DAY_HARD_CAP
+    max_inference_per_day: Optional[int] = MAX_INFERENCE_PER_DAY_HARD_CAP
     provider: str = "none"            # none | ollama | fixture
     ollama_model: str = "qwen2.5:14b"
     ollama_url: str = "http://127.0.0.1:11434"
@@ -37,7 +37,7 @@ class Config:
     max_body_bytes: int = 2_000_000
     user_agent: str = USER_AGENT
     recipe_extraction_enabled: bool = False
-    local_daily_budget: Optional[int] = None   # WEL-54 opt-in; None keeps the fixed daily cap
+    local_daily_budget: Optional[Union[int, str]] = None  # None keeps default; 'unlimited' disables daily quota
     meals_first: bool = False                  # WEL-54 opt-in; recipe work before generic proposals
 
     @classmethod
@@ -74,9 +74,13 @@ class Config:
         else:
             budget = validate_local_daily_budget(cfg.local_daily_budget, cfg.provider)
             cfg.local_daily_budget = budget
-            # The opt-in allowance is the ceiling; an explicit per-day flag can only lower it.
-            cfg.max_inference_per_day = (min(int(cfg.max_inference_per_day), budget)
-                                         if daily_override else budget)
+            # An explicit per-day flag still imposes its requested finite bound, even when
+            # development opts out of the daily quota. None means no daily ceiling, not no ledger.
+            if budget == "unlimited":
+                cfg.max_inference_per_day = int(cfg.max_inference_per_day) if daily_override else None
+            else:
+                cfg.max_inference_per_day = (min(int(cfg.max_inference_per_day), budget)
+                                             if daily_override else budget)
         return cfg
 
 
@@ -96,10 +100,12 @@ def _whole_number(value, name: str) -> int:
     return value
 
 
-def validate_local_daily_budget(value, provider: str) -> int:
-    """A whole number in [1, LOCAL_DAILY_BUDGET_CEILING], local Ollama only. Anything else is refused."""
+def validate_local_daily_budget(value, provider: str) -> Union[int, str]:
+    """An explicit 'unlimited' or whole number in [1, ceiling], Ollama only."""
     if provider != "ollama":
         raise ValueError("local daily budget applies only to provider=ollama (got %s)" % provider)
+    if isinstance(value, str) and value.strip().lower() == "unlimited":
+        return "unlimited"
     value = _whole_number(value, "local daily budget")
     if value > LOCAL_DAILY_BUDGET_CEILING:
         raise ValueError("local daily budget must be between 1 and %d: %d" % (LOCAL_DAILY_BUDGET_CEILING, value))

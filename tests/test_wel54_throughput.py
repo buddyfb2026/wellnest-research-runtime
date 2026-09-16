@@ -69,6 +69,25 @@ def test_allowance_is_local_ollama_only(provider):
         Config.from_env(provider=provider, local_daily_budget='20')
 
 
+@pytest.mark.parametrize('value', ['unlimited', ' UNLIMITED '])
+def test_unlimited_daily_is_explicit_local_only_and_retains_batch_bounds(value):
+    cfg = Config.from_env(provider='ollama', local_daily_budget=value, max_urls=999, max_inference=999)
+    assert cfg.local_daily_budget == 'unlimited' and cfg.max_inference_per_day is None
+    assert (cfg.max_urls, cfg.max_inference) == (10, 10)
+    lowered = Config.from_env(provider='ollama', local_daily_budget=value, max_inference_per_day=3)
+    assert lowered.max_inference_per_day == 3
+
+
+@pytest.mark.parametrize('provider', ['none', 'fixture'])
+def test_unlimited_daily_is_rejected_for_nonlocal_providers_before_store(tmp_path, provider):
+    with pytest.raises(ValueError):
+        ModelClient(provider, 10, daily_cap=None)
+    store = tmp_path / 'not-created.sqlite'
+    assert worker.main(['cycle', '--provider', provider, '--local-daily-budget', 'unlimited',
+                        '--db', str(store)]) == 2
+    assert not store.exists()
+
+
 def test_budget_is_cli_only_and_does_not_break_auxiliary_report(monkeypatch, tmp_path):
     # A stale variable from the initial draft must not affect ordinary operator commands.
     monkeypatch.setenv('WN_RESEARCH_LOCAL_DAILY_BUDGET', '30')
@@ -85,11 +104,12 @@ def test_budget_is_cli_only_and_does_not_break_auxiliary_report(monkeypatch, tmp
     conn.close()
 
 
+@pytest.mark.parametrize('budget', [40, 'unlimited'])
 @pytest.mark.parametrize('name', ['max_urls', 'max_inference', 'max_inference_per_day'])
 @pytest.mark.parametrize('value', [0, -1, '0', '-1', 'abc', '1.5', 1.5, float('nan'), float('inf'), True])
-def test_opt_in_rejects_invalid_effective_limits(name, value):
+def test_opt_in_rejects_invalid_effective_limits(name, value, budget):
     with pytest.raises(ValueError, match='positive whole number'):
-        Config.from_env(provider='ollama', local_daily_budget=40, **{name: value})
+        Config.from_env(provider='ollama', local_daily_budget=budget, **{name: value})
 
 
 @pytest.mark.parametrize('flag', ['--max-urls', '--max-inference', '--max-inference-per-day'])
@@ -164,6 +184,41 @@ def _placeholders(conn):
     return conn.execute("SELECT COUNT(*) FROM candidates WHERE state_reason LIKE 'inference_budget_exhausted%'").fetchone()[0]
 
 
+def test_unlimited_worker_keeps_ledger_batch_cap_and_same_day_resume(tmp_path, monkeypatch):
+    cfg = Config.from_env(db_path=tmp_path / 'w.sqlite', allowlist_path=tmp_path / 'allowlist.json',
+                          report_path=tmp_path / 'r.md', provider='ollama', ollama_model='stub',
+                          local_daily_budget='unlimited', meals_first=True, max_inference=2,
+                          recipe_extraction_enabled=True)
+    write_allowlist(tmp_path, [entry(u) for u in (A, R1, R2)])
+    conn = db.connect(cfg.db_path); db.migrate(conn)
+    for i in range(100):
+        conn.execute("INSERT INTO inference_calls(run_id,provider,model,purpose,prompt_hash,called_at,ok,day,status) "
+                     "VALUES(?,?,?,?,?,?,0,?,?)",
+                     ('historical', 'ollama', 'old', 'candidate_proposal', 'h%d' % i,
+                      DAY + 'T01:00:00Z', DAY, 'ambiguous' if i == 0 else 'error'))
+    history = [tuple(r) for r in conn.execute('SELECT * FROM inference_calls ORDER BY id')]
+    conn.close()
+    calls = []
+    # Real worker creates its real ModelClient from cfg; only external HTTP is stubbed.
+    monkeypatch.setattr(ModelClient, '_default_post', staticmethod(_stub_post(calls)))
+    pages = {u: (200, u, HTML, PAGES[u]) for u in (A, R1, R2)}
+    def invoke():
+        return worker.run(cfg, transport=make_transport(pages), content_kind='fixture', clock=lambda: T0)
+    results = [invoke() for _ in range(4)]
+    assert all(r.ok for r in results)
+    assert [r['inference_calls'] for r in results] == [2, 2, 1, 0]
+    assert calls == [('recipe_extraction', R1), ('recipe_extraction', R2),
+                     ('candidate_proposal', A), ('candidate_proposal', R1), ('candidate_proposal', R2)]
+    conn = db.connect(cfg.db_path)
+    assert ModelClient.used_today(conn, DAY) == 105
+    assert [tuple(r) for r in conn.execute('SELECT * FROM inference_calls WHERE id<=100 ORDER BY id')] == history
+    assert conn.execute('SELECT COUNT(*) FROM recipe_versions').fetchone()[0] == 2
+    assert conn.execute('SELECT COUNT(*) FROM candidates').fetchone()[0] == 3
+    assert _placeholders(conn) == 0
+    assert conn.execute('SELECT COUNT(*) FROM recipe_versions WHERE publishable!=0').fetchone()[0] == 0
+    conn.close()
+
+
 def test_default_mode_keeps_generic_first_order(tmp_path):
     cfg = _cfg(tmp_path, meals_first=False); calls = []
     result = _run(tmp_path, cfg, 4, calls)
@@ -220,9 +275,10 @@ def test_meals_first_without_eligible_recipe_runs_generic_normally(tmp_path):
     assert outputs[True][1] == [('candidate_proposal', 'ok')]
 
 
-def test_failed_recipe_is_charged_and_generic_work_uses_remaining_capacity(tmp_path):
+@pytest.mark.parametrize('daily_cap', [3, None])
+def test_failed_recipe_is_charged_and_generic_work_uses_remaining_capacity(tmp_path, daily_cap):
     cfg = _cfg(tmp_path, meals_first=True); calls = []
-    result = _run(tmp_path, cfg, 3, calls, urls=(A, R1), fail_recipe=R1)
+    result = _run(tmp_path, cfg, daily_cap, calls, urls=(A, R1), fail_recipe=R1)
     assert result['inference_calls'] == 3
     assert calls == [('recipe_extraction', R1), ('candidate_proposal', A), ('candidate_proposal', R1)]
     assert _ledger(cfg) == [('recipe_extraction', 'error'), ('candidate_proposal', 'ok'),
@@ -237,7 +293,7 @@ def test_failed_recipe_is_charged_and_generic_work_uses_remaining_capacity(tmp_p
 
     # A failed settled attempt is neither refunded nor retried on the next entrance.
     calls.clear()
-    again = _run(tmp_path, cfg, 3, calls, urls=(A, R1), fail_recipe=R1)
+    again = _run(tmp_path, cfg, daily_cap, calls, urls=(A, R1), fail_recipe=R1)
     assert again['inference_calls'] == 0 and calls == []
     assert _ledger(cfg) == [('recipe_extraction', 'error'), ('candidate_proposal', 'ok'),
                             ('candidate_proposal', 'ok')]

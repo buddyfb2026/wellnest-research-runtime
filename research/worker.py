@@ -473,7 +473,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         r.add_argument("--max-urls", type=int); r.add_argument("--max-inference", type=int)
         r.add_argument("--max-inference-per-day", type=int)
         r.add_argument("--local-daily-budget",
-                       help="WEL-54 opt-in daily allowance for provider=ollama, 1-%d" % cfgm.LOCAL_DAILY_BUDGET_CEILING)
+                       help="Ollama daily allowance: 1-%d, or 'unlimited' for local development; per-run cap stays" % cfgm.LOCAL_DAILY_BUDGET_CEILING)
         r.add_argument("--meals-first", action="store_true", default=None,
                        help="WEL-54 opt-in: recipe extraction reserves calls before generic proposals")
     p = sub.add_parser("report"); p.add_argument("--db"); p.add_argument("--report")

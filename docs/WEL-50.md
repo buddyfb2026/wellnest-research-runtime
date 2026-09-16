@@ -77,24 +77,25 @@ Two optional controls. Neither is enabled by default, and neither is used by the
 - `--local-daily-budget N` (`run`/`cycle` CLI flag only; there is no environment variable for it, so `report`, `review` and `reset-source` are unaffected):
   - applies to `--provider ollama` only;
   - with it set, any explicit `--max-urls`, `--max-inference` or `--max-inference-per-day` must be a positive whole number (zero or negative exits 2), then the existing clamps apply;
-  - N must be a whole number from 1 to 100 (`research/config.LOCAL_DAILY_BUDGET_CEILING`);
-  - it replaces the fixed daily 10 as the per-UTC-day ceiling, and `--max-inference-per-day` can only lower it;
+  - N is a whole number from 1 to 100 (`research/config.LOCAL_DAILY_BUDGET_CEILING`), or the explicit word `unlimited` for local development;
+  - a number replaces the fixed daily 10 as the per-UTC-day ceiling; `unlimited` removes that daily ceiling, not the ledger;
+  - an explicit `--max-inference-per-day` still imposes its finite requested limit, including with `unlimited`; omit that flag for no daily quota;
   - the per-run limit (10) and URL limit (10) are unchanged;
-  - it limits local model host time, not money;
+  - a numeric daily allowance limits host time, not money; unlimited mode still processes only finite batches;
   - invalid values exit 2 before any store is opened.
 - `--meals-first` (or `WN_RESEARCH_MEALS_FIRST=true`):
   - with recipe extraction enabled, the existing recipe step runs before generic proposals, so recipes take calls from the shared caps first;
   - generic proposals then use whatever remains, and get the existing budget placeholders for the rest;
   - with no eligible recipe, the run behaves exactly like the default.
 
-The reservation, persisted daily count, UTC day, lock, charged-ambiguous and replay rules are unchanged, and no ledger is reset.
+The reservation, persisted daily count, UTC day, lock, charged-ambiguous and replay rules are unchanged, and no ledger is reset. Each call remains recorded even with no daily quota. The same-day backlog can resume in subsequent bounded cycles without waiting for a UTC-day reset. This does not add a busy loop or make the scheduled cadence faster.
 
 ```bash
 ... -m research.worker cycle --provider ollama --max-urls 10 --max-inference 10 \
-  --local-daily-budget 60 --meals-first --allowlist ... --db ... --report ...
+  --local-daily-budget unlimited --meals-first --allowlist ... --db ... --report ...
 ```
 
-Choosing N, and enabling this under launchd, are separately authorized operator decisions. Neither has been measured on the host.
+Spencer requested no daily local-model quota during development on September 16. The opt-in implements that policy; it is not a claim of live deployment or measured throughput. Default operation remains finite. Keep serial calls, store locking, request timeouts, source due/backoff rules and the existing label-scoped stop. On the shared Studio, defer work when a competing large-model job owns the resources; do not restart or reconfigure its Ollama service. This change does not add an automatic contention detector.
 
 ## Manifest (fill from verified, authorized deployment evidence; never invent)
 
@@ -173,10 +174,10 @@ schema 6. Recovery of a real collected store remains untested.
 A cycle that exits 0 with all counters 0 proves only question 1. A provider-none diagnostic cannot
 prove question 3 or the recipe part of question 4.
 
-Operating limits of the existing worker: generic candidate proposals run before recipe extraction
-and share the persisted 10-call daily budget. A first cycle with 10 fetched pages can spend that
-budget before any recipe extraction; deferred recipe placeholders can resume on a later cycle/day.
-Do not reset the ledger or raise its hard cap to make a run appear successful. Also,
+Default operating limits: generic candidate proposals run before recipe extraction and share a
+persisted 10-call daily budget. The opt-in above can put meals first and remove the daily quota
+for local development; the per-cycle batch remains finite. Deferred work can resume next cycle.
+Never reset the ledger or mislabel a configuration change as a successful research result. Also,
 `recipe_versions_new` counts deferred/failed placeholders, not only usable recipes: inspect the
 stored content, completeness and failure reasons before reporting useful output.
 
