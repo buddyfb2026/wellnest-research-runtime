@@ -259,6 +259,35 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
             _rollback(conn)
             result["failures"].append("assess %s: %s: %s" % (h["url"], type(e).__name__, e))
 
+    # 5. Recipe work is independently rediscovered from durable latest-evidence/current-manifest
+    # state. It is default-off, does not affect the incumbent candidate path, and does no fetching.
+    # Default order: after candidate work (step 4). WEL-54 meals_first runs this same step before
+    # step 4, so recipe extraction reserves from the shared persisted caps first; step 4 then uses
+    # whatever capacity remains, with its existing budget placeholders for the rest.
+    def recipe_work() -> None:
+        if not cfg.recipe_extraction_enabled:
+            return
+        items = list(recipes.work_items(conn, model.generator_name))
+        for item in items:
+            try:
+                t = clock()
+                version_id = recipe_extract.process_item(conn, run_id, item, model,
+                                                         sch.day_of(t), sch.iso(t), crash_hook)
+                if version_id is None:
+                    result["recipe_failures"] += 1
+                else:
+                    result["recipe_versions_new"] += 1
+            except Exception as e:
+                _rollback(conn)
+                result["recipe_failures"] += 1
+                result["failures"].append("recipe for evidence %d: %s: %s" %
+                                          (item["evidence"]["id"], type(e).__name__, e))
+        result["inference_calls"] = model.calls_used
+
+    result["meals_first"] = bool(cfg.meals_first)
+    if cfg.meals_first:
+        recipe_work()
+
     # 4. Candidate work from durable state: evidence touched now plus any latest evidence still
     #    missing output (a crash after the evidence commit, or a budget placeholder).
     work = list(touched)
@@ -332,25 +361,8 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
             _rollback(conn)
             result["failures"].append("candidate for evidence %d: %s: %s" % (eid, type(e).__name__, e))
 
-    # 5. Recipe work is independently rediscovered from durable latest-evidence/current-manifest
-    # state. It is default-off, does not affect the incumbent candidate path, and does no fetching.
-    if cfg.recipe_extraction_enabled:
-        items = list(recipes.work_items(conn, model.generator_name))
-        for item in items:
-            try:
-                t = clock()
-                version_id = recipe_extract.process_item(conn, run_id, item, model,
-                                                         sch.day_of(t), sch.iso(t), crash_hook)
-                if version_id is None:
-                    result["recipe_failures"] += 1
-                else:
-                    result["recipe_versions_new"] += 1
-            except Exception as e:
-                _rollback(conn)
-                result["recipe_failures"] += 1
-                result["failures"].append("recipe for evidence %d: %s: %s" %
-                                          (item["evidence"]["id"], type(e).__name__, e))
-        result["inference_calls"] = model.calls_used
+    if not cfg.meals_first:
+        recipe_work()
 
     # Explain one disposition per source without creating fake fetch attempts for policy skips.
     for source in sources:
@@ -443,6 +455,14 @@ def _rollback(conn: sqlite3.Connection) -> None:
         pass
 
 
+def _run_config(a: argparse.Namespace) -> Config:
+    return Config.from_env(db_path=Path(a.db) if a.db else None, allowlist_path=Path(a.allowlist) if a.allowlist else None,
+                           report_path=Path(a.report) if a.report else None, provider=a.provider,
+                           max_urls=a.max_urls, max_inference=a.max_inference,
+                           max_inference_per_day=a.max_inference_per_day,
+                           local_daily_budget=a.local_daily_budget, meals_first=a.meals_first)
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(prog="research.worker")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -452,6 +472,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         r.add_argument("--provider", choices=["none", "ollama", "fixture"])
         r.add_argument("--max-urls", type=int); r.add_argument("--max-inference", type=int)
         r.add_argument("--max-inference-per-day", type=int)
+        r.add_argument("--local-daily-budget",
+                       help="Ollama daily allowance: 1-%d, or 'unlimited' for local development; per-run cap stays" % cfgm.LOCAL_DAILY_BUDGET_CEILING)
+        r.add_argument("--meals-first", action="store_true", default=None,
+                       help="WEL-54 opt-in: recipe extraction reserves calls before generic proposals")
     p = sub.add_parser("report"); p.add_argument("--db"); p.add_argument("--report")
     v = sub.add_parser("review"); v.add_argument("candidate_id", type=int)
     v.add_argument("state", choices=list(cands.VALID_HUMAN_STATES)); v.add_argument("--by", required=True)
@@ -461,10 +485,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     a = ap.parse_args(argv)
 
     if a.cmd in ("run", "cycle"):
-        cfg = Config.from_env(db_path=Path(a.db) if a.db else None, allowlist_path=Path(a.allowlist) if a.allowlist else None,
-                              report_path=Path(a.report) if a.report else None, provider=a.provider,
-                              max_urls=a.max_urls, max_inference=a.max_inference,
-                              max_inference_per_day=a.max_inference_per_day)
+        try:
+            cfg = _run_config(a)
+        except ValueError as e:
+            print("invalid operating configuration: %s" % e, file=sys.stderr)
+            return 2
         if cfg.provider == "fixture":
             print("provider=fixture is only available programmatically (tests)", file=sys.stderr)
             return 2
