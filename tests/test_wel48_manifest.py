@@ -92,7 +92,7 @@ def test_locator_bump_without_recollection_is_a_noop(tmp_path, monkeypatch):
                    for table in ("locator_manifests", "recipe_versions", "inference_calls"))
     assert before == (1, 1, 2)
 
-    monkeypatch.setattr("research.recipe_locate.LOCATOR_VERSION", "wel48_locator_v5")
+    monkeypatch.setattr("research.recipe_locate.LOCATOR_VERSION", "wel48_locator_v6")
     write_allowlist(tmp_path, [entry(URL, fetch=False)])
     second = _run(cfg, {}, ModelClient("fixture", 10, fixture_fn=fixture))
     conn = db.connect(cfg.db_path)
@@ -100,7 +100,7 @@ def test_locator_bump_without_recollection_is_a_noop(tmp_path, monkeypatch):
                   for table in ("locator_manifests", "recipe_versions", "inference_calls"))
     assert second.ok and second["source_requests"] == 0 and second["recipe_versions_new"] == 0
     assert after == before
-    assert conn.execute("SELECT locator_version FROM locator_manifests").fetchone()[0] == "wel48_locator_v4"
+    assert conn.execute("SELECT locator_version FROM locator_manifests").fetchone()[0] == "wel48_locator_v5"
 
 
 def test_locator_bump_applies_on_next_collection(tmp_path, monkeypatch):
@@ -113,11 +113,11 @@ def test_locator_bump_applies_on_next_collection(tmp_path, monkeypatch):
     original_locate = recipe_locate.locate
     monkeypatch.setattr(recipe_locate, "locate",
                         lambda html, text, title=None: original_locate(
-                            html, text, title, locator_version="wel48_locator_v5"))
+                            html, text, title, locator_version="wel48_locator_v6"))
     assert _run(cfg, pages, ModelClient("fixture", 10, fixture_fn=fixture)).ok
     conn = db.connect(cfg.db_path)
     assert _counters(conn) == (1, 2, 1, 3, 2)
-    assert conn.execute("SELECT locator_version FROM locator_manifests ORDER BY id DESC").fetchone()[0] == "wel48_locator_v5"
+    assert conn.execute("SELECT locator_version FROM locator_manifests ORDER BY id DESC").fetchone()[0] == "wel48_locator_v6"
 
 
 def test_first_manifest_attaches_without_new_evidence_row(tmp_path):

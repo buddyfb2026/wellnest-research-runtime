@@ -13,7 +13,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from .recipe_normalize import canonical
 
-LOCATOR_VERSION = "wel48_locator_v4"
+LOCATOR_VERSION = "wel48_locator_v5"
 ROLE_LABELS = {
     "servings": ("yield", "yields", "servings", "serves"),
     "prep_time": ("prep time", "prep"),
@@ -21,7 +21,7 @@ ROLE_LABELS = {
     "total_time": ("total time", "total"),
 }
 SECTION_ENDS = {
-    "notes", "nutrition", "nutrition facts", "nutritional facts", "recipe video",
+    "notes", "note", "contributor(s)", "nutrition", "nutrition facts", "nutritional facts", "recipe video",
     "prep time", "cook time", "total time", "yield", "yields", "servings", "serving size",
     "did you make this recipe?", "comments",
 }
