@@ -136,7 +136,7 @@ class ModelClient:
                 prompt_schema_version: Optional[str] = None,
                 system_prompt: Optional[str] = None, max_chars: Optional[int] = 6000,
                 num_predict: int = 900, num_ctx: Optional[int] = None,
-                think: Optional[bool] = None
+                think: Optional[bool] = False
                 ) -> Optional[Dict[str, Any]]:
         """One call, one chance. Returns parsed proposal or None (and records why).
         Raises BudgetExhausted before any reservation when either ceiling is reached."""
@@ -150,6 +150,9 @@ class ModelClient:
         day = day or called_at[:10]
         prompt = build_prompt(evidence_text, meta, max_chars=max_chars)
         prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        # Extraction needs final JSON, not the model's default reasoning mode. Bound
+        # context explicitly as well, so the request agrees with its ledger entry.
+        num_ctx = self.context_tokens if num_ctx is None else num_ctx
         row_id = self._reserve(conn, run_id, evidence_id, prompt_hash, day, called_at, purpose,
                                attempt_key, prompt_schema_version, num_ctx)   # committed first
         self.last_call_id = row_id

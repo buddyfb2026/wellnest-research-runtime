@@ -119,11 +119,11 @@ def test_ollama_transport_sends_raw_source_contract_and_preserves_candidate_defa
     ).fetchall()
     assert [row["purpose"] for row in calls] == ["candidate_proposal", "recipe_extraction"]
     assert payloads[0]["options"]["num_predict"] == 900
-    assert "num_ctx" not in payloads[0]["options"]
+    assert payloads[0]["options"]["num_ctx"] == calls[0]["context_tokens"] == 8192
     assert payloads[1]["options"]["num_predict"] == 4096
     assert payloads[1]["options"]["num_ctx"] == calls[1]["context_tokens"] == 16384
     assert payloads[1]["think"] is False
-    assert "think" not in payloads[0]
+    assert payloads[0]["think"] is False
     recipe_payload = payloads[1]
     assert "No character offsets needed" in recipe_payload["system"]
     meta = json.loads(recipe_payload['prompt'].split('\n\n', 1)[0].split(': ', 1)[1])
