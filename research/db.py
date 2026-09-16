@@ -252,6 +252,35 @@ MIGRATIONS = [
             alias_url TEXT PRIMARY KEY, url TEXT NOT NULL REFERENCES source_surfaces(url), alias_reason TEXT NOT NULL
         );
     """),
+    (7, """
+        CREATE TABLE IF NOT EXISTS recipe_publications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            intent_id TEXT NOT NULL UNIQUE,
+            recipe_version_id INTEGER NOT NULL REFERENCES recipe_versions(id),
+            recipe_key TEXT NOT NULL,
+            content_fingerprint TEXT NOT NULL,
+            action TEXT NOT NULL,
+            acted_by TEXT NOT NULL,
+            acted_at TEXT NOT NULL,
+            authority TEXT NOT NULL,
+            rights_basis TEXT,
+            reason TEXT,
+            template_name TEXT,
+            required_ingredients TEXT,
+            introduced_ingredients TEXT NOT NULL DEFAULT '[]',
+            ingredient_map TEXT,
+            equipment_needs TEXT,
+            equipment_reviewed INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_recipe_publications_version
+            ON recipe_publications(recipe_version_id, id);
+        CREATE TABLE IF NOT EXISTS pack_state (
+            kind TEXT PRIMARY KEY NOT NULL,
+            generation INTEGER NOT NULL,
+            state_hash TEXT NOT NULL,
+            allocated_at TEXT NOT NULL
+        );
+    """),
 ]
 
 
