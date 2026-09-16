@@ -330,7 +330,7 @@ def test_legacy_v2_rows_survive_unchanged_and_are_reported_without_prose(cfg, tm
     assert r1.ok and r1["evidence_existing"] == 1 and r1["evidence_new"] == 0
     assert r1["candidates_new"] == 2  # rule row + this run's deferred fixture proposal; the legacy generator differs
     conn = dbm.connect(cfg.db_path)
-    assert dbm.migrate(conn) == 5
+    assert dbm.migrate(conn) == dbm.MIGRATIONS[-1][0]
     legacy = conn.execute("SELECT * FROM candidates WHERE generator='ollama:qwen2.5:14b'").fetchone()
     assert legacy["validation"] is None and legacy["state"] == "approved" and legacy["state_set_by"] == "human:astra"
     assert legacy["proposed_action"].startswith("Buy a spare"), "stored prose is untouched, only not rendered"

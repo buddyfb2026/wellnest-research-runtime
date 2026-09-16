@@ -10,7 +10,8 @@ import urllib.error
 import urllib.request
 import urllib.robotparser
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from typing import Callable, Dict, List, Optional, Tuple
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
@@ -57,6 +58,36 @@ class FetchResult:
     html: Optional[str] = None
     headers: Dict[str, str] = field(default_factory=dict)
     hops: List[str] = field(default_factory=list)
+    received_at: Optional[str] = None
+    retry_after_deadline: Optional[datetime] = None
+    retry_after_error: Optional[str] = None
+
+
+def parse_retry_after(raw: Optional[str], received_at: datetime):
+    """Return (deadline, unrepresentable reason). Malformed/past values use normal backoff."""
+    if not isinstance(raw, str) or not raw.strip():
+        return None, None
+    value = raw.strip()
+    try:
+        if re.fullmatch(r"[0-9]+", value):
+            deadline = received_at + timedelta(seconds=int(value))
+        else:
+            # An HTTP-date has a four-digit year. Detect oversized years before the parser
+            # rejects them as merely malformed, so an explicit unreachable date cannot shorten.
+            if re.search(r"[A-Za-z]{3}\s+[0-9]{5,}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}", value):
+                raise OverflowError('HTTP-date year beyond datetime range')
+            deadline = parsedate_to_datetime(value)
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
+            deadline = deadline.astimezone(timezone.utc)
+        return (deadline, None) if deadline > received_at else (None, None)
+    except (OverflowError, ArithmeticError):
+        return None, 'Retry-After deadline unrepresentable: %s; manual review required' % raw
+    except (ValueError, TypeError):
+        # Very long numeric tokens can exceed Python's integer conversion safety bound.
+        if re.fullmatch(r"[0-9]+", value):
+            return None, 'Retry-After deadline unrepresentable: %s; manual review required' % raw
+        return None, None
 
 
 LOGIN_PATH_RE = re.compile(r"/(accounts/)?(login|signin|sign-in|auth)(/|\?|$)", re.I)
@@ -86,7 +117,9 @@ def _word_count(html: str) -> int:
 class Fetcher:
     def __init__(self, transport: Transport = urllib_transport, user_agent: str = "WellNestResearch/0.1",
                  timeout: int = 20, max_bytes: int = 2_000_000, check_robots: bool = True,
-                 clock: Optional[Callable[[], datetime]] = None):
+                 clock: Optional[Callable[[], datetime]] = None, *,
+                 deny_fn: Optional[Callable[[str], Optional[str]]] = None):
+        self.deny_fn = deny_fn or (lambda url: None)
         self.transport = transport
         self.user_agent = user_agent
         self.timeout = timeout
@@ -141,13 +174,17 @@ class Fetcher:
     def permit(self, url: str, allowlisted: str) -> Tuple[bool, str, str]:
         """Access assessment without a content request: at most one robots.txt request per origin.
         Used by discovery to assess a hint before it may ever be collected."""
-        return self._permit(url, allowlisted)
+        reason = self.deny_fn(url)
+        return (False, "not_checked", reason) if reason else self._permit(url, allowlisted)
 
     def fetch(self, url: str) -> FetchResult:
         attempted_at = self.clock().astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         current, hops = url, []
         robots_status = "not_checked"
-        for _ in range(MAX_REDIRECTS + 1):
+        for hop in range(MAX_REDIRECTS + 1):
+            denied = self.deny_fn(current)
+            if denied:
+                return FetchResult(url, "blocked", attempted_at, reason="%s at hop %d" % (denied, hop + 1), hops=hops)
             ok, robots_status, why = self._permit(current, url)
             if not ok:
                 return FetchResult(url, "blocked", attempted_at, robots_status=robots_status, reason=why, hops=hops)
@@ -158,6 +195,7 @@ class Fetcher:
             except Exception as e:
                 return FetchResult(url, "error", attempted_at, robots_status=robots_status, hops=hops,
                                    reason="transport error: %s: %s" % (type(e).__name__, e))
+            received = self.clock().astimezone(timezone.utc)
             if 300 <= status < 400:
                 loc = headers.get("location")
                 if not loc:
@@ -165,7 +203,11 @@ class Fetcher:
                                        "http %d without Location" % status, None, headers, hops)
                 current = urljoin(current, loc)
                 continue
-            return self._classify(url, current, status, headers, body, attempted_at, robots_status, hops)
+            result = self._classify(url, current, status, headers, body, attempted_at, robots_status, hops)
+            result.received_at = received.strftime("%Y-%m-%dT%H:%M:%SZ")
+            raw_retry = next((v for k, v in headers.items() if k.lower() == "retry-after"), None)
+            result.retry_after_deadline, result.retry_after_error = parse_retry_after(raw_retry, received)
+            return result
         return FetchResult(url, "blocked", attempted_at, robots_status=robots_status, hops=hops,
                            reason="more than %d redirects" % MAX_REDIRECTS)
 

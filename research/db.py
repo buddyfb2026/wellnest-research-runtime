@@ -235,6 +235,23 @@ MIGRATIONS = [
             "ALTER TABLE inference_calls ADD COLUMN peak_bytes INTEGER",
         ],
     ),
+    # WEL-49 owns migration 6; integration must place WEL-48's migration 5 before this.
+    (6, """
+        CREATE TABLE IF NOT EXISTS publishers (
+            publisher_id TEXT PRIMARY KEY, canonical_name TEXT NOT NULL, official_url TEXT,
+            parent_publisher TEXT REFERENCES publishers(publisher_id), identity_basis TEXT NOT NULL,
+            assessed_at TEXT NOT NULL, assessed_by TEXT NOT NULL, notes TEXT
+        );
+        CREATE TABLE IF NOT EXISTS source_surfaces (
+            url TEXT PRIMARY KEY, publisher_id TEXT REFERENCES publishers(publisher_id),
+            surface_kind TEXT NOT NULL, topics TEXT NOT NULL, roster_status TEXT NOT NULL,
+            roster_reason TEXT NOT NULL, access_status TEXT NOT NULL, access_basis TEXT,
+            assessed_at TEXT NOT NULL, assessed_by TEXT NOT NULL, cadence_seconds INTEGER, cadence_reason TEXT
+        );
+        CREATE TABLE IF NOT EXISTS surface_aliases (
+            alias_url TEXT PRIMARY KEY, url TEXT NOT NULL REFERENCES source_surfaces(url), alias_reason TEXT NOT NULL
+        );
+    """),
 ]
 
 

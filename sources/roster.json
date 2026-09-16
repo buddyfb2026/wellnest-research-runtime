@@ -1,0 +1,790 @@
+{
+  "version": 1,
+  "_note": "WEL-49 reviewed source roster. Produced by agent assessment on 2026-09-15 with real retrieval through the repository's own research.fetch.Fetcher (robots + origin + login-path + redirect policy). Evidence and exact outcomes: evidence.md. Shape follows the binding design-v3.md section 4.1. Assessment provenance is recorded honestly as agent:<name>; no human approval is claimed anywhere in this file. access_status reflects a ROBOTS/transport assessment only; official terms of use were NOT adjudicated and are recorded as unresolved in evidence.md. Under design-v3 section 2.2, any surface that is not (access_status=permitted AND roster_status=retain) is effective-denied. 2026-09-16 amendment: one publisher (nhlbi) and two site_article recipe surfaces were added first in each list from the recorded NHLBI proof (/tmp/wel49-coordination/nhlbi-proof/); every pre-existing row and its order is unchanged. The addition is one meal publisher, not the three-publisher criterion, and no human approval is claimed for it.",
+  "_topic_vocabulary": [
+    "recipe_supply",
+    "weekend_methods",
+    "activities",
+    "seasonal_ideas",
+    "cleaning_methods",
+    "household_safety",
+    "research_context",
+    "product_discovery"
+  ],
+  "publishers": [
+    {
+      "publisher_id": "nhlbi",
+      "canonical_name": "National Heart, Lung, and Blood Institute (NIH)",
+      "official_url": "https://www.nhlbi.nih.gov/",
+      "parent_publisher": null,
+      "identity_basis": "Both recipe surfaces were retrieved 2026-09-16T01:21:02Z through research.fetch.Fetcher by agent:claude-wel49-nhlbi-proof: http 200, robots allowed, one hop each, no login wall, text/html (raw HTML, extracted text and request log retained in /tmp/wel49-coordination/nhlbi-proof/). Extracted titles 'Pita Pizzas | NHLBI, NIH' and 'Wiki (Fast) Rice | NHLBI, NIH'; both texts state 'Recipe Source: Deliciously Healthy Family Meals'. Publisher identity and the public-domain content policy come from the coordinator's first-party reading of https://www.nhlbi.nih.gov/about/contact/trademark-branding-and-logo (nhlbi-qualification-input.md); nothing was refetched when this row was configured. One U.S. federal publisher; it is not a creator/social source and does not by itself satisfy the three-publisher criterion.",
+      "assessed_at": "2026-09-16T01:36:08Z",
+      "assessed_by": "agent:claude-wel49-nhlbi-config"
+    },
+    {
+      "publisher_id": "budget_bytes",
+      "canonical_name": "Budget Bytes",
+      "official_url": "https://www.budgetbytes.com/",
+      "parent_publisher": null,
+      "identity_basis": "Fetched https://www.budgetbytes.com/ 2026-09-15, http 200, robots allowed, no redirect. Extracted title 'Home - Budget Bytes'; body text states 'founded by beth moncel in 2009'. Independently corroborated by prior live WEL-42 evidence for https://www.budgetbytes.com/poor-mans-burrito-bowls/ (content_hash fcc262853a138ffe..., attribution 'Budget Bytes (Beth Moncel)', robots_status allowed, http 200).",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "cookie_and_kate",
+      "canonical_name": "Cookie and Kate",
+      "official_url": "https://cookieandkate.com/",
+      "parent_publisher": null,
+      "identity_basis": "Home page fetched 2026-09-15 via the repository fetcher, http 200, robots allowed. Corroborated by four WEL-48 corpus records (R2, R4, R5, R6), all http 200 with robots_status allowed, titles of the form '<recipe> - Cookie and Kate'. Corpus evidence reused; no page was refetched to duplicate it.",
+      "assessed_at": "2026-09-15T21:30:00Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "love_and_lemons",
+      "canonical_name": "Love and Lemons",
+      "official_url": "https://www.loveandlemons.com/",
+      "parent_publisher": null,
+      "identity_basis": "Home page fetched 2026-09-15, http 200, robots allowed; title 'Love and Lemons - Healthy, whole food, vegan and vegetarian recipes'; footer states 'Copyright 2026 Love and Lemons, LLC'. Corroborated by WEL-48 corpus record R3 (http 200, robots allowed).",
+      "assessed_at": "2026-09-15T21:30:00Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "busy_toddler",
+      "canonical_name": "Busy Toddler",
+      "official_url": "https://busytoddler.com/",
+      "parent_publisher": null,
+      "identity_basis": "Fetched https://busytoddler.com/ 2026-09-15, http 200, robots allowed, no redirect. Extracted title 'Browse Hundreds of Busy Toddler Activities - Busy Toddler'. Body text contains the phrase 'meet playing preschool', which is the retrieved basis for the playing_preschool parent relationship below. The www spelling redirects and is recorded as a declared equivalent spelling on the surface, not as a separate publisher.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "playing_preschool",
+      "canonical_name": "Playing Preschool",
+      "official_url": null,
+      "parent_publisher": "busy_toddler",
+      "identity_basis": "Program of Busy Toddler, not an independent publisher. Retrieved basis: the phrase 'meet playing preschool' appears in the extracted body text of https://busytoddler.com/ (fetched 2026-09-15, http 200). No separate official Playing Preschool surface was located or requested, so official_url is null and this publisher has NO surface row. It exists to stop the seed handle 'playingpreschool' being counted as an independent source. This corrects the relationship named in the WEL-49 packet.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "days_with_grey",
+      "canonical_name": "Days With Grey",
+      "official_url": "https://dayswithgrey.com/",
+      "parent_publisher": null,
+      "identity_basis": "Fetched https://dayswithgrey.com/ 2026-09-15, http 200, robots allowed, no redirect. Extracted title 'Days with Grey - Days With Grey'. The www spelling redirects and is recorded as a declared equivalent spelling.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "mothercould",
+      "canonical_name": "Mothercould",
+      "official_url": "https://www.mothercould.com/",
+      "parent_publisher": null,
+      "identity_basis": "Fetched https://www.mothercould.com/ 2026-09-15, http 200, robots allowed, no redirect. Extracted title 'Mothercould | Easy Sensory Play Activities, DIY Recipes & Hacks'.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "lazy_genius",
+      "canonical_name": "The Lazy Genius",
+      "official_url": "https://www.thelazygeniuscollective.com/",
+      "parent_publisher": null,
+      "identity_basis": "Fetched https://www.thelazygeniuscollective.com/ 2026-09-15, http 200, robots allowed, no redirect. Extracted title 'The Lazy Genius'. The apex spelling redirects to www and is recorded as a declared equivalent spelling.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "good_housekeeping",
+      "canonical_name": "Good Housekeeping (Hearst)",
+      "official_url": "https://www.goodhousekeeping.com/",
+      "parent_publisher": null,
+      "identity_basis": "Incumbent permitted publisher. Not re-requested in this assessment; identity and access rest on recorded prior live collection in docs/WEL-41-demo/delivery.md (15 content requests and 5 robots.txt requests to goodhousekeeping.com, all outcomes ok, robots_status allowed) and on the existing sources/allowlist.json entries.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "pew_research",
+      "canonical_name": "Pew Research Center",
+      "official_url": "https://www.pewresearch.org/",
+      "parent_publisher": null,
+      "identity_basis": "Incumbent permitted publisher. Not re-requested. Identity and access basis carried verbatim from the existing sources/allowlist.json entries, including the recorded Content-Signal ai-input=yes note on one entry.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "cdc",
+      "canonical_name": "U.S. Centers for Disease Control and Prevention",
+      "official_url": "https://www.cdc.gov/",
+      "parent_publisher": null,
+      "identity_basis": "Incumbent permitted publisher. Not re-requested. U.S. federal government work; access basis carried verbatim from the existing sources/allowlist.json entry.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "the_buy_guide",
+      "canonical_name": "The Buy Guide",
+      "official_url": "https://thebuyguide.com/",
+      "parent_publisher": null,
+      "identity_basis": "Incumbent seed publisher with two existing permitted article surfaces. Robots-only assessment of https://thebuyguide.com/ on 2026-09-15 returned permit=true, robots_status allowed (no content request was made to the site root). The Instagram profile is a separate surface of this same publisher and is hint_only; that does not affect the website surfaces.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "clean_mama",
+      "canonical_name": "Clean Mama",
+      "official_url": "https://www.cleanmama.com/",
+      "parent_publisher": null,
+      "identity_basis": "Requested https://www.cleanmama.com/ 2026-09-15: robots absent (allowed_no_robots, 4xx robots.txt per RFC 9309) but the site returned http 403, classified blocked by the incumbent fetcher as 'access denied / login required'. Identity is therefore NOT established by retrieval; the canonical_name above is the seed handle expanded and must not be treated as verified.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author"
+    }
+  ],
+  "surfaces": [
+    {
+      "url": "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods/healthy-eating-recipes/pita-pizzas",
+      "publisher_id": "nhlbi",
+      "surface_kind": "site_article",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Recipe-supply surface prepared for collection, meals first. NHLBI family-cookbook recipe ('Deliciously Healthy Family Meals'): the source lists already-grilled chicken and already-cooked broccoli as ingredients, states prep 10 minutes and cook 8 minutes, and states no total time, so none may be derived. Page publication/modification dates are unknown. Retained identity and the text-use basis below are an internal research configuration; they are not editorial approval, not family-facing publication, and this one federal meal publisher does not satisfy the three-publisher or social/creator criteria.",
+      "access_status": "permitted",
+      "access_basis": "TRANSPORT: robots.txt retrieved 2026-09-16T01:21:01Z by the product Fetcher (sha256 4ad85f0241e3d9ea…), universal group does not disallow this path; http 200, one hop, no redirect, no login/paywall marker, text/html, 58138 bytes (sha256 eef4a508cfb890c7…). Evidence retained in /tmp/wel49-coordination/nhlbi-proof/; not refetched for this configuration. TEXT BASIS: NHLBI content policy (https://www.nhlbi.nih.gov/about/contact/trademark-branding-and-logo, coordinator first-party reading) states site information is generally public domain except identified third-party material and requires attribution, no endorsement or advertising implication, unaltered formatted publications and no logo use. That supports internal retention and local inference over the recipe TEXT only; photos, the recipe video, logos, PDFs and third-party material are excluded, and it is not editorial approval for household-facing reuse.",
+      "assessed_at": "2026-09-16T01:36:08Z",
+      "assessed_by": "agent:claude-wel49-nhlbi-config",
+      "cadence_seconds": null,
+      "cadence_reason": "null by design: a single observation does not establish a posting cadence, and the response Last-Modified header is a transport header with unknown editorial semantics. Null means the existing seven-day fallback applies if collection is later scheduled; it is not a one-time-only declaration.",
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods/healthy-eating-recipes/wiki-fast-rice",
+      "publisher_id": "nhlbi",
+      "surface_kind": "site_article",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Recipe-supply surface prepared for collection, meals first. NHLBI family-cookbook recipe ('Deliciously Healthy Family Meals'): the source lists cooked brown rice and cooked mixed vegetables as ingredients, states prep 10 minutes and cook 15 minutes, and states no total time, so none may be derived. Page publication/modification dates are unknown. Retained identity and the text-use basis below are an internal research configuration; they are not editorial approval, not family-facing publication, and this one federal meal publisher does not satisfy the three-publisher or social/creator criteria.",
+      "access_status": "permitted",
+      "access_basis": "TRANSPORT: same robots.txt retrieval as the sibling surface (2026-09-16T01:21:01Z, sha256 4ad85f0241e3d9ea…) does not disallow this path; http 200, one hop, no redirect, no login/paywall marker, text/html, 58384 bytes (sha256 f69d496097c25b2b…). Evidence retained in /tmp/wel49-coordination/nhlbi-proof/; not refetched for this configuration. TEXT BASIS: NHLBI content policy (https://www.nhlbi.nih.gov/about/contact/trademark-branding-and-logo, coordinator first-party reading) states site information is generally public domain except identified third-party material and requires attribution, no endorsement or advertising implication, unaltered formatted publications and no logo use. That supports internal retention and local inference over the recipe TEXT only; photos, the recipe video, logos, PDFs and third-party material are excluded, and it is not editorial approval for household-facing reuse.",
+      "assessed_at": "2026-09-16T01:36:08Z",
+      "assessed_by": "agent:claude-wel49-nhlbi-config",
+      "cadence_seconds": null,
+      "cadence_reason": "null by design: a single observation does not establish a posting cadence, and the response Last-Modified header is a transport header with unknown editorial semantics. Null means the existing seven-day fallback applies if collection is later scheduled; it is not a one-time-only declaration.",
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.budgetbytes.com/",
+      "publisher_id": "budget_bytes",
+      "surface_kind": "site_index",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Primary recipe-supply surface of the working set. The only recipe publisher with verified permitted access in this assessment; see the shortage note in evidence.md. Retained identity does not establish collection/reuse permission; access withheld per follow-up.",
+      "access_status": "hint_only",
+      "access_basis": "Publisher Terms of Service section 4.3.3 prohibits scrape/crawl/spider. Prior robots-only permitted assessment withdrawn; no collection grant. Source: agent:claude-ccd-design-author access-followup.md, 2026-09-15.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": 86400,
+      "cadence_reason": "Observed meta modified_at 2026-09-11T03:52:14Z against a 2026-09-15 fetch, i.e. the index changed within the last four days. Daily is the shortest justified interval and is above the 6h floor.",
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.budgetbytes.com/poor-mans-burrito-bowls/",
+      "publisher_id": "budget_bytes",
+      "surface_kind": "site_article",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Article with existing live evidence from WEL-42; retained so the roster records identity for evidence the store already holds. Retained identity does not establish collection/reuse permission; access withheld per follow-up.",
+      "access_status": "hint_only",
+      "access_basis": "Publisher Terms of Service section 4.3.3 prohibits scrape/crawl/spider. Prior robots-only permitted assessment withdrawn; no collection grant. Source: agent:claude-ccd-design-author access-followup.md, 2026-09-15.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://cookieandkate.com/",
+      "publisher_id": "cookie_and_kate",
+      "surface_kind": "site_index",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Recipe supply. Restores the coverage the committed roster lost entirely. Four corpus records already exist for this publisher.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; robots allowed and http 200 observed 2026-09-15. Publisher's Photo and Recipe Sharing Policy read on 2026-09-15: it restricts REPUBLICATION ('you may not republish the recipe itself') and contains no scrape/crawl/spider prohibition. Collection is not addressed; reuse is restricted and is carried in usage_constraints on the allowlist entry.",
+      "assessed_at": "2026-09-15T21:30:00Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.loveandlemons.com/",
+      "publisher_id": "love_and_lemons",
+      "surface_kind": "site_index",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Second recipe-supply publisher, so recipe coverage does not rest on one source.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; robots allowed and http 200 observed 2026-09-15. WEAKEST BASIS IN THIS PROPOSAL: no terms-of-use document was located — the home page links only a privacy policy, and the conventional /terms-of-use/ path returned http 404 on 2026-09-15. No published collection restriction was found; absence is not permission, and this rests on the same public_web_robots_checked basis the repository already uses for its incumbent sources.",
+      "assessed_at": "2026-09-15T21:30:00Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://busytoddler.com/",
+      "publisher_id": "busy_toddler",
+      "surface_kind": "site_index",
+      "topics": [
+        "weekend_activities",
+        "seasonal_ideas",
+        "weekend_methods"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Weekend and seasonal child-activity supply. Canonical apex spelling; the www spelling is blocked by the incumbent same-origin redirect rule and is declared as an equivalent spelling rather than a second surface.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; robots allowed and http 200 observed 2026-09-15 at the apex origin. Publisher's Disclosure Policy read 2026-09-15 at https://busytoddler.com/disclosure-policy: it restricts REPOSTING/REPUBLICATION ('Do not repost or republish any Busy Toddler activities without written consent via email') and contains no scrape/crawl/spider prohibition. Collection is not addressed; reuse is restricted and carried in usage_constraints.",
+      "assessed_at": "2026-09-15T21:30:00Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": [
+        {
+          "alias_url": "https://www.busytoddler.com/",
+          "alias_reason": "Observed 2026-09-15: requesting the www spelling redirects to https://busytoddler.com and is refused by the incumbent same-origin hop rule ('destination origin https://busytoddler.com is not the allowlisted origin'). Declared so a denial of this surface also covers the www spelling. Exact string; no normalization rule is implied."
+        }
+      ]
+    },
+    {
+      "url": "https://dayswithgrey.com/",
+      "publisher_id": "days_with_grey",
+      "surface_kind": "site_index",
+      "topics": [
+        "weekend_activities",
+        "seasonal_ideas"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Second independent child-activity/seasonal publisher, so seasonal coverage does not rest on one source.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; robots allowed and http 200 observed 2026-09-15 at the apex origin. Publisher's Disclosure Policy read 2026-09-15: it restricts REPOSTING/REPUBLICATION ('Do not repost or republish any Days with Grey activities without written consent via email') and contains no scrape/crawl/spider prohibition. Collection is not addressed; reuse is restricted and carried in usage_constraints.",
+      "assessed_at": "2026-09-15T21:30:00Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": [
+        {
+          "alias_url": "https://www.dayswithgrey.com/",
+          "alias_reason": "Observed 2026-09-15: the www spelling redirects to https://dayswithgrey.com and is refused by the same-origin hop rule. Exact string only."
+        }
+      ]
+    },
+    {
+      "url": "https://www.mothercould.com/",
+      "publisher_id": "mothercould",
+      "surface_kind": "site_index",
+      "topics": [
+        "weekend_activities"
+      ],
+      "roster_status": "defer",
+      "roster_reason": "Deferred on the publisher's explicit prohibition of automated collection, found 2026-09-15. Not added to the allowlist. Revisit only if a permitted access route is established.",
+      "access_status": "denied",
+      "access_basis": "NO-CRAWL. Terms of Use read 2026-09-15 at https://www.mothercould.com/terms-of-use prohibit 'scrape, index, survey, or data mine any portion of the Website', and grant only a 'personal, limited, nonexclusive, nontransferable license ... solely for your personal, noncommercial use'. robots.txt allows our agent; the publisher's own terms do not. Terms govern.",
+      "assessed_at": "2026-09-15T21:30:00Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.thelazygeniuscollective.com/",
+      "publisher_id": "lazy_genius",
+      "surface_kind": "site_index",
+      "topics": [
+        "weekend_methods"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Household-systems and methods supply; the working set's methods coverage otherwise leans entirely on Good Housekeeping. Retained identity does not establish collection/reuse permission; access withheld per follow-up.",
+      "access_status": "unknown",
+      "access_basis": "Terms unread within bounded assessment. Prior robots-only permitted assessment withdrawn. Source: agent:claude-ccd-design-author access-followup.md, 2026-09-15.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": [
+        {
+          "alias_url": "https://thelazygeniuscollective.com/",
+          "alias_reason": "Observed 2026-09-15: the apex spelling redirects to https://www.thelazygeniuscollective.com and is refused by the same-origin hop rule. Exact string only."
+        }
+      ]
+    },
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/",
+      "publisher_id": "good_housekeeping",
+      "surface_kind": "site_index",
+      "topics": [
+        "weekend_methods"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent declared discovery route with proven live yield. Preserved exactly as it is today; this roster does not change its role or its allowlist entry.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; incumbent entry, robots_status allowed in recorded prior live collection",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": 86400,
+      "cadence_reason": "Recorded prior live collection discovered six distinct new same-origin articles from this index in a single session (docs/WEL-41-demo/delivery.md), one published 2026-08-18. An index with that turnover justifies daily; above the 6h floor.",
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/",
+      "publisher_id": "good_housekeeping",
+      "surface_kind": "site_article",
+      "topics": [
+        "weekend_methods"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent permitted article with existing evidence. Retained unchanged.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; incumbent entry with recorded live evidence",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/",
+      "publisher_id": "good_housekeeping",
+      "surface_kind": "site_article",
+      "topics": [
+        "weekend_methods"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent permitted article with existing evidence and the one live rule-supported candidate. Retained unchanged.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; incumbent entry with recorded live evidence",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.cdc.gov/food-safety/prevention/index.html",
+      "publisher_id": "cdc",
+      "surface_kind": "site_article",
+      "topics": [
+        "family_operations"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent permitted government reference underpinning food-safety guidance for the meal lane. Retained unchanged.",
+      "access_status": "permitted",
+      "access_basis": "public_domain_us_government; robots checked (incumbent entry)",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.pewresearch.org/social-trends/2023/01/24/parenting-in-america-today/",
+      "publisher_id": "pew_research",
+      "surface_kind": "site_article",
+      "topics": [
+        "parenting"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent permitted research context. Retained unchanged.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked; site robots.txt publishes Content-Signal ai-input=yes (incumbent entry, carried verbatim)",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.pewresearch.org/short-reads/2023/04/13/in-a-growing-share-of-u-s-marriages-husbands-and-wives-earn-about-the-same/",
+      "publisher_id": "pew_research",
+      "surface_kind": "site_article",
+      "topics": [
+        "parenting"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent entry deliberately kept to exercise an honest not-found outcome. access_status stays 'permitted' because ACCESS is permitted (robots checked); the URL simply 404s, which is an error outcome, not an access denial. Marking it otherwise would effective-deny it and destroy the incumbent not-found demonstration.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked (incumbent entry); content known to be unavailable (404), which is a fetch outcome, not an access basis",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://thebuyguide.com/hers/smart-as-a-mother/",
+      "publisher_id": "the_buy_guide",
+      "surface_kind": "site_article",
+      "topics": [
+        "product_discovery"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent permitted website surface. PRESERVED as permitted: the publisher's Instagram surface being hint_only must not withdraw this separately permitted site surface.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked (incumbent entry); site-root robots re-checked 2026-09-15, permit=true, robots allowed",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://thebuyguide.com/home/teen-girl-room-with-havenly/",
+      "publisher_id": "the_buy_guide",
+      "surface_kind": "site_article",
+      "topics": [
+        "product_discovery"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Incumbent permitted website surface. Preserved unchanged, for the same reason as the sibling article above.",
+      "access_status": "permitted",
+      "access_basis": "public_web_robots_checked (incumbent entry); site-root robots re-checked 2026-09-15, permit=true, robots allowed",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://thebuyguide.com/",
+      "publisher_id": "the_buy_guide",
+      "surface_kind": "site_index",
+      "topics": [
+        "product_discovery"
+      ],
+      "roster_status": "candidate",
+      "roster_reason": "The Buy Guide as a DISCOVERY CANDIDATE per the WEL-49 packet. This is a NEW surface (the site root), deliberately separate from the two incumbent article surfaces above so that marking it 'candidate' — which is effective-denied under design-v3 section 2.2 — cannot stop the incumbent article collection. It is intentionally NOT added to the allowlist, so it is never requested (V4).",
+      "access_status": "unknown",
+      "access_basis": "Robots-only assessment 2026-09-15 returned permit=true, robots allowed. Robots permission is not a terms-of-use permission, and no content request was made to this URL. Access for collection is therefore unresolved.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.instagram.com/thebuyguide/",
+      "publisher_id": "the_buy_guide",
+      "surface_kind": "social_profile",
+      "topics": [
+        "product_discovery"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Discovery-only social surface of an otherwise permitted publisher. Recorded so the roster states the surface exists; hint_only makes it effective-denied. This is surface-specific and does NOT affect the two permitted thebuyguide.com article surfaces.",
+      "access_status": "hint_only",
+      "access_basis": "Robots assessment 2026-09-15 via the repository fetcher: permit=false, robots_status 'disallowed' — instagram.com robots.txt disallows this path for our agent. Login-gated platform; no permitted content access established. No login scraping, no bypass.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.cleanmama.com/",
+      "publisher_id": "clean_mama",
+      "surface_kind": "site_index",
+      "topics": [
+        "weekend_methods"
+      ],
+      "roster_status": "defer",
+      "roster_reason": "Deferred on a real outcome: the site returned http 403 to our agent. Not counted toward the working set and not added to the allowlist. Revisit only if a permitted access route is established.",
+      "access_status": "denied",
+      "access_basis": "Requested 2026-09-15 via the repository fetcher: robots absent (allowed_no_robots, RFC 9309 unrestricted) but http 403, classified 'access denied / login required'. No permitted access established.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.youtube.com/results?search_query=working+mom+household+systems",
+      "publisher_id": null,
+      "surface_kind": "video_channel",
+      "topics": [
+        "weekend_methods"
+      ],
+      "roster_status": "defer",
+      "roster_reason": "Incumbent discovery-only seed query, not a publisher and not a surface of one. Left unattributed deliberately so it cannot contribute to any independent-publisher count. Unchanged from today: it is already fetch=false in the allowlist.",
+      "access_status": "hint_only",
+      "access_basis": "none: no permitted transcript/content access established (incumbent entry, carried verbatim). Not requested in this assessment.",
+      "assessed_at": "2026-09-15T20:46:36Z",
+      "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    }
+  ],
+  "historical_seeds": [
+    {
+      "handle": "thebuyguide",
+      "cluster": "product_discovery_moms",
+      "assessment": "retain",
+      "reason": "Official website identified and already permitted with two incumbent article surfaces; site-root robots re-checked 2026-09-15 (permit=true). Instagram surface is separately hint_only.",
+      "alias_of": null,
+      "publisher_id": "the_buy_guide",
+      "surface_urls": [
+        "https://thebuyguide.com/hers/smart-as-a-mother/",
+        "https://thebuyguide.com/home/teen-girl-room-with-havenly/",
+        "https://thebuyguide.com/",
+        "https://www.instagram.com/thebuyguide/"
+      ]
+    },
+    {
+      "handle": "mothercould",
+      "cluster": "product_discovery_moms",
+      "assessment": "retain",
+      "reason": "Official site fetched 2026-09-15, http 200, robots allowed; title confirms identity.",
+      "alias_of": null,
+      "publisher_id": "mothercould",
+      "surface_urls": [
+        "https://www.mothercould.com/"
+      ]
+    },
+    {
+      "handle": "thingsiboughtandliked",
+      "cluster": "product_discovery_moms",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Retrieval budget was spent on higher-value verifications; this handle remains an unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "pardonmuahinstigator",
+      "cluster": "product_discovery_moms",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name; the handle spelling itself is uncorroborated.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "thesisterstudio",
+      "cluster": "product_discovery_moms",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "thelazygenius",
+      "cluster": "household_systems_moms",
+      "assessment": "retain",
+      "reason": "Official site fetched 2026-09-15 at https://www.thelazygeniuscollective.com/, http 200, robots allowed; title 'The Lazy Genius' confirms identity. Apex spelling redirects and is declared as an equivalent spelling.",
+      "alias_of": null,
+      "publisher_id": "lazy_genius",
+      "surface_urls": [
+        "https://www.thelazygeniuscollective.com/"
+      ]
+    },
+    {
+      "handle": "beginathome",
+      "cluster": "household_systems_moms",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "organizedish",
+      "cluster": "household_systems_moms",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "simplyonpurpose",
+      "cluster": "household_systems_moms",
+      "assessment": "defer",
+      "reason": "Assessed and failed closed: robots.txt for https://www.simplyonpurpose.com/ was unreachable (URLError), so the required access check is unavailable and the fetcher refuses to request. No content request was made. Deferred on a real outcome, not on absence of effort.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "cleanmama",
+      "cluster": "household_systems_moms",
+      "assessment": "defer",
+      "reason": "Assessed and refused: http 403 from https://www.cleanmama.com/ on 2026-09-15. Recorded as a denied surface; no permitted access established.",
+      "alias_of": null,
+      "publisher_id": "clean_mama",
+      "surface_urls": [
+        "https://www.cleanmama.com/"
+      ]
+    },
+    {
+      "handle": "busytoddler",
+      "cluster": "kids_activity_creators",
+      "assessment": "retain",
+      "reason": "Official site fetched 2026-09-15 at the apex origin, http 200, robots allowed; title confirms identity.",
+      "alias_of": null,
+      "publisher_id": "busy_toddler",
+      "surface_urls": [
+        "https://busytoddler.com/"
+      ]
+    },
+    {
+      "handle": "dayswithgrey",
+      "cluster": "kids_activity_creators",
+      "assessment": "retain",
+      "reason": "Official site fetched 2026-09-15 at the apex origin, http 200, robots allowed; title confirms identity.",
+      "alias_of": null,
+      "publisher_id": "days_with_grey",
+      "surface_urls": [
+        "https://dayswithgrey.com/"
+      ]
+    },
+    {
+      "handle": "7daysofplay",
+      "cluster": "kids_activity_creators",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "raisinglittletalkers",
+      "cluster": "kids_activity_creators",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "playingpreschool",
+      "cluster": "kids_activity_creators",
+      "assessment": "replace",
+      "reason": "NOT an independent publisher: it is a program of Busy Toddler. Retrieved basis: the phrase 'meet playing preschool' appears in the extracted body text of https://busytoddler.com/ (fetched 2026-09-15, http 200). Replaced by the busy_toddler publisher with playing_preschool recorded as a child publisher, so this handle cannot inflate the independent-source count. This is the correction named in the WEL-49 packet.",
+      "alias_of": "busytoddler",
+      "publisher_id": "playing_preschool",
+      "surface_urls": []
+    },
+    {
+      "handle": "diaryofanestmom",
+      "cluster": "honest_motherhood_creators",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "themomroom",
+      "cluster": "honest_motherhood_creators",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "mombraintherapist",
+      "cluster": "honest_motherhood_creators",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "nurturedfirst",
+      "cluster": "honest_motherhood_creators",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "motherhoodunderstood",
+      "cluster": "honest_motherhood_creators",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "workingmomcollective",
+      "cluster": "working_mom_career_balance",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "corporatenatalie",
+      "cluster": "working_mom_career_balance",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "themamaattorney",
+      "cluster": "working_mom_career_balance",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "momtransparent",
+      "cluster": "working_mom_career_balance",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    },
+    {
+      "handle": "momceosuite",
+      "cluster": "working_mom_career_balance",
+      "assessment": "defer",
+      "reason": "No official surface assessed. Unverified seed name, not a finding.",
+      "alias_of": null,
+      "publisher_id": null,
+      "surface_urls": []
+    }
+  ],
+  "working_set": [
+    "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods/healthy-eating-recipes/pita-pizzas",
+    "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods/healthy-eating-recipes/wiki-fast-rice",
+    "https://cookieandkate.com/",
+    "https://www.loveandlemons.com/",
+    "https://www.goodhousekeeping.com/home/cleaning/",
+    "https://busytoddler.com/",
+    "https://dayswithgrey.com/",
+    "https://www.goodhousekeeping.com/home/cleaning/a71856702/how-to-clean-air-fryer-basket/",
+    "https://www.goodhousekeeping.com/home/cleaning/a37462/how-often-you-should-clean-everything/",
+    "https://www.cdc.gov/food-safety/prevention/index.html"
+  ]
+}
