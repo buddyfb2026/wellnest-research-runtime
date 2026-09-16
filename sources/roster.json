@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_note": "WEL-49 reviewed source roster. Produced by agent assessment on 2026-09-15 with real retrieval through the repository's own research.fetch.Fetcher (robots + origin + login-path + redirect policy). Evidence and exact outcomes: evidence.md. Shape follows the binding design-v3.md section 4.1. Assessment provenance is recorded honestly as agent:<name>; no human approval is claimed anywhere in this file. access_status reflects a ROBOTS/transport assessment only; official terms of use were NOT adjudicated and are recorded as unresolved in evidence.md. Under design-v3 section 2.2, any surface that is not (access_status=permitted AND roster_status=retain) is effective-denied. 2026-09-16 amendment: one publisher (nhlbi) and two site_article recipe surfaces were added first in each list from the recorded NHLBI proof (/tmp/wel49-coordination/nhlbi-proof/); every pre-existing row and its order is unchanged. The addition is one meal publisher, not the three-publisher criterion, and no human approval is claimed for it.",
+  "_note": "WEL-49 reviewed source roster. Produced by agent assessment on 2026-09-15 with real retrieval through the repository's own research.fetch.Fetcher (robots + origin + login-path + redirect policy). Evidence and exact outcomes: evidence.md. Shape follows the binding design-v3.md section 4.1. Assessment provenance is recorded honestly as agent:<name>; no human approval is claimed anywhere in this file. access_status reflects a ROBOTS/transport assessment only; official terms of use were NOT adjudicated and are recorded as unresolved in evidence.md. Under design-v3 section 2.2, any surface that is not (access_status=permitted AND roster_status=retain) is effective-denied. 2026-09-16 amendment: one publisher (nhlbi) and two site_article recipe surfaces were added first in each list from the recorded NHLBI proof (/tmp/wel49-coordination/nhlbi-proof/); every pre-existing row and its order is unchanged. The addition is one meal publisher, not the three-publisher criterion, and no human approval is claimed for it. 2026-09-16 WEL-49 permissive-recipe amendment (docs/WEL-49-permissive-recipes.md): three Spencer-approved publishers were appended last (public_domain_recipes, foss_family_recipes, foodista), with exactly one qualified recipe surface each for the first two and one candidate/unknown (effective-denied) surface for Foodista pending access verification; every pre-existing row, the working set and their order are unchanged. Source approval is not editorial approval.",
   "_topic_vocabulary": [
     "recipe_supply",
     "weekend_methods",
@@ -137,6 +137,33 @@
       "identity_basis": "Requested https://www.cleanmama.com/ 2026-09-15: robots absent (allowed_no_robots, 4xx robots.txt per RFC 9309) but the site returned http 403, classified blocked by the incumbent fetcher as 'access denied / login required'. Identity is therefore NOT established by retrieval; the canonical_name above is the seed handle expanded and must not be treated as verified.",
       "assessed_at": "2026-09-15T20:46:36Z",
       "assessed_by": "agent:claude-ccd-design-author"
+    },
+    {
+      "publisher_id": "public_domain_recipes",
+      "canonical_name": "Public Domain Recipes",
+      "official_url": "https://publicdomainrecipes.com/",
+      "parent_publisher": null,
+      "identity_basis": "Fetched https://publicdomainrecipes.com/ 2026-09-16T15:37:31Z through research.fetch.Fetcher by agent:claude-wel49-permissive-sources: http 200, robots allowed, one hop, text/html (raw sha256 9d3ef59afae10374...). Extracted title 'Public Domain Recipes'; body states 'All recipes are public domain and free for anyone to share. Originally forked from Luke Smith's based.cooking project. This website and project are released under the Unlicense.' based.cooking is the same project lineage and is NOT a second independent publisher; it has no row. Spencer-approved source (WEL-49 dispatch 2026-09-16); approval of the source is not editorial approval of any recipe. assessed_at is the review-correction RE-ASSESSMENT time (wall clock verified with date -u), not a retrieval time; no page was refetched for it.",
+      "assessed_at": "2026-09-16T15:51:05Z",
+      "assessed_by": "agent:claude-wel49-permissive-sources"
+    },
+    {
+      "publisher_id": "foss_family_recipes",
+      "canonical_name": "FOSS Family Recipes",
+      "official_url": "https://fossrecipes.com/",
+      "parent_publisher": null,
+      "identity_basis": "Fetched https://fossrecipes.com/license.html and https://fossrecipes.com/recipes 2026-09-16T15:37:31Z through research.fetch.Fetcher by agent:claude-wel49-permissive-sources: http 200 each, robots.txt absent (allowed_no_robots, 4xx per RFC 9309), one hop, text/html. Both pages carry the site name 'FOSS Family Recipes'; the listing had 21 items. License page states 'Recipes: Public domain CC0. Attribution is appreciated, but not required.' and separately that the site design is HTML5 UP under CC BY 3.0 Unported; the two licenses are not conflated. Spencer-approved source (WEL-49 dispatch 2026-09-16); approval of the source is not editorial approval of any recipe. assessed_at is the review-correction RE-ASSESSMENT time (wall clock verified with date -u), not a retrieval time; no page was refetched for it.",
+      "assessed_at": "2026-09-16T15:51:05Z",
+      "assessed_by": "agent:claude-wel49-permissive-sources"
+    },
+    {
+      "publisher_id": "foodista",
+      "canonical_name": "Foodista",
+      "official_url": "https://www.foodista.com/",
+      "parent_publisher": null,
+      "identity_basis": "Not retrieved by the product Fetcher. Coordinator first-party reading of https://www.foodista.com/terms (effective 2026-01-23) records the content license as CC BY 4.0 (attribution and indication of changes required; not CC0; recipe-specific third-party credits still apply; no photos). Automated access is NOT verified: the coordinator's request for https://www.foodista.com/robots.txt returned a non-retryable safe-open error, which must not be retried by another host, client or route. Spencer-approved source, pending access verification. assessed_at is the review-correction RE-ASSESSMENT time (wall clock verified with date -u), not a retrieval time; nothing was requested from Foodista.",
+      "assessed_at": "2026-09-16T15:51:05Z",
+      "assessed_by": "agent:claude-wel49-permissive-sources"
     }
   ],
   "surfaces": [
@@ -528,6 +555,57 @@
       "access_basis": "none: no permitted transcript/content access established (incumbent entry, carried verbatim). Not requested in this assessment.",
       "assessed_at": "2026-09-15T20:46:36Z",
       "assessed_by": "agent:claude-ccd-design-author",
+      "cadence_seconds": null,
+      "cadence_reason": null,
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://fossrecipes.com/recipes/orzo-chicken",
+      "publisher_id": "foss_family_recipes",
+      "surface_kind": "site_article",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Named recipe surface collected as an extraction input: 'One-pot Chicken and Orzo', a one-pot family dinner. Agent review of the retained text (retrieved 2026-09-16T15:37:52Z) counts 11 quantified ingredients and 4 cooking directions. The current wel48_locator_v4 heading-tier manifest holds 11 ingredient units but 6 step units: it also includes the trailing 'Note' heading and note text, which are not cooking steps. This is a collected input pending the locator correction and actual inference, not a complete model candidate, and it does not by itself establish three-source acceptance. The source states no servings, prep, cook or total time; those remain unknown and must not be derived from step durations. Only this exact URL is qualified; the rest of the site is not activated. Internal research configuration only: not editorial approval and not family-facing publication; any resulting record stays pending. assessed_at is the review-correction RE-ASSESSMENT time (wall clock verified with date -u), not a retrieval time; no page was refetched for it.",
+      "access_status": "permitted",
+      "access_basis": "TRANSPORT: requested 2026-09-16T15:37:52Z by the product Fetcher; robots.txt absent (allowed_no_robots, 4xx per RFC 9309); http 200, one hop, no redirect, no login/paywall marker, text/html; 4675 bytes (raw sha256 d55714b03b7b9d62..., evidence content hash 52366a25e87258f0...). Raw HTML retained outside git in the WEL-49 dispatch evidence directory. TEXT BASIS: first-party https://fossrecipes.com/license.html (retrieved the same run) dedicates recipes to the public domain under CC0; attribution appreciated, not required. The site design is separately CC BY 3.0 (HTML5 UP) and is not used. Recipe TEXT only; no images or site design. This is a source-use basis, not editorial approval.",
+      "assessed_at": "2026-09-16T15:51:05Z",
+      "assessed_by": "agent:claude-wel49-permissive-sources",
+      "cadence_seconds": null,
+      "cadence_reason": "null by design: one observation does not establish a posting cadence. Null means the existing seven-day fallback applies if collection is later scheduled.",
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+      "publisher_id": "public_domain_recipes",
+      "surface_kind": "site_article",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "retain",
+      "roster_reason": "Named recipe surface collected as an extraction input: 'Easy Chicken and Rice Casserole', a baked family dinner. Agent review of the retained text (retrieved 2026-09-16T15:37:52Z) counts 9 quantified ingredients and 3 cooking directions. The current wel48_locator_v4 heading-tier manifest holds 9 ingredient units but 13 step units: it also includes the trailing page footer (contributor credit, donation addresses, related tags, previous/next links), which is not cooking steps. This is a collected input pending the locator correction and actual inference, not a complete model candidate, and it does not by itself establish three-source acceptance. The source states prep 5 min, cook 40 min and servings 4; it states no total time, so none may be derived. It requires already-cooked chicken. Only this exact URL is qualified; the rest of the site is not activated. Internal research configuration only: not editorial approval and not family-facing publication; any resulting record stays pending. assessed_at is the review-correction RE-ASSESSMENT time (wall clock verified with date -u), not a retrieval time; no page was refetched for it.",
+      "access_status": "permitted",
+      "access_basis": "TRANSPORT: requested 2026-09-16T15:37:52Z by the product Fetcher; robots.txt retrieved and allowed this path; http 200, one hop, no redirect, no login/paywall marker, text/html; 2913 bytes (raw sha256 9e1c6b32462df856..., evidence content hash 06ef950818360bc1...). Raw HTML retained outside git in the WEL-49 dispatch evidence directory. TEXT BASIS: the site states all recipes are public domain and the website and project are released under the Unlicense (home page retrieved the same run; coordinator first-party reading of the project README and LICENSE.md). Recipe TEXT only; contributor images and donation addresses are not used. This is a source-use basis, not editorial approval.",
+      "assessed_at": "2026-09-16T15:51:05Z",
+      "assessed_by": "agent:claude-wel49-permissive-sources",
+      "cadence_seconds": null,
+      "cadence_reason": "null by design: one observation does not establish a posting cadence. Null means the existing seven-day fallback applies if collection is later scheduled.",
+      "equivalent_urls": []
+    },
+    {
+      "url": "https://www.foodista.com/",
+      "publisher_id": "foodista",
+      "surface_kind": "site_index",
+      "topics": [
+        "recipe_supply"
+      ],
+      "roster_status": "candidate",
+      "roster_reason": "Spencer-approved source pending automated-access verification. Recorded so the approval is visible without making the site collectable; candidate plus unknown is effective-denied. Not operationally qualified. assessed_at is the review-correction RE-ASSESSMENT time (wall clock verified with date -u), not a retrieval time; nothing was requested from Foodista.",
+      "access_status": "unknown",
+      "access_basis": "PENDING ACCESS VERIFICATION: the coordinator's request for https://www.foodista.com/robots.txt returned a non-retryable safe-open error; no automated-access route is verified and none may be attempted through another host, client or route. Content license per the coordinator's reading of https://www.foodista.com/terms (effective 2026-01-23) is CC BY 4.0, which requires attribution, a license link and indication of changes; it is not CC0, recipe-specific third-party credits still apply, and photos are excluded.",
+      "assessed_at": "2026-09-16T15:51:05Z",
+      "assessed_by": "agent:claude-wel49-permissive-sources",
       "cadence_seconds": null,
       "cadence_reason": null,
       "equivalent_urls": []

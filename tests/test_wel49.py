@@ -564,7 +564,7 @@ def test_committed_coverage_amendment_projects_exact_policies():
     """The reviewed coverage amendment expands collection without weakening no-crawl denials."""
     root=Path(__file__).resolve().parent.parent
     data=json.loads((root/'sources'/'roster.json').read_text()); conn=store(); summary=registry.project(conn,data)
-    assert summary['historical_seed_count']==25 and summary['publisher_count']==14 and summary['surface_count']==22
+    assert summary['historical_seed_count']==25 and summary['publisher_count']==17 and summary['surface_count']==25
     assert summary['working_set']==[
         NHLBI_PITA, NHLBI_RICE,
         'https://cookieandkate.com/', 'https://www.loveandlemons.com/',
@@ -589,8 +589,8 @@ def test_committed_coverage_amendment_projects_exact_policies():
     assert conn.execute('SELECT COUNT(*) FROM source_state').fetchone()[0]==0
 
     allow=worker.load_allowlist(root/'sources'/'allowlist.json')
-    assert len(allow)==18 and sum(entry['fetch'] is True for entry in allow)==13
-    assert len({entry['url'] for entry in allow})==18
+    assert len(allow)==20 and sum(entry['fetch'] is True for entry in allow)==15
+    assert len({entry['url'] for entry in allow})==20
     by_url={entry['url']:entry for entry in allow}
     added={'https://cookieandkate.com/','https://www.loveandlemons.com/',
            'https://busytoddler.com/','https://dayswithgrey.com/'}

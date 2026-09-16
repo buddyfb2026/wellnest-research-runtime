@@ -164,6 +164,24 @@
       "fetch": false,
       "usage_constraints": "No new source retrieval or publication under WEL-48. Frozen review evidence only.",
       "discovery_origin": "WEL-48 frozen corpus R3"
+    },
+    {
+      "url": "https://fossrecipes.com/recipes/orzo-chicken",
+      "source_type": "recipe_site",
+      "attribution": "FOSS Family Recipes (fossrecipes.com)",
+      "access_basis": "public_domain_cc0 (first-party https://fossrecipes.com/license.html, recipe TEXT only); robots.txt absent (allowed_no_robots), http 200 via the product Fetcher 2026-09-16T15:37:52Z",
+      "fetch": true,
+      "usage_constraints": "COLLECTION: permitted for this exact URL on the recorded robots/transport basis (observed 2026-09-16). TEXT RETENTION AND LOCAL INFERENCE: permitted on the CC0 recipe dedication for recipe TEXT only. CREDIT: not required by CC0; credit 'FOSS Family Recipes (fossrecipes.com)' is appreciated and should be kept. EXCLUSIONS: no images; the site design is separately CC BY 3.0 (HTML5 UP) and is not reused. EDITORIAL APPROVAL: none; household-facing reuse requires separate editorial approval. The source states no servings or total time; do not derive one from step durations. Page publication/modification dates unknown.",
+      "discovery_origin": "manual: WEL-49 Spencer-approved permissive recipe source; https://fossrecipes.com/recipes listing retrieved 2026-09-16; configured by agent:claude-wel49-permissive-sources; appended last so existing grants keep their order under the ten-URL cap"
+    },
+    {
+      "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+      "source_type": "recipe_site",
+      "attribution": "Public Domain Recipes (publicdomainrecipes.com); contributor Joel Maxuel",
+      "access_basis": "public_domain_unlicense (site statement and project Unlicense, recipe TEXT only); robots.txt checked and allowed, http 200 via the product Fetcher 2026-09-16T15:37:52Z",
+      "fetch": true,
+      "usage_constraints": "COLLECTION: permitted for this exact URL on the recorded robots/transport basis (observed 2026-09-16). TEXT RETENTION AND LOCAL INFERENCE: permitted on the site's public-domain/Unlicense dedication for recipe TEXT only. CREDIT: not legally required; keep 'Public Domain Recipes; contributor Joel Maxuel'. EXCLUSIONS: no images, logos or contributor donation addresses. EDITORIAL APPROVAL: none; household-facing reuse requires separate editorial approval. Preserve the prerequisite wording (already-cooked chicken). The source states prep 5 min, cook 40 min, servings 4 and no total time; do not derive one from prep + cook. Page publication/modification dates unknown.",
+      "discovery_origin": "manual: WEL-49 Spencer-approved permissive recipe source; https://publicdomainrecipes.com/ index retrieved 2026-09-16; configured by agent:claude-wel49-permissive-sources; appended last so existing grants keep their order under the ten-URL cap"
     }
   ]
 }
