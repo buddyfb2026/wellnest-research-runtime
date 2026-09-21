@@ -13,6 +13,8 @@ python3 -m research.library \
 
 Open `http://127.0.0.1:8765/` in the local Studio browser. Stop the foreground process with `Ctrl-C`.
 
+The **Approved & Autopilot** view at `/approved` keeps approval distinct from family-Autopilot readiness. It runs the existing recipe-pack eligibility evaluator on the read-only connection; it never allocates or exports a pack. Approved recipes are grouped as ready, blocked by an existing feed check, or not evaluated. Missing information is grouped separately into details the source does not specify and extraction that needs correction. Optional source omissions do not by themselves mean a recipe is unusable.
+
 Safety properties:
 
 - SQLite is opened with `mode=ro` and `PRAGMA query_only=ON`.
@@ -21,6 +23,7 @@ Safety properties:
 - Recipe text is HTML-escaped and only credential-free HTTP(S) source URLs become links.
 - Technical identifiers and stored JSON are not included in the default UI.
 - Statuses are projections only: persisted `approved` → Approved; human `rejected` → Withdrawn; `deferred` → On hold; `failed` → Extraction failed; and only `pending` uses completeness to distinguish Ready for review from Missing information. Held, withdrawn, failed, or unknown-state recipe bodies are not rendered.
+- The viewer does not equate approval with feed readiness, change app matching/export rules, publish recipes, or offer approval controls.
 
 Focused verification:
 

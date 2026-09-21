@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any, Iterable, List, Mapping, Optional, Sequence
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
+from .recipe_pack import build_served_state
+
 
 ASSET_DIR = Path(__file__).with_name("library_assets")
 STATUS_ORDER = (
@@ -25,6 +27,7 @@ STATUS_ORDER = (
     "Withdrawn", "Rejected", "Extraction failed", "Status unavailable",
 )
 ALLOWED_BIND_HOSTS = frozenset(("127.0.0.1",))
+SOURCE_UNSPECIFIED_REASONS = frozenset(("not_stated_by_source",))
 
 
 class LibraryUnavailable(RuntimeError):
@@ -34,6 +37,7 @@ class LibraryUnavailable(RuntimeError):
 @dataclass(frozen=True)
 class RecipeCard:
     recipe_id: int
+    recipe_version_id: int
     title: str
     source: str
     source_url: Optional[str]
@@ -47,7 +51,11 @@ class RecipeCard:
     step_count: int
     ingredients: Sequence[str]
     steps: Sequence[str]
-    unknowns: Sequence[str]
+    source_missing: Sequence[str]
+    extraction_issues: Sequence[str]
+    autopilot_status: str
+    autopilot_label: str
+    autopilot_note: str
     created_at: str
     collected_label: str
 
@@ -58,6 +66,7 @@ class LibrarySnapshot:
     all_count: int
     sources: Sequence[str]
     status_counts: Mapping[str, int]
+    autopilot_counts: Mapping[str, int]
     last_run_label: str
     last_run_status: str
     last_run_findings: str
@@ -187,6 +196,67 @@ def _plain_unknown(entry: Any) -> str:
     return "%s not confirmed by the source" % labels.get(field, field.replace("_", " ").capitalize())
 
 
+def _missing_details(document: Mapping[str, Any]) -> tuple[Sequence[str], Sequence[str]]:
+    source_missing, extraction_issues = [], []
+    for item in _as_list(document.get("unknown_fields")):
+        reason = _as_mapping(item).get("reason")
+        destination = source_missing if reason in SOURCE_UNSPECIFIED_REASONS else extraction_issues
+        destination.append(_plain_unknown(item))
+    return tuple(source_missing), tuple(extraction_issues)
+
+
+AUTOPILOT_BLOCK_NOTES = {
+    "no_publication": "The approval record needed by the existing Autopilot feed is missing.",
+    "withdrawn": "This approval was withdrawn.",
+    "not_human_published": "The approval was not recorded by a human reviewer.",
+    "row_state_disagrees_with_log": "The review state and approval record do not agree.",
+    "fingerprint_drift": "The approved content no longer matches its recorded fingerprint.",
+    "not_current_observation": "A different source observation is now current.",
+    "schema_invalid": "The approved document does not match the current recipe contract.",
+    "content_not_usable": "Core cooking content is not usable under the existing feed contract.",
+    "unknown_reason_out_of_contract": "A missing-field reason needs correction before feed use.",
+    "has_conflicts": "Source conflicts still need resolution.",
+    "support_not_in_evidence": "The source support check did not pass.",
+    "non_live_evidence": "The approval is not backed by live source evidence.",
+    "source_embedded_instructions_flagged": "The source contains instruction-like text requiring review.",
+    "malformed_applicability": "Meal-planning applicability is incomplete.",
+    "missing_rights_basis": "The approval is missing its recorded rights basis.",
+    "ingredient_map_incomplete": "Ingredient applicability mapping is incomplete.",
+    "equipment_not_reviewed": "Equipment needs have not completed review.",
+    "applicability_slot_collision": "Another approved recipe currently occupies the same feed slot.",
+}
+
+
+def _autopilot_eligibility(conn: sqlite3.Connection) -> Optional[tuple[set[int], Mapping[int, str]]]:
+    """Evaluate the existing feed contract without allocating a pack or writing state."""
+    try:
+        served, omitted = build_served_state(conn, allow_fixture_evidence=False)
+        ready = {int(item["publication"]["recipe_version_id"]) for item in served["recipes"]}
+        blocked = {int(item["recipe_version_id"]): str(item["reason"]) for item in omitted}
+        return ready, blocked
+    except (KeyError, TypeError, ValueError, sqlite3.Error):
+        return None
+
+
+def _autopilot_projection(version_id: int, status: str,
+                          eligibility: Optional[tuple[set[int], Mapping[int, str]]]) -> tuple[str, str, str]:
+    if status != "Approved":
+        return "not_approved", "Not approved", "Autopilot eligibility applies only after approval."
+    if eligibility is None:
+        return ("not_evaluated", "Eligibility not evaluated",
+                "Approved, but this view could not evaluate the existing Autopilot feed contract.")
+    ready, blocked = eligibility
+    if version_id in ready:
+        return ("ready", "Ready for family Autopilot",
+                "Passes the existing read-only recipe-pack eligibility contract.")
+    reason = blocked.get(version_id)
+    if reason:
+        return ("blocked", "Approved · Not ready for Autopilot",
+                AUTOPILOT_BLOCK_NOTES.get(reason, "An existing feed eligibility check did not pass."))
+    return ("not_evaluated", "Eligibility not evaluated",
+            "Approved, but no eligibility result was available for this recipe version.")
+
+
 def _source_name(document: Mapping[str, Any], source_url: Optional[str]) -> str:
     evidence = _as_mapping(document.get("evidence"))
     attribution = evidence.get("attribution")
@@ -212,7 +282,8 @@ def _date_label(value: str) -> str:
         return "Date unknown"
 
 
-def _card_from_row(row: sqlite3.Row) -> Optional[RecipeCard]:
+def _card_from_row(row: sqlite3.Row,
+                   eligibility: Optional[tuple[set[int], Mapping[int, str]]]) -> Optional[RecipeCard]:
     try:
         document = json.loads(row["content"])
     except (TypeError, json.JSONDecodeError):
@@ -228,8 +299,7 @@ def _card_from_row(row: sqlite3.Row) -> Optional[RecipeCard]:
     steps = tuple(filter(None, (_literal(item) for item in _as_list(document.get("steps")))))
     if details_hidden:
         ingredients, steps = (), ()
-    unknowns = (() if details_hidden else
-                tuple(_plain_unknown(item) for item in _as_list(document.get("unknown_fields"))))
+    source_missing, extraction_issues = (((), ()) if details_hidden else _missing_details(document))
     total = _duration_label(_minutes_field(document, "total_time"))
     servings = _servings_label(document)
     if details_hidden:
@@ -241,12 +311,16 @@ def _card_from_row(row: sqlite3.Row) -> Optional[RecipeCard]:
         if total:
             facts.append("%s total" % total)
         summary = "The source includes %s." % ", ".join(facts)
+    autopilot_status, autopilot_label, autopilot_note = _autopilot_projection(
+        int(row["recipe_version_id"]), status, eligibility)
     return RecipeCard(
-        recipe_id=int(row["recipe_id"]), title=title,
+        recipe_id=int(row["recipe_id"]), recipe_version_id=int(row["recipe_version_id"]), title=title,
         source=_source_name(document, source_url), source_url=source_url,
         status=status, status_note=status_note, details_hidden=details_hidden, summary=summary,
         total_time=total, servings=servings, ingredient_count=len(ingredients), step_count=len(steps),
-        ingredients=ingredients, steps=steps, unknowns=unknowns, created_at=row["created_at"],
+        ingredients=ingredients, steps=steps, source_missing=source_missing,
+        extraction_issues=extraction_issues, autopilot_status=autopilot_status,
+        autopilot_label=autopilot_label, autopilot_note=autopilot_note, created_at=row["created_at"],
         collected_label=_date_label(row["created_at"]),
     )
 
@@ -283,8 +357,10 @@ def read_snapshot(db_path: Path) -> LibrarySnapshot:
     """Read one short-lived, transaction-free snapshot of current recipe versions."""
     conn = open_readonly(db_path)
     try:
+        eligibility = _autopilot_eligibility(conn)
         rows = conn.execute(
-            """SELECT rv.recipe_id, rv.content, rv.completeness, rv.state, rv.state_reason,
+            """SELECT rv.recipe_id, rv.id AS recipe_version_id, rv.content, rv.completeness,
+                      rv.state, rv.state_reason,
                       rv.state_set_by, rv.created_at,
                       r.source_url
                FROM recipe_versions rv
@@ -294,16 +370,19 @@ def read_snapshot(db_path: Path) -> LibrarySnapshot:
                  ON current.recipe_id = rv.recipe_id AND current.version_no = rv.version_no
                ORDER BY rv.created_at DESC, rv.recipe_id DESC"""
         ).fetchall()
-        cards = tuple(card for row in rows if (card := _card_from_row(row)) is not None)
+        cards = tuple(card for row in rows if (card := _card_from_row(row, eligibility)) is not None)
         last_label, last_status, last_findings = _last_run(conn)
     except sqlite3.Error as exc:
         raise LibraryUnavailable("The research library is unavailable.") from exc
     finally:
         conn.close()
     counts = {status: sum(card.status == status for card in cards) for status in STATUS_ORDER}
+    autopilot_counts = {status: sum(card.autopilot_status == status for card in cards)
+                        for status in ("ready", "blocked", "not_evaluated")}
     return LibrarySnapshot(
         recipes=cards, all_count=len(cards), sources=tuple(sorted({card.source for card in cards})),
-        status_counts=counts, last_run_label=last_label, last_run_status=last_status,
+        status_counts=counts, autopilot_counts=autopilot_counts,
+        last_run_label=last_label, last_run_status=last_status,
         last_run_findings=last_findings,
     )
 
@@ -326,16 +405,20 @@ def esc(value: Any) -> str:
     return html.escape(str(value), quote=True)
 
 
-def _shell(body: str, title: str = "Research Library") -> str:
+def _shell(body: str, title: str = "Research Library", current: str = "library") -> str:
+    library_class = ' class="active" aria-current="page"' if current == "library" else ""
+    approved_class = ' class="active" aria-current="page"' if current == "approved" else ""
     return """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>%s · WellNest</title><link rel="stylesheet" href="/assets/library.css"></head>
 <body><header class="site-header"><a class="brand" href="/" aria-label="WellNest Research Library home">
 <span class="brand-mark" aria-hidden="true">W</span><span><strong>WellNest</strong><small>Research Library</small></span></a>
+<nav aria-label="Research Library views"><a%s href="/">Findings</a><a%s href="/approved">Approved &amp; Autopilot</a></nav>
 <span class="local-pill"><i></i> Local &amp; read-only</span></header>
 %s
 <footer><span>WellNest Research</span><span>Actual findings · no edits from this library</span></footer>
-<script src="/assets/library.js" defer></script></body></html>""" % (esc(title), body)
+<script src="/assets/library.js" defer></script></body></html>""" % (
+        esc(title), library_class, approved_class, body)
 
 
 def _option(value: str, selected: str, label: Optional[str] = None) -> str:
@@ -373,14 +456,43 @@ def render_index(snapshot: LibrarySnapshot, params: Mapping[str, str]) -> str:
 def _render_card(card: RecipeCard) -> str:
     meta = [item for item in (card.total_time, card.servings) if item]
     meta.append("%d step%s" % (card.step_count, "" if card.step_count == 1 else "s"))
+    if card.source_missing:
+        meta.append("Source doesn’t specify: %d" % len(card.source_missing))
+    if card.extraction_issues:
+        meta.append("Extraction correction: %d" % len(card.extraction_issues))
     cls = {"Ready for review": "ready", "Approved": "approved", "On hold": "hold",
            "Withdrawn": "withdrawn", "Rejected": "withdrawn",
            "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
+    autopilot = (('<div class="autopilot %s"><strong>%s</strong><span>%s</span></div>' %
+                  (esc(card.autopilot_status), esc(card.autopilot_label), esc(card.autopilot_note)))
+                 if card.status == "Approved" else "")
     return """<article class="recipe-card"><div class="card-top"><span class="status %s"><i></i>%s</span><span class="date">%s</span></div>
 <p class="source">%s</p><h3><a href="/recipe/%d">%s</a></h3><p class="summary">%s</p>
-<div class="meta">%s</div><a class="view-link" href="/recipe/%d">View recipe <span>→</span></a></article>""" % (
+%s<div class="meta">%s</div><a class="view-link" href="/recipe/%d">View recipe <span>→</span></a></article>""" % (
         cls, esc(card.status), esc(card.collected_label), esc(card.source), card.recipe_id, esc(card.title),
-        esc(card.summary), "".join("<span>%s</span>" % esc(item) for item in meta), card.recipe_id)
+        esc(card.summary), autopilot, "".join("<span>%s</span>" % esc(item) for item in meta), card.recipe_id)
+
+
+def render_approved(snapshot: LibrarySnapshot) -> str:
+    approved = [card for card in snapshot.recipes if card.status == "Approved"]
+    groups = (
+        ("ready", "Ready for family Autopilot", "Approved recipes that pass the existing recipe-pack contract."),
+        ("blocked", "Approved, with feed work remaining", "Approved recipes blocked by a specific existing feed check."),
+        ("not_evaluated", "Eligibility not evaluated", "Approved recipes whose feed eligibility could not be evaluated here."),
+    )
+    sections = []
+    for key, heading, description in groups:
+        cards = [card for card in approved if card.autopilot_status == key]
+        sections.append('<section class="approved-group"><div class="results-heading"><div><p class="eyebrow">%d recipe%s</p><h2>%s</h2><p>%s</p></div></div><div class="recipe-grid">%s</div></section>' % (
+            len(cards), "" if len(cards) == 1 else "s", esc(heading), esc(description),
+            "".join(_render_card(card) for card in cards) or '<div class="group-empty">None currently.</div>'))
+    body = """<main><section class="hero approved-hero"><div><p class="eyebrow">Approved recipes</p>
+<h1>What’s ready for family Autopilot.</h1><p class="lede">Approval and feed readiness are separate. This view applies the existing recipe-pack contract read-only and keeps approved-but-blocked recipes visible without changing them.</p></div></section>
+<section class="stats approved-stats" aria-label="Approved recipe readiness"><div><strong>%d</strong><span>Approved recipes</span></div><div><strong>%d</strong><span>Autopilot ready</span></div><div><strong>%d</strong><span>Approved, blocked</span></div><div><strong>%d</strong><span>Not evaluated</span></div></section>
+%s</main>""" % (len(approved), snapshot.autopilot_counts["ready"],
+                   snapshot.autopilot_counts["blocked"], snapshot.autopilot_counts["not_evaluated"],
+                   "".join(sections))
+    return _shell(body, "Approved & Autopilot", current="approved")
 
 
 def render_detail(card: RecipeCard) -> str:
@@ -388,6 +500,9 @@ def render_detail(card: RecipeCard) -> str:
            "Withdrawn": "withdrawn", "Rejected": "withdrawn",
            "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
     source_link = ('<a class="source-button" href="%s" target="_blank" rel="noopener noreferrer">Visit original source <span>↗</span></a>' % esc(card.source_url)) if card.source_url else '<span class="source-unavailable">Original source link unavailable</span>'
+    autopilot = (('<div class="autopilot %s"><strong>%s</strong><span>%s</span></div>' %
+                  (esc(card.autopilot_status), esc(card.autopilot_label), esc(card.autopilot_note)))
+                 if card.status == "Approved" else "")
     facts = []
     fact_values = (("Total time", "Not shown"), ("Serves", "Not shown"),
                    ("Ingredients", "Not shown"), ("Steps", "Not shown")) if card.details_hidden else (
@@ -398,17 +513,24 @@ def render_detail(card: RecipeCard) -> str:
     ingredients = "".join("<li>%s</li>" % esc(item) for item in card.ingredients) or "<li>Ingredients are not available from the source.</li>"
     steps = "".join("<li>%s</li>" % esc(item) for item in card.steps) or "<li>Instructions are not available from the source.</li>"
     unknowns = ""
-    if card.unknowns:
-        unknowns = '<aside class="unknowns"><h2>Still to confirm</h2><p>This recipe is shown honestly while the following source details remain unresolved.</p><ul>%s</ul></aside>' % "".join("<li>%s</li>" % esc(item) for item in card.unknowns)
+    if card.source_missing:
+        unknowns += ('<aside class="unknowns source-missing"><h2>Source doesn’t specify</h2>'
+                     '<p>These details are not stated by the source. Their absence does not by itself make the recipe unusable.</p><ul>%s</ul></aside>' %
+                     "".join("<li>%s</li>" % esc(item) for item in card.source_missing))
+    if card.extraction_issues:
+        unknowns += ('<aside class="unknowns extraction-issues"><h2>Extraction needs correction</h2>'
+                     '<p>The source may contain these details, but the current extraction did not resolve them reliably.</p><ul>%s</ul></aside>' %
+                     "".join("<li>%s</li>" % esc(item) for item in card.extraction_issues))
     recipe_body = ('<section class="unavailable"><p class="eyebrow">Recipe details withheld</p><h2>%s</h2><p>%s</p></section>' %
                    (esc(card.status), esc(card.status_note))) if card.details_hidden else (
         '<section class="recipe-body"><div><p class="eyebrow">What you’ll need</p><h2>Ingredients</h2><ul class="ingredients">%s</ul></div>'
         '<div><p class="eyebrow">From the source</p><h2>Instructions</h2><ol class="steps">%s</ol></div></section>' %
         (ingredients, steps))
-    body = """<main class="detail"><a class="back" href="/">← Back to library</a><section class="detail-hero"><div><div class="detail-kicker"><span class="status %s"><i></i>%s</span><span>%s</span></div><p class="source">%s</p><h1>%s</h1><p class="lede">%s</p>%s</div>
+    body = """<main class="detail"><a class="back" href="/">← Back to library</a><section class="detail-hero"><div><div class="detail-kicker"><span class="status %s"><i></i>%s</span><span>%s</span></div><p class="source">%s</p><h1>%s</h1><p class="lede">%s</p>%s%s</div>
 <aside class="fact-card">%s</aside></section>%s
 %s</main>""" % (
-        cls, esc(card.status), esc(card.collected_label), esc(card.source), esc(card.title), esc(card.summary), source_link,
+        cls, esc(card.status), esc(card.collected_label), esc(card.source), esc(card.title), esc(card.summary),
+        autopilot, source_link,
         "".join(facts), unknowns, recipe_body)
     return _shell(body, card.title)
 
@@ -477,6 +599,9 @@ def make_handler(db_path: Path):
                 raw = parse_qs(parsed.query, keep_blank_values=True)
                 params = {key: values[0][:200] for key, values in raw.items() if values}
                 self._html(render_index(snapshot, params))
+                return
+            if parsed.path == "/approved":
+                self._html(render_approved(snapshot))
                 return
             if parsed.path.startswith("/recipe/"):
                 try:

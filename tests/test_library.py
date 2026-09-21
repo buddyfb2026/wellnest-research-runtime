@@ -9,7 +9,9 @@ from pathlib import Path
 import pytest
 
 from research.library import (filter_recipes, make_handler, open_readonly, read_snapshot,
-                              render_detail, render_index, safe_external_url, serve)
+                              render_approved, render_detail, render_index, safe_external_url, serve)
+from research.recipe_review import publish
+from tests.wel52_helpers import make_store, publish_args, seed_version
 
 
 def _db(tmp_path: Path, *, hostile: bool = False) -> Path:
@@ -120,6 +122,71 @@ def test_unknown_state_fails_closed(tmp_path):
     assert (card.status, card.details_hidden) == ("Status unavailable", True)
 
 
+def test_missing_information_separates_source_omissions_from_extraction_corrections(tmp_path):
+    path = _db(tmp_path)
+    conn = sqlite3.connect(path)
+    document = json.loads(conn.execute("SELECT content FROM recipe_versions WHERE id=1").fetchone()[0])
+    document["unknown_fields"] = [
+        {"field": "prep_time", "reason": "not_stated_by_source"},
+        {"field": "ingredient[0]", "reason": "ingredient_correspondence_ambiguous"},
+    ]
+    conn.execute("UPDATE recipe_versions SET content=?, completeness='incomplete' WHERE id=1",
+                 (json.dumps(document),))
+    conn.commit(); conn.close()
+    card = read_snapshot(path).recipes[0]
+    assert card.status == "Missing information"
+    assert card.source_missing == ("Prep time not confirmed by the source",)
+    assert card.extraction_issues == ("One ingredient needs clarification",)
+    detail = render_detail(card)
+    assert "Source doesn’t specify" in detail
+    assert "does not by itself make the recipe unusable" in detail
+    assert "Extraction needs correction" in detail
+
+
+def test_approved_view_reuses_existing_pack_eligibility_without_equating_optional_unknowns_to_unusable(tmp_path):
+    path = tmp_path / "full.sqlite"
+    conn = make_store(path)
+    ready = seed_version(conn, "f-a", content_kind="live", source_url="https://fixture.example/ready")
+    optional_unknown = seed_version(conn, "f-b", content_kind="live",
+                                    source_url="https://fixture.example/optional-unknown")
+    blocked = seed_version(conn, "f-c", content_kind="live", source_url="https://fixture.example/blocked")
+    conn.execute("UPDATE recipe_versions SET state='approved', state_set_by='human:Fixture Reviewer' WHERE id=?",
+                 (blocked["version_id"],))
+    conn.close()
+    publish(path, **publish_args(ready, "publish-ready"))
+    publish(path, **publish_args(optional_unknown, "publish-optional"))
+
+    snapshot = read_snapshot(path)
+    by_version = {card.recipe_version_id: card for card in snapshot.recipes}
+    assert by_version[ready["version_id"]].autopilot_status == "ready"
+    optional_card = by_version[optional_unknown["version_id"]]
+    assert optional_card.autopilot_status == "ready"
+    assert optional_card.source_missing == ("Servings not confirmed by the source",)
+    blocked_card = by_version[blocked["version_id"]]
+    assert blocked_card.autopilot_status == "blocked"
+    assert "approval record" in blocked_card.autopilot_note
+    assert snapshot.autopilot_counts == {"ready": 2, "blocked": 1, "not_evaluated": 0}
+
+    page = render_approved(snapshot)
+    assert "What’s ready for family Autopilot" in page
+    assert "Ready for family Autopilot" in page
+    assert "Approved · Not ready for Autopilot" in page
+    assert "Eligibility not evaluated" in page
+    assert "Ready for family Autopilot" in render_detail(optional_card)
+
+
+def test_approved_view_labels_eligibility_not_evaluated_when_pack_contract_is_unavailable(tmp_path):
+    path = _db(tmp_path)
+    conn = sqlite3.connect(path)
+    conn.execute("UPDATE recipe_versions SET state='approved', state_set_by='human:reviewer' WHERE id=1")
+    conn.commit(); conn.close()
+    snapshot = read_snapshot(path)
+    card = snapshot.recipes[0]
+    assert card.autopilot_status == "not_evaluated"
+    assert card.autopilot_label == "Eligibility not evaluated"
+    assert "could not evaluate" in card.autopilot_note
+
+
 def test_filtering_searches_actual_fields(tmp_path):
     recipes = read_snapshot(_db(tmp_path)).recipes
     assert len(filter_recipes(recipes, query="beans")) == 1
@@ -195,6 +262,18 @@ def test_http_handler_post_is_read_only_and_asset_routes_are_whitelisted(tmp_pat
         assert status == 200 and content_type.startswith("text/css")
         assert _request(port, target="/assets/../library.py")[0] == 404
         assert _request(port, target="/assets/not-bundled.css")[0] == 404
+
+
+def test_http_handler_serves_separate_approved_view(tmp_path):
+    path = _db(tmp_path)
+    conn = sqlite3.connect(path)
+    conn.execute("UPDATE recipe_versions SET state='approved', state_set_by='human:reviewer' WHERE id=1")
+    conn.commit(); conn.close()
+    with _fixture_server(path) as port:
+        status, _, body = _request(port, target="/approved")
+        assert status == 200
+        assert "Approved &amp; Autopilot" in body
+        assert "Eligibility not evaluated" in body
 
 
 @pytest.mark.parametrize("host", ["evil.example", "127.0.0.1.evil.example", "127.0.0.1:1", "[::1]"])
