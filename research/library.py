@@ -23,8 +23,9 @@ from .recipe_pack import build_served_state
 
 ASSET_DIR = Path(__file__).with_name("library_assets")
 STATUS_ORDER = (
-    "Ready for review", "Missing information", "Approved", "On hold",
-    "Withdrawn", "Rejected", "Extraction failed", "Status unavailable",
+    "Ready for review", "Missing information", "Approved", "Needs correction",
+    "Eligibility not evaluated", "On hold", "Withdrawn", "Rejected",
+    "Extraction failed", "Status unavailable",
 )
 ALLOWED_BIND_HOSTS = frozenset(("127.0.0.1",))
 SOURCE_UNSPECIFIED_REASONS = frozenset(("not_stated_by_source",))
@@ -153,12 +154,18 @@ def _servings_label(document: Mapping[str, Any]) -> Optional[str]:
 
 
 def status_projection(state: Any, completeness: Any, state_reason: Any,
-                      state_set_by: Any) -> tuple[str, str, bool]:
+                      state_set_by: Any, autopilot_status: str = "not_approved",
+                      autopilot_note: str = "") -> tuple[str, str, bool]:
     """Map stored state to a bounded label, explanation, and content gate."""
     if state == "approved":
-        note = ("Approved by a reviewer." if isinstance(state_set_by, str) and
-                state_set_by.startswith("human:") else "The stored review state is approved.")
-        return "Approved", note, False
+        if autopilot_status == "ready":
+            return ("Approved",
+                    "Globally eligible for household matching; household suitability is evaluated separately.",
+                    False)
+        if autopilot_status == "needs_correction":
+            return "Needs correction", autopilot_note, True
+        return ("Eligibility not evaluated",
+                autopilot_note or "Global eligibility could not be evaluated for this approval record.", True)
     if state == "rejected":
         if isinstance(state_set_by, str) and state_set_by.startswith("human:"):
             return "Withdrawn", "Withdrawn by a reviewer. This recipe is not an active review candidate.", True
@@ -238,9 +245,9 @@ def _autopilot_eligibility(conn: sqlite3.Connection) -> Optional[tuple[set[int],
         return None
 
 
-def _autopilot_projection(version_id: int, status: str,
+def _autopilot_projection(version_id: int, stored_state: Any,
                           eligibility: Optional[tuple[set[int], Mapping[int, str]]]) -> tuple[str, str, str]:
-    if status != "Approved":
+    if stored_state != "approved":
         return "not_approved", "Not approved", "Autopilot eligibility applies only after approval."
     if eligibility is None:
         return ("not_evaluated", "Eligibility not evaluated",
@@ -251,7 +258,7 @@ def _autopilot_projection(version_id: int, status: str,
                 "Passes the existing read-only recipe-pack eligibility contract.")
     reason = blocked.get(version_id)
     if reason:
-        return ("blocked", "Approved · Not ready for Autopilot",
+        return ("needs_correction", "Needs correction",
                 AUTOPILOT_BLOCK_NOTES.get(reason, "An existing feed eligibility check did not pass."))
     return ("not_evaluated", "Eligibility not evaluated",
             "Approved, but no eligibility result was available for this recipe version.")
@@ -293,8 +300,11 @@ def _card_from_row(row: sqlite3.Row,
     evidence = _as_mapping(document.get("evidence"))
     title = _literal(document.get("name")) or _literal(evidence.get("title")) or "Untitled recipe"
     source_url = safe_external_url(row["source_url"])
+    autopilot_status, autopilot_label, autopilot_note = _autopilot_projection(
+        int(row["recipe_version_id"]), row["state"], eligibility)
     status, status_note, details_hidden = status_projection(
-        row["state"], row["completeness"], row["state_reason"], row["state_set_by"])
+        row["state"], row["completeness"], row["state_reason"], row["state_set_by"],
+        autopilot_status, autopilot_note)
     ingredients = tuple(filter(None, (_literal(item) for item in _as_list(document.get("ingredients")))))
     steps = tuple(filter(None, (_literal(item) for item in _as_list(document.get("steps")))))
     if details_hidden:
@@ -311,8 +321,6 @@ def _card_from_row(row: sqlite3.Row,
         if total:
             facts.append("%s total" % total)
         summary = "The source includes %s." % ", ".join(facts)
-    autopilot_status, autopilot_label, autopilot_note = _autopilot_projection(
-        int(row["recipe_version_id"]), status, eligibility)
     return RecipeCard(
         recipe_id=int(row["recipe_id"]), recipe_version_id=int(row["recipe_version_id"]), title=title,
         source=_source_name(document, source_url), source_url=source_url,
@@ -378,7 +386,7 @@ def read_snapshot(db_path: Path) -> LibrarySnapshot:
         conn.close()
     counts = {status: sum(card.status == status for card in cards) for status in STATUS_ORDER}
     autopilot_counts = {status: sum(card.autopilot_status == status for card in cards)
-                        for status in ("ready", "blocked", "not_evaluated")}
+                        for status in ("ready", "needs_correction", "not_evaluated")}
     return LibrarySnapshot(
         recipes=cards, all_count=len(cards), sources=tuple(sorted({card.source for card in cards})),
         status_counts=counts, autopilot_counts=autopilot_counts,
@@ -462,6 +470,7 @@ def _render_card(card: RecipeCard) -> str:
         meta.append("Extraction correction: %d" % len(card.extraction_issues))
     cls = {"Ready for review": "ready", "Approved": "approved", "On hold": "hold",
            "Withdrawn": "withdrawn", "Rejected": "withdrawn",
+           "Needs correction": "failed", "Eligibility not evaluated": "hold",
            "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
     autopilot = (('<div class="autopilot %s"><strong>%s</strong><span>%s</span></div>' %
                   (esc(card.autopilot_status), esc(card.autopilot_label), esc(card.autopilot_note)))
@@ -474,23 +483,23 @@ def _render_card(card: RecipeCard) -> str:
 
 
 def render_approved(snapshot: LibrarySnapshot) -> str:
-    approved = [card for card in snapshot.recipes if card.status == "Approved"]
+    approval_records = [card for card in snapshot.recipes if card.autopilot_status != "not_approved"]
     groups = (
-        ("ready", "Ready for family Autopilot", "Approved recipes that pass the existing recipe-pack contract."),
-        ("blocked", "Approved, with feed work remaining", "Approved recipes blocked by a specific existing feed check."),
-        ("not_evaluated", "Eligibility not evaluated", "Approved recipes whose feed eligibility could not be evaluated here."),
+        ("ready", "Ready for family Autopilot", "Globally eligible recipes. Household suitability is evaluated separately."),
+        ("needs_correction", "Internal records needing correction", "Persisted approval records that do not pass the existing global feed contract."),
+        ("not_evaluated", "Eligibility not evaluated", "Persisted approval records whose global eligibility could not be evaluated here."),
     )
     sections = []
     for key, heading, description in groups:
-        cards = [card for card in approved if card.autopilot_status == key]
+        cards = [card for card in approval_records if card.autopilot_status == key]
         sections.append('<section class="approved-group"><div class="results-heading"><div><p class="eyebrow">%d recipe%s</p><h2>%s</h2><p>%s</p></div></div><div class="recipe-grid">%s</div></section>' % (
             len(cards), "" if len(cards) == 1 else "s", esc(heading), esc(description),
             "".join(_render_card(card) for card in cards) or '<div class="group-empty">None currently.</div>'))
     body = """<main><section class="hero approved-hero"><div><p class="eyebrow">Approved recipes</p>
-<h1>What’s ready for family Autopilot.</h1><p class="lede">Approval and feed readiness are separate. This view applies the existing recipe-pack contract read-only and keeps approved-but-blocked recipes visible without changing them.</p></div></section>
-<section class="stats approved-stats" aria-label="Approved recipe readiness"><div><strong>%d</strong><span>Approved recipes</span></div><div><strong>%d</strong><span>Autopilot ready</span></div><div><strong>%d</strong><span>Approved, blocked</span></div><div><strong>%d</strong><span>Not evaluated</span></div></section>
-%s</main>""" % (len(approved), snapshot.autopilot_counts["ready"],
-                   snapshot.autopilot_counts["blocked"], snapshot.autopilot_counts["not_evaluated"],
+<h1>What’s ready for family Autopilot.</h1><p class="lede">Approved means globally eligible for household matching under the existing recipe-pack contract. Whether a recipe suits a particular household remains a separate Autopilot decision.</p></div></section>
+<section class="stats approved-stats" aria-label="Approved recipe readiness"><div><strong>%d</strong><span>Approval records</span></div><div><strong>%d</strong><span>Globally eligible</span></div><div><strong>%d</strong><span>Need correction</span></div><div><strong>%d</strong><span>Not evaluated</span></div></section>
+%s</main>""" % (len(approval_records), snapshot.autopilot_counts["ready"],
+                   snapshot.autopilot_counts["needs_correction"], snapshot.autopilot_counts["not_evaluated"],
                    "".join(sections))
     return _shell(body, "Approved & Autopilot", current="approved")
 
@@ -498,6 +507,7 @@ def render_approved(snapshot: LibrarySnapshot) -> str:
 def render_detail(card: RecipeCard) -> str:
     cls = {"Ready for review": "ready", "Approved": "approved", "On hold": "hold",
            "Withdrawn": "withdrawn", "Rejected": "withdrawn",
+           "Needs correction": "failed", "Eligibility not evaluated": "hold",
            "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
     source_link = ('<a class="source-button" href="%s" target="_blank" rel="noopener noreferrer">Visit original source <span>↗</span></a>' % esc(card.source_url)) if card.source_url else '<span class="source-unavailable">Original source link unavailable</span>'
     autopilot = (('<div class="autopilot %s"><strong>%s</strong><span>%s</span></div>' %

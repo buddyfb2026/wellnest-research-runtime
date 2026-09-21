@@ -78,13 +78,14 @@ def test_incomplete_and_persisted_approved_states_map_without_inference(tmp_path
     conn = sqlite3.connect(path)
     conn.execute("UPDATE recipe_versions SET state='approved' WHERE id=1")
     conn.commit(); conn.close()
-    assert read_snapshot(path).recipes[0].status == "Approved"
+    assert read_snapshot(path).recipes[0].status == "Eligibility not evaluated"
 
 
 @pytest.mark.parametrize(("state", "completeness", "reason", "set_by", "status", "note", "hidden"), [
     ("pending", "complete", None, "worker", "Ready for review", "awaiting review", False),
     ("pending", "incomplete", None, "worker", "Missing information", "still unknown", False),
-    ("approved", "complete", None, "human:reviewer", "Approved", "Approved by a reviewer", False),
+    ("approved", "complete", None, "human:reviewer", "Eligibility not evaluated",
+     "could not evaluate", True),
     ("rejected", "complete", '<script>unsafe reviewer text</script>', "human:reviewer", "Withdrawn",
      "Withdrawn by a reviewer", True),
     ("deferred", "complete", "source_embedded_instructions_flagged", "worker", "On hold",
@@ -163,14 +164,17 @@ def test_approved_view_reuses_existing_pack_eligibility_without_equating_optiona
     assert optional_card.autopilot_status == "ready"
     assert optional_card.source_missing == ("Servings not confirmed by the source",)
     blocked_card = by_version[blocked["version_id"]]
-    assert blocked_card.autopilot_status == "blocked"
+    assert blocked_card.autopilot_status == "needs_correction"
+    assert blocked_card.status == "Needs correction"
+    assert blocked_card.details_hidden is True
     assert "approval record" in blocked_card.autopilot_note
-    assert snapshot.autopilot_counts == {"ready": 2, "blocked": 1, "not_evaluated": 0}
+    assert snapshot.autopilot_counts == {"ready": 2, "needs_correction": 1, "not_evaluated": 0}
 
     page = render_approved(snapshot)
     assert "What’s ready for family Autopilot" in page
     assert "Ready for family Autopilot" in page
-    assert "Approved · Not ready for Autopilot" in page
+    assert "Internal records needing correction" in page
+    assert "Approved · Not ready for Autopilot" not in page
     assert "Eligibility not evaluated" in page
     assert "Ready for family Autopilot" in render_detail(optional_card)
 
@@ -182,6 +186,8 @@ def test_approved_view_labels_eligibility_not_evaluated_when_pack_contract_is_un
     conn.commit(); conn.close()
     snapshot = read_snapshot(path)
     card = snapshot.recipes[0]
+    assert card.status == "Eligibility not evaluated"
+    assert card.details_hidden is True
     assert card.autopilot_status == "not_evaluated"
     assert card.autopilot_label == "Eligibility not evaluated"
     assert "could not evaluate" in card.autopilot_note

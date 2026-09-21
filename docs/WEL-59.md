@@ -13,7 +13,7 @@ python3 -m research.library \
 
 Open `http://127.0.0.1:8765/` in the local Studio browser. Stop the foreground process with `Ctrl-C`.
 
-The **Approved & Autopilot** view at `/approved` keeps approval distinct from family-Autopilot readiness. It runs the existing recipe-pack eligibility evaluator on the read-only connection; it never allocates or exports a pack. Approved recipes are grouped as ready, blocked by an existing feed check, or not evaluated. Missing information is grouped separately into details the source does not specify and extraction that needs correction. Optional source omissions do not by themselves mean a recipe is unusable.
+The **Approved & Autopilot** view at `/approved` runs the existing recipe-pack eligibility evaluator on the read-only connection; it never allocates or exports a pack. The UI labels a recipe Approved only when the persisted approval also passes that global feed contract. Inconsistent approval records are shown as internal Needs correction, not as approved recipes; unavailable evaluation is labeled Eligibility not evaluated. Global approval means eligible for household matching, while suitability for a particular household remains a separate downstream decision. Missing information is grouped into details the source does not specify and extraction that needs correction. Optional source omissions do not by themselves mean a recipe is unusable.
 
 Safety properties:
 
