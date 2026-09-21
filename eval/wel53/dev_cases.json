@@ -1,0 +1,2351 @@
+{
+  "base_b0": {
+    "document": {
+      "completeness": "complete",
+      "conflicts": [],
+      "evidence": {
+        "attribution": "Public Domain Recipes (publicdomainrecipes.com); contributor Joel Maxuel",
+        "checked_at": "2026-09-16T19:49:48Z",
+        "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+        "evidence_id": "2",
+        "published_at": null,
+        "revision": 1,
+        "source_url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+        "title": "Easy Chicken and Rice Casserole"
+      },
+      "identity": {
+        "recipe_key": "12b567a2118ac209bd5d51dff2dcaa616c400b0d41b51584dfbced290e058d9f",
+        "recipe_slot": "name:acef46e785f1f98f",
+        "slot_disambiguated": false
+      },
+      "ingredients": [
+        {
+          "source": {
+            "span": {
+              "end": 140,
+              "start": 118
+            },
+            "support": "source_literal",
+            "value": "1/2 cup Onion, chopped"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 0.5,
+            "amount_max": null,
+            "item": "Onion, chopped",
+            "unit": "cup"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 164,
+              "start": 141
+            },
+            "support": "source_literal",
+            "value": "1/2 cup Celery, chopped"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 0.5,
+            "amount_max": null,
+            "item": "Celery, chopped",
+            "unit": "cup"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 191,
+              "start": 165
+            },
+            "support": "source_literal",
+            "value": "2 Tbsp Butter or margarine"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 2.0,
+            "amount_max": null,
+            "item": "Butter or margarine",
+            "unit": "tbsp"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 226,
+              "start": 192
+            },
+            "support": "source_literal",
+            "value": "2 cups Chicken, cooked and chopped"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 2.0,
+            "amount_max": null,
+            "item": "Chicken, cooked and chopped",
+            "unit": "cup"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 247,
+              "start": 227
+            },
+            "support": "source_literal",
+            "value": "1 3/4 cups Hot water"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 1.75,
+            "amount_max": null,
+            "item": "Hot water",
+            "unit": "cup"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 277,
+              "start": 248
+            },
+            "support": "source_literal",
+            "value": "2/3 cup Long Grain White Rice"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 0.6666666666666666,
+            "amount_max": null,
+            "item": "Long Grain White Rice",
+            "unit": "cup"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 313,
+              "start": 278
+            },
+            "support": "source_literal",
+            "value": "1 can (10 oz) Mushrooms with liquid"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 1.0,
+            "amount_max": null,
+            "item": "(10 oz) Mushrooms with liquid",
+            "unit": "can"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 343,
+              "start": 314
+            },
+            "support": "source_literal",
+            "value": "1 cup Frozen Peas and Carrots"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 1.0,
+            "amount_max": null,
+            "item": "Frozen Peas and Carrots",
+            "unit": "cup"
+          }
+        },
+        {
+          "source": {
+            "span": {
+              "end": 374,
+              "start": 344
+            },
+            "support": "source_literal",
+            "value": "1 tsp Dried Thyme and Rosemary"
+          },
+          "support": "source_normalized",
+          "value": {
+            "amount": 1.0,
+            "amount_max": null,
+            "item": "Dried Thyme and Rosemary",
+            "unit": "tsp"
+          }
+        }
+      ],
+      "name": {
+        "span": {
+          "end": 31,
+          "start": 0
+        },
+        "support": "source_literal",
+        "value": "Easy Chicken and Rice Casserole"
+      },
+      "provenance": {
+        "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+        "evidence_id": "2",
+        "is_current_observation": true,
+        "locator_version": "wel48_locator_v6",
+        "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9",
+        "manifest_revision_no": 1,
+        "revision": 1
+      },
+      "schema_version": "wel48_recipe_v1",
+      "servings": {
+        "source": {
+          "readings": [
+            {
+              "literal": "\ud83c\udf7d\ufe0f Servings: 4",
+              "origin": "model_quote",
+              "value": {
+                "max": 4,
+                "min": 4
+              }
+            }
+          ],
+          "span": {
+            "end": 86,
+            "start": 72
+          },
+          "support": "source_literal",
+          "value": "\ud83c\udf7d\ufe0f Servings: 4"
+        },
+        "support": "source_normalized",
+        "value": {
+          "max": 4,
+          "min": 4
+        }
+      },
+      "steps": [
+        {
+          "span": {
+            "end": 447,
+            "start": 386
+          },
+          "support": "source_literal",
+          "value": "In large fry pan, cook onion and celery in butter until soft."
+        },
+        {
+          "span": {
+            "end": 478,
+            "start": 448
+          },
+          "support": "source_literal",
+          "value": "Stir in remaining ingredients."
+        },
+        {
+          "span": {
+            "end": 583,
+            "start": 479
+          },
+          "support": "source_literal",
+          "value": "Bake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked."
+        }
+      ],
+      "times": {
+        "cook_time": {
+          "source": {
+            "readings": [
+              {
+                "literal": "\ud83c\udf73 Cook time: 40 min",
+                "origin": "model_quote",
+                "value": 40
+              }
+            ],
+            "span": {
+              "end": 71,
+              "start": 52
+            },
+            "support": "source_literal",
+            "value": "\ud83c\udf73 Cook time: 40 min"
+          },
+          "support": "source_normalized",
+          "value": 40
+        },
+        "prep_time": {
+          "source": {
+            "readings": [
+              {
+                "literal": "\u23f2\ufe0f Prep time: 5 min",
+                "origin": "model_quote",
+                "value": 5
+              }
+            ],
+            "span": {
+              "end": 51,
+              "start": 32
+            },
+            "support": "source_literal",
+            "value": "\u23f2\ufe0f Prep time: 5 min"
+          },
+          "support": "source_normalized",
+          "value": 5
+        },
+        "total_time": {
+          "source": {
+            "readings": [
+              {
+                "literal": "45 min",
+                "origin": "visible",
+                "value": 45
+              },
+              {
+                "literal": "Total time: 45 min",
+                "origin": "model_quote",
+                "value": 45
+              }
+            ],
+            "span": {
+              "end": 105,
+              "start": 87
+            },
+            "support": "source_literal",
+            "value": "Total time: 45 min"
+          },
+          "support": "source_normalized",
+          "value": 45
+        }
+      },
+      "unknown_fields": []
+    },
+    "evidence_text": "Easy Chicken and Rice Casserole\n\u23f2\ufe0f Prep time: 5 min\n\ud83c\udf73 Cook time: 40 min\n\ud83c\udf7d\ufe0f Servings: 4\nTotal time: 45 min\nIngredients\n1/2 cup Onion, chopped\n1/2 cup Celery, chopped\n2 Tbsp Butter or margarine\n2 cups Chicken, cooked and chopped\n1 3/4 cups Hot water\n2/3 cup Long Grain White Rice\n1 can (10 oz) Mushrooms with liquid\n1 cup Frozen Peas and Carrots\n1 tsp Dried Thyme and Rosemary\nDirections\nIn large fry pan, cook onion and celery in butter until soft.\nStir in remaining ingredients.\nBake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked.\nContributor(s)\nJoel Maxuel\nMonero: 4AdhfxUfFbPd11epEKsuDqBm4jJEapK9UUhgFH8ss7aSAhtox1Li4B6LZwoEuZ6W8BJUCpRynUXFCWcDUzKUd7Cr99kk4tM\nBitcoin: bc1qvpj4juacefyl6v7f6f7helggsmmxn97s7h6yzd\nRelated\nChickenEasyQuick\nPrevious:\nFall Vegetable and Chickpea Curry\nNext:\nColcannon Bake",
+    "surface": {
+      "access_status": "permitted",
+      "rights_review": {
+        "basis": "fixture-only human review",
+        "reviewed_by": "human:WEL-53 Reviewer"
+      },
+      "roster_status": "retain",
+      "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "D1",
+      "content_fingerprint": "3d57ef45d0720e32d349c226a6ecb479d572c58fb9b737059f4a962d3cd36503",
+      "document": {
+        "completeness": "incomplete",
+        "conflicts": [],
+        "evidence": {
+          "attribution": "Public Domain Recipes (publicdomainrecipes.com); contributor Joel Maxuel",
+          "checked_at": "2026-09-16T19:49:48Z",
+          "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447",
+          "evidence_id": "2",
+          "published_at": null,
+          "revision": 1,
+          "source_url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+          "title": "Easy Chicken and Rice Casserole"
+        },
+        "identity": {
+          "recipe_key": "12b567a2118ac209bd5d51dff2dcaa616c400b0d41b51584dfbced290e058d9f",
+          "recipe_slot": "name:acef46e785f1f98f",
+          "slot_disambiguated": false
+        },
+        "ingredients": [
+          {
+            "source": {
+              "span": {
+                "end": 121,
+                "start": 99
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Onion, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Onion, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 145,
+                "start": 122
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Celery, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Celery, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 172,
+                "start": 146
+              },
+              "support": "source_literal",
+              "value": "2 Tbsp Butter or margarine"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Butter or margarine",
+              "unit": "tbsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 207,
+                "start": 173
+              },
+              "support": "source_literal",
+              "value": "2 cups Chicken, cooked and chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Chicken, cooked and chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 228,
+                "start": 208
+              },
+              "support": "source_literal",
+              "value": "1 3/4 cups Hot water"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.75,
+              "amount_max": null,
+              "item": "Hot water",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 258,
+                "start": 229
+              },
+              "support": "source_literal",
+              "value": "2/3 cup Long Grain White Rice"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.6666666666666666,
+              "amount_max": null,
+              "item": "Long Grain White Rice",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 294,
+                "start": 259
+              },
+              "support": "source_literal",
+              "value": "1 can (10 oz) Mushrooms with liquid"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "(10 oz) Mushrooms with liquid",
+              "unit": "can"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 324,
+                "start": 295
+              },
+              "support": "source_literal",
+              "value": "1 cup Frozen Peas and Carrots"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Frozen Peas and Carrots",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 355,
+                "start": 325
+              },
+              "support": "source_literal",
+              "value": "1 tsp Dried Thyme and Rosemary"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Dried Thyme and Rosemary",
+              "unit": "tsp"
+            }
+          }
+        ],
+        "name": {
+          "span": {
+            "end": 31,
+            "start": 0
+          },
+          "support": "source_literal",
+          "value": "Easy Chicken and Rice Casserole"
+        },
+        "provenance": {
+          "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447",
+          "evidence_id": "2",
+          "is_current_observation": true,
+          "locator_version": "wel48_locator_v6",
+          "manifest_hash": "d9a8b1b8affe7f41ef308547a2abdd5670ac2d3259301ce33e590505e1a98b04",
+          "manifest_revision_no": 1,
+          "revision": 1
+        },
+        "schema_version": "wel48_recipe_v1",
+        "servings": {
+          "source": {
+            "readings": [
+              {
+                "literal": "\ud83c\udf7d\ufe0f Servings: 4",
+                "origin": "model_quote",
+                "value": {
+                  "max": 4,
+                  "min": 4
+                }
+              }
+            ],
+            "span": {
+              "end": 86,
+              "start": 72
+            },
+            "support": "source_literal",
+            "value": "\ud83c\udf7d\ufe0f Servings: 4"
+          },
+          "support": "source_normalized",
+          "value": {
+            "max": 4,
+            "min": 4
+          }
+        },
+        "steps": [
+          {
+            "span": {
+              "end": 428,
+              "start": 367
+            },
+            "support": "source_literal",
+            "value": "In large fry pan, cook onion and celery in butter until soft."
+          },
+          {
+            "span": {
+              "end": 459,
+              "start": 429
+            },
+            "support": "source_literal",
+            "value": "Stir in remaining ingredients."
+          },
+          {
+            "span": {
+              "end": 564,
+              "start": 460
+            },
+            "support": "source_literal",
+            "value": "Bake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked."
+          }
+        ],
+        "times": {
+          "cook_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\ud83c\udf73 Cook time: 40 min",
+                  "origin": "model_quote",
+                  "value": 40
+                }
+              ],
+              "span": {
+                "end": 71,
+                "start": 52
+              },
+              "support": "source_literal",
+              "value": "\ud83c\udf73 Cook time: 40 min"
+            },
+            "support": "source_normalized",
+            "value": 40
+          },
+          "prep_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\u23f2\ufe0f Prep time: 5 min",
+                  "origin": "model_quote",
+                  "value": 5
+                }
+              ],
+              "span": {
+                "end": 51,
+                "start": 32
+              },
+              "support": "source_literal",
+              "value": "\u23f2\ufe0f Prep time: 5 min"
+            },
+            "support": "source_normalized",
+            "value": 5
+          },
+          "total_time": {
+            "reason": "not_stated_by_source",
+            "support": "unknown",
+            "value": null
+          }
+        },
+        "unknown_fields": [
+          {
+            "field": "total_time",
+            "readings": [],
+            "reason": "not_stated_by_source"
+          }
+        ]
+      },
+      "evidence_ref": {
+        "index": 1,
+        "path": "eval/wel48/fixtures/operating-recipe-literals.json",
+        "sha256": "7c63bfcb162187568577820f6e4f19ea95e1f89d2803113d1484a5a752118cb8"
+      },
+      "expected": {
+        "disposition": "shadow_hold",
+        "material_error_class": "materially_incomplete",
+        "reasons": [
+          "not_complete",
+          "required_scalar_unknown",
+          "unknown_fields_present"
+        ]
+      },
+      "label_kind": "saved_real",
+      "observed": {
+        "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447",
+        "manifest_hash": "d9a8b1b8affe7f41ef308547a2abdd5670ac2d3259301ce33e590505e1a98b04"
+      },
+      "reviewed_by": "human:WEL-53 Reviewer",
+      "split": "dev",
+      "surface": {
+        "access_status": "permitted",
+        "rights_review": {
+          "basis": "fixture-only human review",
+          "reviewed_by": "human:WEL-53 Reviewer"
+        },
+        "roster_status": "retain",
+        "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/"
+      }
+    },
+    {
+      "case_id": "D2",
+      "content_fingerprint": "7e7eef8b0a4f8d45afdcaa68cb5c8ff2a633f78e4c71c2e7e9a2adb85675103d",
+      "document": {
+        "completeness": "incomplete",
+        "conflicts": [],
+        "evidence": {
+          "attribution": "FOSS Family Recipes (fossrecipes.com)",
+          "checked_at": "2026-09-16T19:49:48Z",
+          "content_hash": "52366a25e87258f02801efe4c4f169fdc41e6dec06450faa5b9ff0ac7e1f52f1",
+          "evidence_id": "1",
+          "published_at": null,
+          "revision": 1,
+          "source_url": "https://fossrecipes.com/recipes/orzo-chicken",
+          "title": "One-pot Chicken and Orzo"
+        },
+        "identity": {
+          "recipe_key": "fa53995b7bee79ac5558ced7a2b673e748240f7fc958c7a05939d3e369070e6c",
+          "recipe_slot": "name:ec09ecd1a98f2529",
+          "slot_disambiguated": false
+        },
+        "ingredients": [
+          {
+            "source": {
+              "span": {
+                "end": 81,
+                "start": 37
+              },
+              "support": "source_literal",
+              "value": "2 chicken breasts cut into bite-sized pieces"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "chicken breasts cut into bite-sized pieces",
+              "unit": null
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 124,
+                "start": 82
+              },
+              "support": "source_literal",
+              "value": "1-2 tablespoons finely chopped fresh basil"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": 2.0,
+              "item": "finely chopped fresh basil",
+              "unit": "tbsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 143,
+                "start": 125
+              },
+              "support": "source_literal",
+              "value": "1 tsp onion powder"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "onion powder",
+              "unit": "tsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 186,
+                "start": 144
+              },
+              "support": "source_literal",
+              "value": "1 medium zucchini, quartered (about 1 cup)"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "medium zucchini, quartered (about 1 cup)",
+              "unit": null
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 213,
+                "start": 187
+              },
+              "support": "source_literal",
+              "value": "1 red bell pepper, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "red bell pepper, chopped",
+              "unit": null
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 233,
+                "start": 214
+              },
+              "support": "source_literal",
+              "value": "1 cup uncooked orzo"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "uncooked orzo",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 257,
+                "start": 234
+              },
+              "support": "source_literal",
+              "value": "2 garlic cloves, minced"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "garlic cloves, minced",
+              "unit": null
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 291,
+                "start": 258
+              },
+              "support": "source_literal",
+              "value": "14.5 oz crushed tomatoes (canned)"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 14.5,
+              "amount_max": null,
+              "item": "crushed tomatoes (canned)",
+              "unit": "oz"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 321,
+                "start": 292
+              },
+              "support": "source_literal",
+              "value": "3 tsp chicken bouillon powder"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 3.0,
+              "amount_max": null,
+              "item": "chicken bouillon powder",
+              "unit": "tsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 342,
+                "start": 322
+              },
+              "support": "source_literal",
+              "value": "1 tbsp vegetable oil"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "vegetable oil",
+              "unit": "tbsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 355,
+                "start": 343
+              },
+              "support": "source_literal",
+              "value": "2 cups water"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "water",
+              "unit": "cup"
+            }
+          }
+        ],
+        "name": {
+          "span": {
+            "end": 24,
+            "start": 0
+          },
+          "support": "source_literal",
+          "value": "One-pot Chicken and Orzo"
+        },
+        "provenance": {
+          "content_hash": "52366a25e87258f02801efe4c4f169fdc41e6dec06450faa5b9ff0ac7e1f52f1",
+          "evidence_id": "1",
+          "is_current_observation": true,
+          "locator_version": "wel48_locator_v6",
+          "manifest_hash": "52a51b16b9c4f72f60ee457497ca03efd63ba179418949dc2d8441126e16181e",
+          "manifest_revision_no": 1,
+          "revision": 1
+        },
+        "schema_version": "wel48_recipe_v1",
+        "servings": {
+          "reason": "not_stated_by_source",
+          "support": "unknown",
+          "value": null
+        },
+        "steps": [
+          {
+            "span": {
+              "end": 416,
+              "start": 367
+            },
+            "support": "source_literal",
+            "value": "Heat oil in a large pan (or pot) until shimmering"
+          },
+          {
+            "span": {
+              "end": 476,
+              "start": 417
+            },
+            "support": "source_literal",
+            "value": "Mix the chicken bouillon powder with water until dissolved."
+          },
+          {
+            "span": {
+              "end": 647,
+              "start": 477
+            },
+            "support": "source_literal",
+            "value": "Toss chicken with basil and add to pot with onion powder and zucchini. Saute for about 4 minutes, then add bell pepper, garlic, and orzo and cook an additional 4 minutes."
+          },
+          {
+            "span": {
+              "end": 914,
+              "start": 648
+            },
+            "support": "source_literal",
+            "value": "Add crushed tomato, bouillon powder and water mixture to pot and mix. Reduce heat to a simmer and cook, covered, for 10-15 minutes, stirring often so the orzo doesn\u2019t burn, making sure to cover the pot after each stir. Add additional seasonings to taste, if desired."
+          }
+        ],
+        "times": {
+          "cook_time": {
+            "reason": "not_stated_by_source",
+            "support": "unknown",
+            "value": null
+          },
+          "prep_time": {
+            "reason": "not_stated_by_source",
+            "support": "unknown",
+            "value": null
+          },
+          "total_time": {
+            "reason": "not_stated_by_source",
+            "support": "unknown",
+            "value": null
+          }
+        },
+        "unknown_fields": [
+          {
+            "field": "servings",
+            "readings": [],
+            "reason": "not_stated_by_source"
+          },
+          {
+            "field": "prep_time",
+            "readings": [],
+            "reason": "not_stated_by_source"
+          },
+          {
+            "field": "cook_time",
+            "readings": [],
+            "reason": "not_stated_by_source"
+          },
+          {
+            "field": "total_time",
+            "readings": [],
+            "reason": "not_stated_by_source"
+          }
+        ]
+      },
+      "evidence_ref": {
+        "index": 0,
+        "path": "eval/wel48/fixtures/operating-recipe-literals.json",
+        "sha256": "7c63bfcb162187568577820f6e4f19ea95e1f89d2803113d1484a5a752118cb8"
+      },
+      "expected": {
+        "disposition": "shadow_hold",
+        "material_error_class": "materially_incomplete",
+        "reasons": [
+          "not_complete",
+          "required_scalar_unknown",
+          "unknown_fields_present"
+        ]
+      },
+      "label_kind": "saved_real",
+      "observed": {
+        "content_hash": "52366a25e87258f02801efe4c4f169fdc41e6dec06450faa5b9ff0ac7e1f52f1",
+        "manifest_hash": "52a51b16b9c4f72f60ee457497ca03efd63ba179418949dc2d8441126e16181e"
+      },
+      "reviewed_by": "human:WEL-53 Reviewer",
+      "split": "dev",
+      "surface": {
+        "access_status": "permitted",
+        "rights_review": {
+          "basis": "fixture-only human review",
+          "reviewed_by": "human:WEL-53 Reviewer"
+        },
+        "roster_status": "retain",
+        "url": "https://fossrecipes.com/recipes/orzo-chicken"
+      }
+    },
+    {
+      "case_id": "D3",
+      "content_fingerprint": "8e22788390bc29573bb0803705fe858828f870bf4c2c9f46beb8bef89dd7d670",
+      "document": {
+        "completeness": "incomplete",
+        "conflicts": [
+          {
+            "field": "ingredient[0]",
+            "values": [
+              "onion",
+              "shallot"
+            ]
+          }
+        ],
+        "evidence": {
+          "attribution": "Public Domain Recipes (publicdomainrecipes.com); contributor Joel Maxuel",
+          "checked_at": "2026-09-16T19:49:48Z",
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "published_at": null,
+          "revision": 1,
+          "source_url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+          "title": "Easy Chicken and Rice Casserole"
+        },
+        "identity": {
+          "recipe_key": "12b567a2118ac209bd5d51dff2dcaa616c400b0d41b51584dfbced290e058d9f",
+          "recipe_slot": "name:acef46e785f1f98f",
+          "slot_disambiguated": false
+        },
+        "ingredients": [
+          {
+            "reason": "conflicting_source_values",
+            "support": "unknown",
+            "value": null
+          },
+          {
+            "source": {
+              "span": {
+                "end": 164,
+                "start": 141
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Celery, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Celery, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 191,
+                "start": 165
+              },
+              "support": "source_literal",
+              "value": "2 Tbsp Butter or margarine"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Butter or margarine",
+              "unit": "tbsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 226,
+                "start": 192
+              },
+              "support": "source_literal",
+              "value": "2 cups Chicken, cooked and chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Chicken, cooked and chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 247,
+                "start": 227
+              },
+              "support": "source_literal",
+              "value": "1 3/4 cups Hot water"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.75,
+              "amount_max": null,
+              "item": "Hot water",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 277,
+                "start": 248
+              },
+              "support": "source_literal",
+              "value": "2/3 cup Long Grain White Rice"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.6666666666666666,
+              "amount_max": null,
+              "item": "Long Grain White Rice",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 313,
+                "start": 278
+              },
+              "support": "source_literal",
+              "value": "1 can (10 oz) Mushrooms with liquid"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "(10 oz) Mushrooms with liquid",
+              "unit": "can"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 343,
+                "start": 314
+              },
+              "support": "source_literal",
+              "value": "1 cup Frozen Peas and Carrots"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Frozen Peas and Carrots",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 374,
+                "start": 344
+              },
+              "support": "source_literal",
+              "value": "1 tsp Dried Thyme and Rosemary"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Dried Thyme and Rosemary",
+              "unit": "tsp"
+            }
+          }
+        ],
+        "name": {
+          "span": {
+            "end": 31,
+            "start": 0
+          },
+          "support": "source_literal",
+          "value": "Easy Chicken and Rice Casserole"
+        },
+        "provenance": {
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "is_current_observation": true,
+          "locator_version": "wel48_locator_v6",
+          "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9",
+          "manifest_revision_no": 1,
+          "revision": 1
+        },
+        "schema_version": "wel48_recipe_v1",
+        "servings": {
+          "source": {
+            "readings": [
+              {
+                "literal": "\ud83c\udf7d\ufe0f Servings: 4",
+                "origin": "model_quote",
+                "value": {
+                  "max": 4,
+                  "min": 4
+                }
+              }
+            ],
+            "span": {
+              "end": 86,
+              "start": 72
+            },
+            "support": "source_literal",
+            "value": "\ud83c\udf7d\ufe0f Servings: 4"
+          },
+          "support": "source_normalized",
+          "value": {
+            "max": 4,
+            "min": 4
+          }
+        },
+        "steps": [
+          {
+            "span": {
+              "end": 447,
+              "start": 386
+            },
+            "support": "source_literal",
+            "value": "In large fry pan, cook onion and celery in butter until soft."
+          },
+          {
+            "span": {
+              "end": 478,
+              "start": 448
+            },
+            "support": "source_literal",
+            "value": "Stir in remaining ingredients."
+          },
+          {
+            "span": {
+              "end": 583,
+              "start": 479
+            },
+            "support": "source_literal",
+            "value": "Bake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked."
+          }
+        ],
+        "times": {
+          "cook_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\ud83c\udf73 Cook time: 40 min",
+                  "origin": "model_quote",
+                  "value": 40
+                }
+              ],
+              "span": {
+                "end": 71,
+                "start": 52
+              },
+              "support": "source_literal",
+              "value": "\ud83c\udf73 Cook time: 40 min"
+            },
+            "support": "source_normalized",
+            "value": 40
+          },
+          "prep_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\u23f2\ufe0f Prep time: 5 min",
+                  "origin": "model_quote",
+                  "value": 5
+                }
+              ],
+              "span": {
+                "end": 51,
+                "start": 32
+              },
+              "support": "source_literal",
+              "value": "\u23f2\ufe0f Prep time: 5 min"
+            },
+            "support": "source_normalized",
+            "value": 5
+          },
+          "total_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "45 min",
+                  "origin": "visible",
+                  "value": 45
+                },
+                {
+                  "literal": "Total time: 45 min",
+                  "origin": "model_quote",
+                  "value": 45
+                }
+              ],
+              "span": {
+                "end": 105,
+                "start": 87
+              },
+              "support": "source_literal",
+              "value": "Total time: 45 min"
+            },
+            "support": "source_normalized",
+            "value": 45
+          }
+        },
+        "unknown_fields": [
+          {
+            "field": "ingredient[0]",
+            "reason": "conflicting_source_values"
+          }
+        ]
+      },
+      "evidence_text": "Easy Chicken and Rice Casserole\n\u23f2\ufe0f Prep time: 5 min\n\ud83c\udf73 Cook time: 40 min\n\ud83c\udf7d\ufe0f Servings: 4\nTotal time: 45 min\nIngredients\n1/2 cup Onion, chopped\n1/2 cup Celery, chopped\n2 Tbsp Butter or margarine\n2 cups Chicken, cooked and chopped\n1 3/4 cups Hot water\n2/3 cup Long Grain White Rice\n1 can (10 oz) Mushrooms with liquid\n1 cup Frozen Peas and Carrots\n1 tsp Dried Thyme and Rosemary\nDirections\nIn large fry pan, cook onion and celery in butter until soft.\nStir in remaining ingredients.\nBake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked.\nContributor(s)\nJoel Maxuel\nMonero: 4AdhfxUfFbPd11epEKsuDqBm4jJEapK9UUhgFH8ss7aSAhtox1Li4B6LZwoEuZ6W8BJUCpRynUXFCWcDUzKUd7Cr99kk4tM\nBitcoin: bc1qvpj4juacefyl6v7f6f7helggsmmxn97s7h6yzd\nRelated\nChickenEasyQuick\nPrevious:\nFall Vegetable and Chickpea Curry\nNext:\nColcannon Bake",
+      "expected": {
+        "disposition": "shadow_hold",
+        "material_error_class": "unresolved_contradiction",
+        "reasons": [
+          "content_not_usable",
+          "has_conflicts",
+          "not_complete",
+          "unknown_fields_present"
+        ]
+      },
+      "label": "fixture",
+      "label_kind": "synthetic_fixture",
+      "live_coverage": false,
+      "observed": {
+        "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+        "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9"
+      },
+      "reviewed_by": "human:WEL-53 Reviewer",
+      "split": "dev",
+      "surface": {
+        "access_status": "permitted",
+        "rights_review": {
+          "basis": "fixture-only human review",
+          "reviewed_by": "human:WEL-53 Reviewer"
+        },
+        "roster_status": "retain",
+        "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/"
+      }
+    },
+    {
+      "case_id": "D4",
+      "content_fingerprint": "700db53a6e0bd499338622411dde0c0a401739157ac68b2ba2cf5fd4f486a0ec",
+      "document": {
+        "completeness": "complete",
+        "conflicts": [],
+        "dietary": [
+          "gluten-free"
+        ],
+        "evidence": {
+          "attribution": "Public Domain Recipes (publicdomainrecipes.com); contributor Joel Maxuel",
+          "checked_at": "2026-09-16T19:49:48Z",
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "published_at": null,
+          "revision": 1,
+          "source_url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+          "title": "Easy Chicken and Rice Casserole"
+        },
+        "identity": {
+          "recipe_key": "12b567a2118ac209bd5d51dff2dcaa616c400b0d41b51584dfbced290e058d9f",
+          "recipe_slot": "name:acef46e785f1f98f",
+          "slot_disambiguated": false
+        },
+        "ingredients": [
+          {
+            "source": {
+              "span": {
+                "end": 140,
+                "start": 118
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Onion, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Onion, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 164,
+                "start": 141
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Celery, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Celery, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 191,
+                "start": 165
+              },
+              "support": "source_literal",
+              "value": "2 Tbsp Butter or margarine"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Butter or margarine",
+              "unit": "tbsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 226,
+                "start": 192
+              },
+              "support": "source_literal",
+              "value": "2 cups Chicken, cooked and chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Chicken, cooked and chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 247,
+                "start": 227
+              },
+              "support": "source_literal",
+              "value": "1 3/4 cups Hot water"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.75,
+              "amount_max": null,
+              "item": "Hot water",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 277,
+                "start": 248
+              },
+              "support": "source_literal",
+              "value": "2/3 cup Long Grain White Rice"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.6666666666666666,
+              "amount_max": null,
+              "item": "Long Grain White Rice",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 313,
+                "start": 278
+              },
+              "support": "source_literal",
+              "value": "1 can (10 oz) Mushrooms with liquid"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "(10 oz) Mushrooms with liquid",
+              "unit": "can"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 343,
+                "start": 314
+              },
+              "support": "source_literal",
+              "value": "1 cup Frozen Peas and Carrots"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Frozen Peas and Carrots",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 374,
+                "start": 344
+              },
+              "support": "source_literal",
+              "value": "1 tsp Dried Thyme and Rosemary"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Dried Thyme and Rosemary",
+              "unit": "tsp"
+            }
+          }
+        ],
+        "name": {
+          "span": {
+            "end": 31,
+            "start": 0
+          },
+          "support": "source_literal",
+          "value": "Easy Chicken and Rice Casserole"
+        },
+        "provenance": {
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "is_current_observation": true,
+          "locator_version": "wel48_locator_v6",
+          "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9",
+          "manifest_revision_no": 1,
+          "revision": 1
+        },
+        "schema_version": "wel48_recipe_v1",
+        "servings": {
+          "source": {
+            "readings": [
+              {
+                "literal": "\ud83c\udf7d\ufe0f Servings: 4",
+                "origin": "model_quote",
+                "value": {
+                  "max": 4,
+                  "min": 4
+                }
+              }
+            ],
+            "span": {
+              "end": 86,
+              "start": 72
+            },
+            "support": "source_literal",
+            "value": "\ud83c\udf7d\ufe0f Servings: 4"
+          },
+          "support": "source_normalized",
+          "value": {
+            "max": 4,
+            "min": 4
+          }
+        },
+        "steps": [
+          {
+            "span": {
+              "end": 447,
+              "start": 386
+            },
+            "support": "source_literal",
+            "value": "In large fry pan, cook onion and celery in butter until soft."
+          },
+          {
+            "span": {
+              "end": 478,
+              "start": 448
+            },
+            "support": "source_literal",
+            "value": "Stir in remaining ingredients."
+          },
+          {
+            "span": {
+              "end": 583,
+              "start": 479
+            },
+            "support": "source_literal",
+            "value": "Bake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked."
+          }
+        ],
+        "times": {
+          "cook_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\ud83c\udf73 Cook time: 40 min",
+                  "origin": "model_quote",
+                  "value": 40
+                }
+              ],
+              "span": {
+                "end": 71,
+                "start": 52
+              },
+              "support": "source_literal",
+              "value": "\ud83c\udf73 Cook time: 40 min"
+            },
+            "support": "source_normalized",
+            "value": 40
+          },
+          "prep_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\u23f2\ufe0f Prep time: 5 min",
+                  "origin": "model_quote",
+                  "value": 5
+                }
+              ],
+              "span": {
+                "end": 51,
+                "start": 32
+              },
+              "support": "source_literal",
+              "value": "\u23f2\ufe0f Prep time: 5 min"
+            },
+            "support": "source_normalized",
+            "value": 5
+          },
+          "total_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "45 min",
+                  "origin": "visible",
+                  "value": 45
+                },
+                {
+                  "literal": "Total time: 45 min",
+                  "origin": "model_quote",
+                  "value": 45
+                }
+              ],
+              "span": {
+                "end": 105,
+                "start": 87
+              },
+              "support": "source_literal",
+              "value": "Total time: 45 min"
+            },
+            "support": "source_normalized",
+            "value": 45
+          }
+        },
+        "unknown_fields": []
+      },
+      "evidence_text": "Easy Chicken and Rice Casserole\n\u23f2\ufe0f Prep time: 5 min\n\ud83c\udf73 Cook time: 40 min\n\ud83c\udf7d\ufe0f Servings: 4\nTotal time: 45 min\nIngredients\n1/2 cup Onion, chopped\n1/2 cup Celery, chopped\n2 Tbsp Butter or margarine\n2 cups Chicken, cooked and chopped\n1 3/4 cups Hot water\n2/3 cup Long Grain White Rice\n1 can (10 oz) Mushrooms with liquid\n1 cup Frozen Peas and Carrots\n1 tsp Dried Thyme and Rosemary\nDirections\nIn large fry pan, cook onion and celery in butter until soft.\nStir in remaining ingredients.\nBake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked.\nContributor(s)\nJoel Maxuel\nMonero: 4AdhfxUfFbPd11epEKsuDqBm4jJEapK9UUhgFH8ss7aSAhtox1Li4B6LZwoEuZ6W8BJUCpRynUXFCWcDUzKUd7Cr99kk4tM\nBitcoin: bc1qvpj4juacefyl6v7f6f7helggsmmxn97s7h6yzd\nRelated\nChickenEasyQuick\nPrevious:\nFall Vegetable and Chickpea Curry\nNext:\nColcannon Bake",
+      "expected": {
+        "disposition": "shadow_hold",
+        "material_error_class": "unsupported_claim",
+        "reasons": [
+          "unsupported_claim"
+        ]
+      },
+      "label": "fixture",
+      "label_kind": "synthetic_fixture",
+      "live_coverage": false,
+      "observed": {
+        "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+        "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9"
+      },
+      "reviewed_by": "human:WEL-53 Reviewer",
+      "split": "dev",
+      "surface": {
+        "access_status": "permitted",
+        "rights_review": {
+          "basis": "fixture-only human review",
+          "reviewed_by": "human:WEL-53 Reviewer"
+        },
+        "roster_status": "retain",
+        "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/"
+      }
+    },
+    {
+      "case_id": "D5",
+      "content_fingerprint": "18273b8b35d4d35659bd49060a9ea3e038b5ac24f73261935154c28462b6989b",
+      "document": {
+        "completeness": "complete",
+        "conflicts": [],
+        "evidence": {
+          "attribution": "Public Domain Recipes (publicdomainrecipes.com); contributor Joel Maxuel",
+          "checked_at": "2026-09-16T19:49:48Z",
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "published_at": null,
+          "revision": 1,
+          "source_url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+          "title": "Easy Chicken and Rice Casserole"
+        },
+        "identity": {
+          "recipe_key": "12b567a2118ac209bd5d51dff2dcaa616c400b0d41b51584dfbced290e058d9f",
+          "recipe_slot": "name:acef46e785f1f98f",
+          "slot_disambiguated": false
+        },
+        "ingredients": [
+          {
+            "source": {
+              "span": {
+                "end": 140,
+                "start": 118
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Onion, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Onion, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 164,
+                "start": 141
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Celery, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Celery, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 191,
+                "start": 165
+              },
+              "support": "source_literal",
+              "value": "2 Tbsp Butter or margarine"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Butter or margarine",
+              "unit": "tbsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 226,
+                "start": 192
+              },
+              "support": "source_literal",
+              "value": "2 cups Chicken, cooked and chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Chicken, cooked and chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 247,
+                "start": 227
+              },
+              "support": "source_literal",
+              "value": "1 3/4 cups Hot water"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.75,
+              "amount_max": null,
+              "item": "Hot water",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 277,
+                "start": 248
+              },
+              "support": "source_literal",
+              "value": "2/3 cup Long Grain White Rice"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.6666666666666666,
+              "amount_max": null,
+              "item": "Long Grain White Rice",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 313,
+                "start": 278
+              },
+              "support": "source_literal",
+              "value": "1 can (10 oz) Mushrooms with liquid"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "(10 oz) Mushrooms with liquid",
+              "unit": "can"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 343,
+                "start": 314
+              },
+              "support": "source_literal",
+              "value": "1 cup Frozen Peas and Carrots"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Frozen Peas and Carrots",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 374,
+                "start": 344
+              },
+              "support": "source_literal",
+              "value": "1 tsp Dried Thyme and Rosemary"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Dried Thyme and Rosemary",
+              "unit": "tsp"
+            }
+          }
+        ],
+        "name": {
+          "span": {
+            "end": 31,
+            "start": 0
+          },
+          "support": "source_literal",
+          "value": "Easy Chicken and Rice Casserole"
+        },
+        "provenance": {
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "is_current_observation": true,
+          "locator_version": "wel48_locator_v6",
+          "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9",
+          "manifest_revision_no": 1,
+          "revision": 1
+        },
+        "schema_version": "wel48_recipe_v1",
+        "servings": {
+          "source": {
+            "readings": [
+              {
+                "literal": "\ud83c\udf7d\ufe0f Servings: 4",
+                "origin": "model_quote",
+                "value": {
+                  "max": 4,
+                  "min": 4
+                }
+              }
+            ],
+            "span": {
+              "end": 86,
+              "start": 72
+            },
+            "support": "source_literal",
+            "value": "\ud83c\udf7d\ufe0f Servings: 4"
+          },
+          "support": "source_normalized",
+          "value": {
+            "max": 999,
+            "min": 999
+          }
+        },
+        "steps": [
+          {
+            "span": {
+              "end": 447,
+              "start": 386
+            },
+            "support": "source_literal",
+            "value": "In large fry pan, cook onion and celery in butter until soft."
+          },
+          {
+            "span": {
+              "end": 478,
+              "start": 448
+            },
+            "support": "source_literal",
+            "value": "Stir in remaining ingredients."
+          },
+          {
+            "span": {
+              "end": 583,
+              "start": 479
+            },
+            "support": "source_literal",
+            "value": "Bake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked."
+          }
+        ],
+        "times": {
+          "cook_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\ud83c\udf73 Cook time: 40 min",
+                  "origin": "model_quote",
+                  "value": 40
+                }
+              ],
+              "span": {
+                "end": 71,
+                "start": 52
+              },
+              "support": "source_literal",
+              "value": "\ud83c\udf73 Cook time: 40 min"
+            },
+            "support": "source_normalized",
+            "value": 40
+          },
+          "prep_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\u23f2\ufe0f Prep time: 5 min",
+                  "origin": "model_quote",
+                  "value": 5
+                }
+              ],
+              "span": {
+                "end": 51,
+                "start": 32
+              },
+              "support": "source_literal",
+              "value": "\u23f2\ufe0f Prep time: 5 min"
+            },
+            "support": "source_normalized",
+            "value": 5
+          },
+          "total_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "45 min",
+                  "origin": "visible",
+                  "value": 45
+                },
+                {
+                  "literal": "Total time: 45 min",
+                  "origin": "model_quote",
+                  "value": 45
+                }
+              ],
+              "span": {
+                "end": 105,
+                "start": 87
+              },
+              "support": "source_literal",
+              "value": "Total time: 45 min"
+            },
+            "support": "source_normalized",
+            "value": 45
+          }
+        },
+        "unknown_fields": []
+      },
+      "evidence_text": "Easy Chicken and Rice Casserole\n\u23f2\ufe0f Prep time: 5 min\n\ud83c\udf73 Cook time: 40 min\n\ud83c\udf7d\ufe0f Servings: 4\nTotal time: 45 min\nIngredients\n1/2 cup Onion, chopped\n1/2 cup Celery, chopped\n2 Tbsp Butter or margarine\n2 cups Chicken, cooked and chopped\n1 3/4 cups Hot water\n2/3 cup Long Grain White Rice\n1 can (10 oz) Mushrooms with liquid\n1 cup Frozen Peas and Carrots\n1 tsp Dried Thyme and Rosemary\nDirections\nIn large fry pan, cook onion and celery in butter until soft.\nStir in remaining ingredients.\nBake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked.\nContributor(s)\nJoel Maxuel\nMonero: 4AdhfxUfFbPd11epEKsuDqBm4jJEapK9UUhgFH8ss7aSAhtox1Li4B6LZwoEuZ6W8BJUCpRynUXFCWcDUzKUd7Cr99kk4tM\nBitcoin: bc1qvpj4juacefyl6v7f6f7helggsmmxn97s7h6yzd\nRelated\nChickenEasyQuick\nPrevious:\nFall Vegetable and Chickpea Curry\nNext:\nColcannon Bake",
+      "expected": {
+        "disposition": "shadow_hold",
+        "material_error_class": "stale_version",
+        "reasons": [
+          "fingerprint_drift"
+        ]
+      },
+      "label": "fixture",
+      "label_kind": "synthetic_fixture",
+      "live_coverage": false,
+      "observed": {
+        "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+        "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9"
+      },
+      "reviewed_by": "human:WEL-53 Reviewer",
+      "split": "dev",
+      "surface": {
+        "access_status": "permitted",
+        "rights_review": {
+          "basis": "fixture-only human review",
+          "reviewed_by": "human:WEL-53 Reviewer"
+        },
+        "roster_status": "retain",
+        "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/"
+      }
+    },
+    {
+      "case_id": "D6",
+      "content_fingerprint": "18273b8b35d4d35659bd49060a9ea3e038b5ac24f73261935154c28462b6989b",
+      "document": {
+        "completeness": "complete",
+        "conflicts": [],
+        "evidence": {
+          "attribution": "Public Domain Recipes (publicdomainrecipes.com); contributor Joel Maxuel",
+          "checked_at": "2026-09-16T19:49:48Z",
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "published_at": null,
+          "revision": 1,
+          "source_url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/",
+          "title": "Easy Chicken and Rice Casserole"
+        },
+        "identity": {
+          "recipe_key": "12b567a2118ac209bd5d51dff2dcaa616c400b0d41b51584dfbced290e058d9f",
+          "recipe_slot": "name:acef46e785f1f98f",
+          "slot_disambiguated": false
+        },
+        "ingredients": [
+          {
+            "source": {
+              "span": {
+                "end": 140,
+                "start": 118
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Onion, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Onion, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 164,
+                "start": 141
+              },
+              "support": "source_literal",
+              "value": "1/2 cup Celery, chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.5,
+              "amount_max": null,
+              "item": "Celery, chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 191,
+                "start": 165
+              },
+              "support": "source_literal",
+              "value": "2 Tbsp Butter or margarine"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Butter or margarine",
+              "unit": "tbsp"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 226,
+                "start": 192
+              },
+              "support": "source_literal",
+              "value": "2 cups Chicken, cooked and chopped"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 2.0,
+              "amount_max": null,
+              "item": "Chicken, cooked and chopped",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 247,
+                "start": 227
+              },
+              "support": "source_literal",
+              "value": "1 3/4 cups Hot water"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.75,
+              "amount_max": null,
+              "item": "Hot water",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 277,
+                "start": 248
+              },
+              "support": "source_literal",
+              "value": "2/3 cup Long Grain White Rice"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 0.6666666666666666,
+              "amount_max": null,
+              "item": "Long Grain White Rice",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 313,
+                "start": 278
+              },
+              "support": "source_literal",
+              "value": "1 can (10 oz) Mushrooms with liquid"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "(10 oz) Mushrooms with liquid",
+              "unit": "can"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 343,
+                "start": 314
+              },
+              "support": "source_literal",
+              "value": "1 cup Frozen Peas and Carrots"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Frozen Peas and Carrots",
+              "unit": "cup"
+            }
+          },
+          {
+            "source": {
+              "span": {
+                "end": 374,
+                "start": 344
+              },
+              "support": "source_literal",
+              "value": "1 tsp Dried Thyme and Rosemary"
+            },
+            "support": "source_normalized",
+            "value": {
+              "amount": 1.0,
+              "amount_max": null,
+              "item": "Dried Thyme and Rosemary",
+              "unit": "tsp"
+            }
+          }
+        ],
+        "name": {
+          "span": {
+            "end": 31,
+            "start": 0
+          },
+          "support": "source_literal",
+          "value": "Easy Chicken and Rice Casserole"
+        },
+        "provenance": {
+          "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+          "evidence_id": "2",
+          "is_current_observation": true,
+          "locator_version": "wel48_locator_v6",
+          "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9",
+          "manifest_revision_no": 1,
+          "revision": 1
+        },
+        "schema_version": "wel48_recipe_v1",
+        "servings": {
+          "source": {
+            "readings": [
+              {
+                "literal": "\ud83c\udf7d\ufe0f Servings: 4",
+                "origin": "model_quote",
+                "value": {
+                  "max": 4,
+                  "min": 4
+                }
+              }
+            ],
+            "span": {
+              "end": 86,
+              "start": 72
+            },
+            "support": "source_literal",
+            "value": "\ud83c\udf7d\ufe0f Servings: 4"
+          },
+          "support": "source_normalized",
+          "value": {
+            "max": 4,
+            "min": 4
+          }
+        },
+        "steps": [
+          {
+            "span": {
+              "end": 447,
+              "start": 386
+            },
+            "support": "source_literal",
+            "value": "In large fry pan, cook onion and celery in butter until soft."
+          },
+          {
+            "span": {
+              "end": 478,
+              "start": 448
+            },
+            "support": "source_literal",
+            "value": "Stir in remaining ingredients."
+          },
+          {
+            "span": {
+              "end": 583,
+              "start": 479
+            },
+            "support": "source_literal",
+            "value": "Bake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked."
+          }
+        ],
+        "times": {
+          "cook_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\ud83c\udf73 Cook time: 40 min",
+                  "origin": "model_quote",
+                  "value": 40
+                }
+              ],
+              "span": {
+                "end": 71,
+                "start": 52
+              },
+              "support": "source_literal",
+              "value": "\ud83c\udf73 Cook time: 40 min"
+            },
+            "support": "source_normalized",
+            "value": 40
+          },
+          "prep_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "\u23f2\ufe0f Prep time: 5 min",
+                  "origin": "model_quote",
+                  "value": 5
+                }
+              ],
+              "span": {
+                "end": 51,
+                "start": 32
+              },
+              "support": "source_literal",
+              "value": "\u23f2\ufe0f Prep time: 5 min"
+            },
+            "support": "source_normalized",
+            "value": 5
+          },
+          "total_time": {
+            "source": {
+              "readings": [
+                {
+                  "literal": "45 min",
+                  "origin": "visible",
+                  "value": 45
+                },
+                {
+                  "literal": "Total time: 45 min",
+                  "origin": "model_quote",
+                  "value": 45
+                }
+              ],
+              "span": {
+                "end": 105,
+                "start": 87
+              },
+              "support": "source_literal",
+              "value": "Total time: 45 min"
+            },
+            "support": "source_normalized",
+            "value": 45
+          }
+        },
+        "unknown_fields": []
+      },
+      "evidence_text": "Easy Chicken and Rice Casserole\n\u23f2\ufe0f Prep time: 5 min\n\ud83c\udf73 Cook time: 40 min\n\ud83c\udf7d\ufe0f Servings: 4\nTotal time: 45 min\nIngredients\n1/2 cup Onion, chopped\n1/2 cup Celery, chopped\n2 Tbsp Butter or margarine\n2 cups Chicken, cooked and chopped\n1 3/4 cups Hot water\n2/3 cup Long Grain White Rice\n1 can (10 oz) Mushrooms with liquid\n1 cup Frozen Peas and Carrots\n1 tsp Dried Thyme and Rosemary\nDirections\nIn large fry pan, cook onion and celery in butter until soft.\nStir in remaining ingredients.\nBake in covered 8 cup baking dish in preheated (350F) oven for about 30 minutes or until rice is cooked.\nContributor(s)\nJoel Maxuel\nMonero: 4AdhfxUfFbPd11epEKsuDqBm4jJEapK9UUhgFH8ss7aSAhtox1Li4B6LZwoEuZ6W8BJUCpRynUXFCWcDUzKUd7Cr99kk4tM\nBitcoin: bc1qvpj4juacefyl6v7f6f7helggsmmxn97s7h6yzd\nRelated\nChickenEasyQuick\nPrevious:\nFall Vegetable and Chickpea Curry\nNext:\nColcannon Bake",
+      "expected": {
+        "disposition": "shadow_hold",
+        "material_error_class": "access_or_reuse_gap",
+        "reasons": [
+          "registry_effective_denied"
+        ]
+      },
+      "label": "fixture",
+      "label_kind": "synthetic_fixture",
+      "live_coverage": false,
+      "observed": {
+        "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
+        "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9"
+      },
+      "reviewed_by": "human:WEL-53 Reviewer",
+      "split": "dev",
+      "surface": {
+        "access_status": "blocked",
+        "rights_review": {
+          "basis": "fixture-only human review",
+          "reviewed_by": "human:WEL-53 Reviewer"
+        },
+        "roster_status": "retain",
+        "url": "https://publicdomainrecipes.com/easy-chicken-and-rice-casserole/"
+      }
+    }
+  ],
+  "corpus_version": 1
+}
