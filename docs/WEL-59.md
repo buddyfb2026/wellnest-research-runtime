@@ -13,7 +13,7 @@ python3 -m research.library \
 
 Open `http://127.0.0.1:8765/` in the local Studio browser. Stop the foreground process with `Ctrl-C`.
 
-The **Approved & Autopilot** view at `/approved` runs the existing recipe-pack eligibility evaluator on the read-only connection; it never allocates or exports a pack. The UI labels a recipe Approved only when the persisted approval also passes that global feed contract. Inconsistent approval records are shown as internal Needs correction, not as approved recipes; unavailable evaluation is labeled Eligibility not evaluated. Global approval means eligible for household matching, while suitability for a particular household remains a separate downstream decision. Missing information is grouped into details the source does not specify and extraction that needs correction. Optional source omissions do not by themselves mean a recipe is unusable.
+The **Approved & Autopilot** view at `/approved` runs the existing recipe-pack eligibility evaluator on the read-only connection; it never allocates or exports a pack. The UI labels a recipe Approved only when the persisted approval also passes that global feed contract. Inconsistent approval records are shown as internal Needs correction, not as approved recipes; unavailable evaluation is labeled Eligibility not evaluated. Global approval means eligible for household matching, while suitability for a particular household remains a separate downstream decision. Pending incomplete recipes use the badge **Source doesn’t specify** when only source omissions remain and **Extraction needs correction** whenever extraction gaps exist. When both apply, extraction is primary and both explanations remain visible. Optional source omissions do not by themselves mean a recipe is unusable.
 
 Safety properties:
 
@@ -22,7 +22,7 @@ Safety properties:
 - The server binds only to `127.0.0.1`, rejects unexpected Host headers, and has no mutation endpoint.
 - Recipe text is HTML-escaped and only credential-free HTTP(S) source URLs become links.
 - Technical identifiers and stored JSON are not included in the default UI.
-- Statuses are projections only: persisted `approved` → Approved; human `rejected` → Withdrawn; `deferred` → On hold; `failed` → Extraction failed; and only `pending` uses completeness to distinguish Ready for review from Missing information. Held, withdrawn, failed, or unknown-state recipe bodies are not rendered.
+- Statuses are projections only: globally eligible persisted approval → Approved; human `rejected` → Withdrawn; `deferred` → On hold; `failed` → Extraction failed; and `pending` uses completeness plus missing-field reasons to distinguish Ready for review, Source doesn’t specify, and Extraction needs correction. Held, withdrawn, failed, inconsistent-approval, or unknown-state recipe bodies are not rendered.
 - The viewer does not equate approval with feed readiness, change app matching/export rules, publish recipes, or offer approval controls.
 
 Focused verification:

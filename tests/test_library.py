@@ -74,7 +74,7 @@ def test_incomplete_and_persisted_approved_states_map_without_inference(tmp_path
     conn = sqlite3.connect(path)
     conn.execute("UPDATE recipe_versions SET completeness='incomplete' WHERE id=1")
     conn.commit(); conn.close()
-    assert read_snapshot(path).recipes[0].status == "Missing information"
+    assert read_snapshot(path).recipes[0].status == "Extraction needs correction"
     conn = sqlite3.connect(path)
     conn.execute("UPDATE recipe_versions SET state='approved' WHERE id=1")
     conn.commit(); conn.close()
@@ -83,7 +83,7 @@ def test_incomplete_and_persisted_approved_states_map_without_inference(tmp_path
 
 @pytest.mark.parametrize(("state", "completeness", "reason", "set_by", "status", "note", "hidden"), [
     ("pending", "complete", None, "worker", "Ready for review", "awaiting review", False),
-    ("pending", "incomplete", None, "worker", "Missing information", "still unknown", False),
+    ("pending", "incomplete", None, "worker", "Extraction needs correction", "needs correction", False),
     ("approved", "complete", None, "human:reviewer", "Eligibility not evaluated",
      "could not evaluate", True),
     ("rejected", "complete", '<script>unsafe reviewer text</script>', "human:reviewer", "Withdrawn",
@@ -135,13 +135,43 @@ def test_missing_information_separates_source_omissions_from_extraction_correcti
                  (json.dumps(document),))
     conn.commit(); conn.close()
     card = read_snapshot(path).recipes[0]
-    assert card.status == "Missing information"
+    assert card.status == "Extraction needs correction"
     assert card.source_missing == ("Prep time not confirmed by the source",)
     assert card.extraction_issues == ("One ingredient needs clarification",)
+    assert len(filter_recipes((card,), status="Extraction needs correction")) == 1
     detail = render_detail(card)
     assert "Source doesn’t specify" in detail
     assert "does not by itself make the recipe unusable" in detail
     assert "Extraction needs correction" in detail
+
+
+def test_source_only_omissions_use_secondary_status_consistently(tmp_path):
+    path = _db(tmp_path)
+    conn = sqlite3.connect(path)
+    document = json.loads(conn.execute("SELECT content FROM recipe_versions WHERE id=1").fetchone()[0])
+    document["unknown_fields"] = [
+        {"field": "prep_time", "reason": "not_stated_by_source"},
+    ]
+    conn.execute("UPDATE recipe_versions SET content=?, completeness='incomplete' WHERE id=1",
+                 (json.dumps(document),))
+    conn.commit(); conn.close()
+
+    snapshot = read_snapshot(path)
+    card = snapshot.recipes[0]
+    assert card.status == "Source doesn’t specify"
+    assert snapshot.status_counts["Source doesn’t specify"] == 1
+    assert snapshot.status_counts["Extraction needs correction"] == 0
+    assert card.source_missing == ("Prep time not confirmed by the source",)
+    assert card.extraction_issues == ()
+    assert len(filter_recipes(snapshot.recipes, status="Source doesn’t specify")) == 1
+    assert len(filter_recipes(snapshot.recipes, status="Extraction needs correction")) == 0
+
+    index = render_index(snapshot, {})
+    detail = render_detail(card)
+    assert "Source doesn’t specify" in index
+    assert "Extraction corrections" in index
+    assert "Source doesn’t specify" in detail
+    assert "Extraction needs correction" not in detail
 
 
 def test_approved_view_reuses_existing_pack_eligibility_without_equating_optional_unknowns_to_unusable(tmp_path):

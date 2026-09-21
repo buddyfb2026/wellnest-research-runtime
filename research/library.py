@@ -23,7 +23,8 @@ from .recipe_pack import build_served_state
 
 ASSET_DIR = Path(__file__).with_name("library_assets")
 STATUS_ORDER = (
-    "Ready for review", "Missing information", "Approved", "Needs correction",
+    "Ready for review", "Source doesn’t specify", "Extraction needs correction",
+    "Approved", "Needs correction",
     "Eligibility not evaluated", "On hold", "Withdrawn", "Rejected",
     "Extraction failed", "Status unavailable",
 )
@@ -155,7 +156,8 @@ def _servings_label(document: Mapping[str, Any]) -> Optional[str]:
 
 def status_projection(state: Any, completeness: Any, state_reason: Any,
                       state_set_by: Any, autopilot_status: str = "not_approved",
-                      autopilot_note: str = "") -> tuple[str, str, bool]:
+                      autopilot_note: str = "", source_missing: bool = False,
+                      extraction_issues: bool = False) -> tuple[str, str, bool]:
     """Map stored state to a bounded label, explanation, and content gate."""
     if state == "approved":
         if autopilot_status == "ready":
@@ -185,7 +187,13 @@ def status_projection(state: Any, completeness: Any, state_reason: Any,
     if state == "pending" and completeness == "complete":
         return "Ready for review", "Source-backed fields are complete and awaiting review.", False
     if state == "pending":
-        return "Missing information", "Some source details are still unknown.", False
+        if extraction_issues or not source_missing:
+            note = "The current extraction needs correction before review."
+            if source_missing:
+                note += " The source also does not specify some details."
+            return "Extraction needs correction", note, False
+        return ("Source doesn’t specify",
+                "The source omits some details; that alone does not make the recipe unusable.", False)
     return "Status unavailable", "The stored review status is not recognized. Recipe details are not shown.", True
 
 
@@ -300,16 +308,18 @@ def _card_from_row(row: sqlite3.Row,
     evidence = _as_mapping(document.get("evidence"))
     title = _literal(document.get("name")) or _literal(evidence.get("title")) or "Untitled recipe"
     source_url = safe_external_url(row["source_url"])
+    source_missing, extraction_issues = _missing_details(document)
     autopilot_status, autopilot_label, autopilot_note = _autopilot_projection(
         int(row["recipe_version_id"]), row["state"], eligibility)
     status, status_note, details_hidden = status_projection(
         row["state"], row["completeness"], row["state_reason"], row["state_set_by"],
-        autopilot_status, autopilot_note)
+        autopilot_status, autopilot_note, bool(source_missing), bool(extraction_issues))
     ingredients = tuple(filter(None, (_literal(item) for item in _as_list(document.get("ingredients")))))
     steps = tuple(filter(None, (_literal(item) for item in _as_list(document.get("steps")))))
     if details_hidden:
         ingredients, steps = (), ()
-    source_missing, extraction_issues = (((), ()) if details_hidden else _missing_details(document))
+    if details_hidden:
+        source_missing, extraction_issues = (), ()
     total = _duration_label(_minutes_field(document, "total_time"))
     servings = _servings_label(document)
     if details_hidden:
@@ -447,14 +457,15 @@ def render_index(snapshot: LibrarySnapshot, params: Mapping[str, str]) -> str:
 <section class="hero"><div><p class="eyebrow">A calm place for fresh findings</p><h1>Recipes worth a closer look.</h1>
 <p class="lede">Browse what the research engine has actually found, with source details and missing information shown honestly.</p></div>
 <aside class="run-card"><div class="run-icon">↻</div><div><small>Last engine run</small><strong>%s</strong><span>%s · %s</span></div></aside></section>
-<section class="stats" aria-label="Library summary"><div><strong>%d</strong><span>Current recipes</span></div><div><strong>%d</strong><span>Ready for review</span></div><div><strong>%d</strong><span>Need information</span></div><div><strong>%d</strong><span>Approved</span></div></section>
+<section class="stats" aria-label="Library summary"><div><strong>%d</strong><span>Current recipes</span></div><div><strong>%d</strong><span>Ready for review</span></div><div><strong>%d</strong><span>Source doesn’t specify</span></div><div><strong>%d</strong><span>Extraction corrections</span></div><div><strong>%d</strong><span>Approved</span></div></section>
 <form class="filters" method="get" action="/" data-filter-form><label class="search"><span>⌕</span><input name="q" value="%s" placeholder="Search recipes or ingredients" aria-label="Search recipes"></label>
 <label><span>Source</span><select name="source">%s</select></label><label><span>Status</span><select name="status">%s</select></label>
 <label><span>Sort</span><select name="sort">%s%s</select></label><button type="submit">Search</button></form>
 <div class="results-heading"><div><p class="eyebrow">Current collection</p><h2>%d recipe%s</h2></div>%s</div>
 <section class="recipe-grid">%s</section></main>""" % (
         esc(snapshot.last_run_label), esc(snapshot.last_run_status), esc(snapshot.last_run_findings),
-        snapshot.all_count, snapshot.status_counts["Ready for review"], snapshot.status_counts["Missing information"],
+        snapshot.all_count, snapshot.status_counts["Ready for review"],
+        snapshot.status_counts["Source doesn’t specify"], snapshot.status_counts["Extraction needs correction"],
         snapshot.status_counts["Approved"], esc(query), source_options, status_options,
         _option("newest", sort, "Newest first"), _option("title", sort, "A–Z"), len(cards),
         "" if len(cards) == 1 else "s", '<a class="clear" href="/">Clear filters</a>' if any((query, source, status, sort != "newest")) else "", card_markup)
@@ -469,6 +480,7 @@ def _render_card(card: RecipeCard) -> str:
     if card.extraction_issues:
         meta.append("Extraction correction: %d" % len(card.extraction_issues))
     cls = {"Ready for review": "ready", "Approved": "approved", "On hold": "hold",
+           "Source doesn’t specify": "source-gap", "Extraction needs correction": "failed",
            "Withdrawn": "withdrawn", "Rejected": "withdrawn",
            "Needs correction": "failed", "Eligibility not evaluated": "hold",
            "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
@@ -506,6 +518,7 @@ def render_approved(snapshot: LibrarySnapshot) -> str:
 
 def render_detail(card: RecipeCard) -> str:
     cls = {"Ready for review": "ready", "Approved": "approved", "On hold": "hold",
+           "Source doesn’t specify": "source-gap", "Extraction needs correction": "failed",
            "Withdrawn": "withdrawn", "Rejected": "withdrawn",
            "Needs correction": "failed", "Eligibility not evaluated": "hold",
            "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
