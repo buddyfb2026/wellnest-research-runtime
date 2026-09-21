@@ -20,8 +20,11 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 
 
 ASSET_DIR = Path(__file__).with_name("library_assets")
-STATUS_ORDER = ("Ready for review", "Missing information", "Approved")
-ALLOWED_BIND_HOSTS = frozenset(("127.0.0.1", "::1"))
+STATUS_ORDER = (
+    "Ready for review", "Missing information", "Approved", "On hold",
+    "Withdrawn", "Rejected", "Extraction failed", "Status unavailable",
+)
+ALLOWED_BIND_HOSTS = frozenset(("127.0.0.1",))
 
 
 class LibraryUnavailable(RuntimeError):
@@ -35,6 +38,8 @@ class RecipeCard:
     source: str
     source_url: Optional[str]
     status: str
+    status_note: str
+    details_hidden: bool
     summary: str
     total_time: Optional[str]
     servings: Optional[str]
@@ -138,13 +143,34 @@ def _servings_label(document: Mapping[str, Any]) -> Optional[str]:
     return "%d serving%s" % (low, "" if low == 1 else "s")
 
 
-def display_status(state: Any, completeness: Any) -> str:
-    """Map only persisted review/completeness truth to user-facing status."""
+def status_projection(state: Any, completeness: Any, state_reason: Any,
+                      state_set_by: Any) -> tuple[str, str, bool]:
+    """Map stored state to a bounded label, explanation, and content gate."""
     if state == "approved":
-        return "Approved"
+        note = ("Approved by a reviewer." if isinstance(state_set_by, str) and
+                state_set_by.startswith("human:") else "The stored review state is approved.")
+        return "Approved", note, False
+    if state == "rejected":
+        if isinstance(state_set_by, str) and state_set_by.startswith("human:"):
+            return "Withdrawn", "Withdrawn by a reviewer. This recipe is not an active review candidate.", True
+        return "Rejected", "Rejected before review. Recipe details are not shown.", True
+    if state == "deferred":
+        reason = state_reason if isinstance(state_reason, str) else ""
+        if reason.startswith("source_embedded_instructions_flagged"):
+            note = ("On hold because the source contained instruction-like text. "
+                    "Recipe details are hidden until a reviewer clears it.")
+        elif reason.startswith("inference_budget_exhausted"):
+            note = "On hold until extraction can run within the processing budget."
+        else:
+            note = "On hold pending additional review. Recipe details are not shown."
+        return "On hold", note, True
+    if state == "failed":
+        return "Extraction failed", "Extraction did not produce a usable recipe. No recipe details are shown.", True
     if state == "pending" and completeness == "complete":
-        return "Ready for review"
-    return "Missing information"
+        return "Ready for review", "Source-backed fields are complete and awaiting review.", False
+    if state == "pending":
+        return "Missing information", "Some source details are still unknown.", False
+    return "Status unavailable", "The stored review status is not recognized. Recipe details are not shown.", True
 
 
 def _plain_unknown(entry: Any) -> str:
@@ -196,20 +222,29 @@ def _card_from_row(row: sqlite3.Row) -> Optional[RecipeCard]:
     evidence = _as_mapping(document.get("evidence"))
     title = _literal(document.get("name")) or _literal(evidence.get("title")) or "Untitled recipe"
     source_url = safe_external_url(row["source_url"])
+    status, status_note, details_hidden = status_projection(
+        row["state"], row["completeness"], row["state_reason"], row["state_set_by"])
     ingredients = tuple(filter(None, (_literal(item) for item in _as_list(document.get("ingredients")))))
     steps = tuple(filter(None, (_literal(item) for item in _as_list(document.get("steps")))))
-    unknowns = tuple(_plain_unknown(item) for item in _as_list(document.get("unknown_fields")))
+    if details_hidden:
+        ingredients, steps = (), ()
+    unknowns = (() if details_hidden else
+                tuple(_plain_unknown(item) for item in _as_list(document.get("unknown_fields"))))
     total = _duration_label(_minutes_field(document, "total_time"))
     servings = _servings_label(document)
-    facts = ["%d source-backed ingredient%s" % (len(ingredients), "" if len(ingredients) == 1 else "s"),
-             "%d instruction%s" % (len(steps), "" if len(steps) == 1 else "s")]
-    if total:
-        facts.append("%s total" % total)
-    summary = "The source includes %s." % ", ".join(facts)
+    if details_hidden:
+        total, servings = None, None
+        summary = status_note
+    else:
+        facts = ["%d source-backed ingredient%s" % (len(ingredients), "" if len(ingredients) == 1 else "s"),
+                 "%d instruction%s" % (len(steps), "" if len(steps) == 1 else "s")]
+        if total:
+            facts.append("%s total" % total)
+        summary = "The source includes %s." % ", ".join(facts)
     return RecipeCard(
         recipe_id=int(row["recipe_id"]), title=title,
         source=_source_name(document, source_url), source_url=source_url,
-        status=display_status(row["state"], row["completeness"]), summary=summary,
+        status=status, status_note=status_note, details_hidden=details_hidden, summary=summary,
         total_time=total, servings=servings, ingredient_count=len(ingredients), step_count=len(steps),
         ingredients=ingredients, steps=steps, unknowns=unknowns, created_at=row["created_at"],
         collected_label=_date_label(row["created_at"]),
@@ -229,11 +264,16 @@ def _last_run(conn: sqlite3.Connection) -> tuple[str, str, str]:
     except (TypeError, ValueError):
         label = "Time unavailable"
     try:
-        summary = json.loads(row["summary"] or "{}")
-    except json.JSONDecodeError:
-        summary = {}
+        decoded = json.loads(row["summary"] or "{}")
+    except (TypeError, json.JSONDecodeError):
+        decoded = {}
+    summary = decoded if isinstance(decoded, dict) else {}
     new_versions = summary.get("recipe_versions_new", 0)
     fetched = summary.get("fetched_ok", 0)
+    new_versions = (new_versions if isinstance(new_versions, int) and
+                    not isinstance(new_versions, bool) and new_versions >= 0 else 0)
+    fetched = (fetched if isinstance(fetched, int) and
+               not isinstance(fetched, bool) and fetched >= 0 else 0)
     findings = "%d recipe%s added · %d source%s checked" % (
         new_versions, "" if new_versions == 1 else "s", fetched, "" if fetched == 1 else "s")
     return label, str(row["status"]).capitalize(), findings
@@ -244,7 +284,8 @@ def read_snapshot(db_path: Path) -> LibrarySnapshot:
     conn = open_readonly(db_path)
     try:
         rows = conn.execute(
-            """SELECT rv.recipe_id, rv.content, rv.completeness, rv.state, rv.created_at,
+            """SELECT rv.recipe_id, rv.content, rv.completeness, rv.state, rv.state_reason,
+                      rv.state_set_by, rv.created_at,
                       r.source_url
                FROM recipe_versions rv
                JOIN recipes r ON r.id = rv.recipe_id
@@ -332,7 +373,9 @@ def render_index(snapshot: LibrarySnapshot, params: Mapping[str, str]) -> str:
 def _render_card(card: RecipeCard) -> str:
     meta = [item for item in (card.total_time, card.servings) if item]
     meta.append("%d step%s" % (card.step_count, "" if card.step_count == 1 else "s"))
-    cls = {"Ready for review": "ready", "Approved": "approved"}.get(card.status, "missing")
+    cls = {"Ready for review": "ready", "Approved": "approved", "On hold": "hold",
+           "Withdrawn": "withdrawn", "Rejected": "withdrawn",
+           "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
     return """<article class="recipe-card"><div class="card-top"><span class="status %s"><i></i>%s</span><span class="date">%s</span></div>
 <p class="source">%s</p><h3><a href="/recipe/%d">%s</a></h3><p class="summary">%s</p>
 <div class="meta">%s</div><a class="view-link" href="/recipe/%d">View recipe <span>→</span></a></article>""" % (
@@ -341,21 +384,32 @@ def _render_card(card: RecipeCard) -> str:
 
 
 def render_detail(card: RecipeCard) -> str:
-    cls = {"Ready for review": "ready", "Approved": "approved"}.get(card.status, "missing")
+    cls = {"Ready for review": "ready", "Approved": "approved", "On hold": "hold",
+           "Withdrawn": "withdrawn", "Rejected": "withdrawn",
+           "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
     source_link = ('<a class="source-button" href="%s" target="_blank" rel="noopener noreferrer">Visit original source <span>↗</span></a>' % esc(card.source_url)) if card.source_url else '<span class="source-unavailable">Original source link unavailable</span>'
     facts = []
-    for label, value in (("Total time", card.total_time), ("Serves", card.servings), ("Ingredients", str(card.ingredient_count)), ("Steps", str(card.step_count))):
+    fact_values = (("Total time", "Not shown"), ("Serves", "Not shown"),
+                   ("Ingredients", "Not shown"), ("Steps", "Not shown")) if card.details_hidden else (
+        ("Total time", card.total_time), ("Serves", card.servings),
+        ("Ingredients", str(card.ingredient_count)), ("Steps", str(card.step_count)))
+    for label, value in fact_values:
         facts.append('<div><small>%s</small><strong>%s</strong></div>' % (esc(label), esc(value or "Unknown")))
     ingredients = "".join("<li>%s</li>" % esc(item) for item in card.ingredients) or "<li>Ingredients are not available from the source.</li>"
     steps = "".join("<li>%s</li>" % esc(item) for item in card.steps) or "<li>Instructions are not available from the source.</li>"
     unknowns = ""
     if card.unknowns:
         unknowns = '<aside class="unknowns"><h2>Still to confirm</h2><p>This recipe is shown honestly while the following source details remain unresolved.</p><ul>%s</ul></aside>' % "".join("<li>%s</li>" % esc(item) for item in card.unknowns)
+    recipe_body = ('<section class="unavailable"><p class="eyebrow">Recipe details withheld</p><h2>%s</h2><p>%s</p></section>' %
+                   (esc(card.status), esc(card.status_note))) if card.details_hidden else (
+        '<section class="recipe-body"><div><p class="eyebrow">What you’ll need</p><h2>Ingredients</h2><ul class="ingredients">%s</ul></div>'
+        '<div><p class="eyebrow">From the source</p><h2>Instructions</h2><ol class="steps">%s</ol></div></section>' %
+        (ingredients, steps))
     body = """<main class="detail"><a class="back" href="/">← Back to library</a><section class="detail-hero"><div><div class="detail-kicker"><span class="status %s"><i></i>%s</span><span>%s</span></div><p class="source">%s</p><h1>%s</h1><p class="lede">%s</p>%s</div>
 <aside class="fact-card">%s</aside></section>%s
-<section class="recipe-body"><div><p class="eyebrow">What you’ll need</p><h2>Ingredients</h2><ul class="ingredients">%s</ul></div><div><p class="eyebrow">From the source</p><h2>Instructions</h2><ol class="steps">%s</ol></div></section></main>""" % (
+%s</main>""" % (
         cls, esc(card.status), esc(card.collected_label), esc(card.source), esc(card.title), esc(card.summary), source_link,
-        "".join(facts), unknowns, ingredients, steps)
+        "".join(facts), unknowns, recipe_body)
     return _shell(body, card.title)
 
 
@@ -382,7 +436,28 @@ def make_handler(db_path: Path):
         def _html(self, page: str, status: int = 200) -> None:
             self._send(page.encode("utf-8"), "text/html; charset=utf-8", status)
 
+        def _valid_host(self) -> bool:
+            raw = self.headers.get("Host", "")
+            if not raw or raw != raw.strip():
+                return False
+            try:
+                parsed = urlparse("http://" + raw)
+                request_port = parsed.port
+            except ValueError:
+                return False
+            return (parsed.hostname == "127.0.0.1" and parsed.username is None and
+                    parsed.password is None and parsed.path == "" and not parsed.query and
+                    not parsed.fragment and request_port in (None, self.server.server_port))
+
+        def _reject_unexpected_host(self) -> bool:
+            if self._valid_host():
+                return False
+            self._html(render_error("Request rejected", "This local library accepts only loopback requests.", 421), 421)
+            return True
+
         def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
+            if self._reject_unexpected_host():
+                return
             parsed = urlparse(self.path)
             if parsed.path.startswith("/assets/"):
                 name = parsed.path.removeprefix("/assets/")
@@ -417,6 +492,8 @@ def make_handler(db_path: Path):
             self._html(render_error("Not found", "That page does not exist.", 404), 404)
 
         def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
+            if self._reject_unexpected_host():
+                return
             self._html(render_error("Read-only library", "This library does not accept changes.", 405), 405)
 
         def log_message(self, fmt: str, *args: Any) -> None:

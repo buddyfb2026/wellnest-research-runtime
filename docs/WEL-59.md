@@ -17,10 +17,10 @@ Safety properties:
 
 - SQLite is opened with `mode=ro` and `PRAGMA query_only=ON`.
 - The file must already exist; the library never creates or migrates a database.
-- The server rejects non-loopback bind addresses and has no mutation endpoint.
+- The server binds only to `127.0.0.1`, rejects unexpected Host headers, and has no mutation endpoint.
 - Recipe text is HTML-escaped and only credential-free HTTP(S) source URLs become links.
 - Technical identifiers and stored JSON are not included in the default UI.
-- Statuses are projections only: persisted `approved` → Approved, persisted `pending` + `complete` → Ready for review, all other combinations → Missing information.
+- Statuses are projections only: persisted `approved` → Approved; human `rejected` → Withdrawn; `deferred` → On hold; `failed` → Extraction failed; and only `pending` uses completeness to distinguish Ready for review from Missing information. Held, withdrawn, failed, or unknown-state recipe bodies are not rendered.
 
 Focused verification:
 
