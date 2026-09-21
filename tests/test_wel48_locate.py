@@ -1,35 +1,40 @@
 import hashlib
 import json
-from pathlib import Path
 
 from research.extract import extract
 from research.recipe_extract import bind, proposal_for_located
 from research.recipe_schema import cooking_content_usable
 from tests.wel48_helpers import recipe_html
 
-CORPUS = Path("/tmp/wel48-coordination/corpus/raw")
-
-
-def test_entity_decoding_matches_corpus_counts():
-    expected = {
-        "cookieandkate_com_best_ratatouille_recipe.html": (13, 0, 0, 11),
-        "cookieandkate_com_best_lentil_soup_recipe.html": (15, 1, 0, 7),
-        "cookieandkate_com_vegetarian_chili_recipe.html": (19, 0, 0, 5),
-        "cookieandkate_com_spicy_vegan_black_bean_soup.html": (13, 0, 0, 4),
-    }
-    for name, counts in expected.items():
-        recipe = extract((CORPUS / name).read_text(errors="replace")).locators["recipes"][0]
+def test_entity_decoding_exact_and_ambiguous_correspondence():
+    # Authored synthetic inputs, not replacements for historical publisher evidence.
+    for extra, counts in (("", (1, 0, 0, 2)),
+                          ("Another mention: &frac12; cup beans", (0, 1, 0, 2))):
+        ex = extract(recipe_html(ingredient="&frac12; cup beans", extra=extra,
+                                 step=["Warm the pot.", "Stir &amp; serve."]))
+        recipe = ex.locators["recipes"][0]
         got = tuple(sum(u["correspondence"] == kind for u in recipe["ingredient_units"])
                     for kind in ("exact", "ambiguous", "unmatched")) + (len(recipe["step_units"]),)
         assert got == counts
         assert all("structured_raw" in u and "structured_decoded" in u for u in recipe["ingredient_units"])
+        ingredient = recipe["ingredient_units"][0]
+        assert ingredient["structured_raw"] == "&frac12; cup beans"
+        assert ingredient["structured_decoded"] == "½ cup beans"
+        assert ex.text[ingredient["start"]:ingredient["end"]] == "½ cup beans"
+        assert [ex.text[u["start"]:u["end"]] for u in recipe["step_units"]] == [
+            "Warm the pot.", "Stir & serve."]
 
 
-def test_heading_tier_on_live_record():
-    ex = extract((CORPUS / "www_loveandlemons_com_black_bean_soup.html").read_text(errors="replace"))
+def test_heading_tier_without_structured_metadata():
+    ingredients = ["½ cup beans", "1 tsp oil", "2 cups water"]
+    steps = ["Warm the oil.", "Add beans and water.", "Simmer and serve."]
+    ex = extract(_heading_card(ingredients=ingredients, steps=steps,
+                               after_steps="<h2>Notes</h2><p>Not a cooking step.</p>"))
     recipe = ex.locators["recipes"][0]
     assert recipe["tier"] == "heading"
-    assert (len(recipe["ingredient_units"]), len(recipe["step_units"])) == (15, 3)
+    assert (len(recipe["ingredient_units"]), len(recipe["step_units"])) == (3, 3)
+    assert [ex.text[u["start"]:u["end"]] for u in recipe["ingredient_units"]] == ingredients
+    assert [ex.text[u["start"]:u["end"]] for u in recipe["step_units"]] == steps
 
 
 def test_non_recipe_page_fails_closed():
