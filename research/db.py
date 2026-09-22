@@ -281,6 +281,48 @@ MIGRATIONS = [
             allocated_at TEXT NOT NULL
         );
     """),
+    (8, [
+        """CREATE TABLE IF NOT EXISTS findings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            finding_key TEXT NOT NULL UNIQUE,
+            topic TEXT NOT NULL,
+            claim_slug TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(topic, claim_slug)
+        )""",
+        """CREATE TABLE IF NOT EXISTS finding_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            finding_id INTEGER NOT NULL REFERENCES findings(id),
+            relation TEXT NOT NULL CHECK (relation IN ('supports','qualifies_or_contradicts')),
+            evidence_id INTEGER NOT NULL REFERENCES evidence(id),
+            evidence_content_hash TEXT NOT NULL,
+            recipe_version_id INTEGER NOT NULL REFERENCES recipe_versions(id),
+            content_fingerprint TEXT NOT NULL,
+            basis TEXT NOT NULL CHECK (basis IN ('observed','inferred')),
+            basis_detail TEXT NOT NULL,
+            rule TEXT NOT NULL,
+            observed_at TEXT NOT NULL,
+            UNIQUE(finding_id, recipe_version_id, content_fingerprint, rule)
+        )""",
+        """CREATE TABLE IF NOT EXISTS finding_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            finding_id INTEGER NOT NULL REFERENCES findings(id),
+            version_no INTEGER NOT NULL,
+            supersedes_id INTEGER REFERENCES finding_versions(id),
+            support_digest TEXT NOT NULL,
+            rule TEXT NOT NULL,
+            statement TEXT NOT NULL,
+            unresolved TEXT NOT NULL,
+            followup_state TEXT NOT NULL CHECK (followup_state IN ('none','proposed','refused')),
+            followup TEXT NOT NULL,
+            state TEXT NOT NULL,
+            state_reason TEXT,
+            state_set_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(finding_id, version_no)
+        )""",
+    ]),
 ]
 
 
