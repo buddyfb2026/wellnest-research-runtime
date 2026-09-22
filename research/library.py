@@ -60,6 +60,7 @@ class RecipeCard:
     autopilot_note: str
     created_at: str
     collected_label: str
+    attribution: str = ""
 
 
 @dataclass(frozen=True)
@@ -340,6 +341,7 @@ def _card_from_row(row: sqlite3.Row,
         extraction_issues=extraction_issues, autopilot_status=autopilot_status,
         autopilot_label=autopilot_label, autopilot_note=autopilot_note, created_at=row["created_at"],
         collected_label=_date_label(row["created_at"]),
+        attribution=evidence.get("attribution") if isinstance(evidence.get("attribution"), str) else "",
     )
 
 
@@ -523,6 +525,8 @@ def render_detail(card: RecipeCard) -> str:
            "Needs correction": "failed", "Eligibility not evaluated": "hold",
            "Extraction failed": "failed", "Status unavailable": "failed"}.get(card.status, "missing")
     source_link = ('<a class="source-button" href="%s" target="_blank" rel="noopener noreferrer">Visit original source <span>↗</span></a>' % esc(card.source_url)) if card.source_url else '<span class="source-unavailable">Original source link unavailable</span>'
+    attribution = ('<aside class="source-attribution"><h2>Source credit and license</h2><p>%s</p></aside>' %
+                   esc(card.attribution)) if card.attribution else ""
     autopilot = (('<div class="autopilot %s"><strong>%s</strong><span>%s</span></div>' %
                   (esc(card.autopilot_status), esc(card.autopilot_label), esc(card.autopilot_note)))
                  if card.status == "Approved" else "")
@@ -554,7 +558,7 @@ def render_detail(card: RecipeCard) -> str:
 %s</main>""" % (
         cls, esc(card.status), esc(card.collected_label), esc(card.source), esc(card.title), esc(card.summary),
         autopilot, source_link,
-        "".join(facts), unknowns, recipe_body)
+        "".join(facts), unknowns, recipe_body + attribution)
     return _shell(body, card.title)
 
 

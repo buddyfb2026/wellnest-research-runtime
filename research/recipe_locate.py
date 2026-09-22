@@ -13,7 +13,12 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from .recipe_normalize import canonical
 
-LOCATOR_VERSION = "wel48_locator_v6"
+LOCATOR_VERSION = "wel48_locator_v7"
+STEP_HEADINGS = ("instructions", "directions", "procedure")
+EDIT_CONTROL_LINE = "[edit | edit source]"
+MEDIAWIKI_END_HEADINGS = ("ingredients", *STEP_HEADINGS, "notes, tips, and variations")
+MEDIAWIKI_FOOTER = re.compile(r'Retrieved from "https?://[^"\s]+"')
+WIKIBOOKS_TITLE = re.compile(r"Cookbook:(.+) - Wikibooks, open books for an open world")
 ROLE_LABELS = {
     "servings": ("yield", "yields", "servings", "serves"),
     "prep_time": ("prep time", "prep"),
@@ -164,7 +169,7 @@ class _Markup(HTMLParser):
     def handle_endtag(self, tag):
         if tag == self._heading_tag:
             heading = _plain_structured("".join(self._heading_text)).casefold()
-            if heading in ("instructions", "directions"):
+            if heading in STEP_HEADINGS:
                 self._directions_heading = True
             elif heading == "ingredients" or heading in SECTION_ENDS:
                 self._directions_heading = False
@@ -248,13 +253,13 @@ def _heading_recipe(text: str, title: Optional[str],
                     ordered_steps: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
     lines = list(re.finditer(r"(?m)^.*$", text))
     ing_i = next((i for i, m in enumerate(lines) if m.group().strip().casefold() == "ingredients"), None)
-    step_i = next((i for i, m in enumerate(lines) if m.group().strip().casefold() in ("instructions", "directions")), None)
+    step_i = next((i for i, m in enumerate(lines) if m.group().strip().casefold() in STEP_HEADINGS), None)
     if ing_i is None or step_i is None or step_i <= ing_i:
         return None
     ingredient_units = []
     for m in lines[ing_i + 1:step_i]:
         literal = m.group().strip().lstrip("▢☐ ").strip()
-        if literal and not literal.casefold().startswith("cook mode"):
+        if literal and literal != EDIT_CONTROL_LINE and not literal.casefold().startswith("cook mode"):
             at = m.start() + m.group().find(literal)
             ingredient_units.append({"start": at, "end": at + len(literal),
                                      "structured_raw": None, "structured_decoded": None,
@@ -262,7 +267,9 @@ def _heading_recipe(text: str, title: Optional[str],
     step_units = []
     for line_i, m in enumerate(lines[step_i + 1:], start=step_i + 1):
         literal = m.group().strip()
-        if _is_section_end(literal):
+        next_is_edit = (line_i + 1 < len(lines) and lines[line_i + 1].group().strip() == EDIT_CONTROL_LINE)
+        if (_is_section_end(literal) or MEDIAWIKI_FOOTER.fullmatch(literal)
+                or (next_is_edit and literal.casefold() in MEDIAWIKI_END_HEADINGS)):
             break
         if literal.casefold().startswith("tip:") and ordered_steps is not None:
             next_literal = next((line.group().strip() for line in lines[line_i + 1:]
@@ -270,14 +277,20 @@ def _heading_recipe(text: str, title: Optional[str],
             if (_fold_whitespace(literal) not in ordered_steps
                     and next_literal and _is_section_end(next_literal)):
                 break
-        if literal:
+        if literal and literal != EDIT_CONTROL_LINE:
             at = m.start() + m.group().find(literal)
             step_units.append({"start": at, "end": at + len(literal)})
     if not ingredient_units or not step_units:
         return None
     anchor = ingredient_units[0]["start"]
     name_text = title or ""
-    name_span = _first_span(text, name_text, anchor)
+    wikibooks = WIKIBOOKS_TITLE.fullmatch(name_text)
+    if wikibooks:
+        name_text = wikibooks.group(1)
+        matches = [m for m in lines if m.group() == name_text]
+        name_span = {"start": matches[0].start(), "end": matches[0].end()} if len(matches) == 1 else None
+    else:
+        name_span = _first_span(text, name_text, anchor)
     roles = {}
     for role, labels in ROLE_LABELS.items():
         span = _role_span(text, labels, anchor)

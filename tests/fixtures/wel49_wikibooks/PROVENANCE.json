@@ -1,0 +1,42 @@
+{
+  "source_receipts_sha256": "cb3e9d7770efce1bbbf5e7dc9e18702e4d90352399a26fdb99495066c346564d",
+  "license": "Wikibooks Cookbook contributors; recipe text CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/; original source URLs provide contributor history. Retained HTML/text are unchanged test evidence. No image files included.",
+  "pages": [
+    {
+      "page": "Kid-Friendly_Pasta",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Kid-Friendly_Pasta",
+      "final_url": "https://en.wikibooks.org/wiki/Cookbook:Kid-Friendly_Pasta",
+      "url_hash": "c227f41434a2e8b354dd1b55433f95724abaf43ae0106ef34349003a6be20f43",
+      "body_hash": "cbd1ec4af7f03e1ce048ad0e1e309e7641eb29fd3aa57b4186904284b53af81d",
+      "text_hash": "0c8555afc154dded7c8961a97b5e7daf90c4f321e5d38b741ddc7c1221212b35",
+      "status": 200, "robots": "allowed", "hop_count": 1,
+      "captured_at": "2026-09-21T19:38:54Z",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Kid-Friendly_Pasta&oldid=4499839",
+      "ingredients": 4, "steps": 7
+    },
+    {
+      "page": "Chicken_Fajitas",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Chicken_Fajitas",
+      "final_url": "https://en.wikibooks.org/wiki/Cookbook:Chicken_Fajitas",
+      "url_hash": "c185347dd282ff694b676f06fa3222f2dab0587e31f71d132cc4dde65996bf86",
+      "body_hash": "09d538dcf7629d0ba894bb320d2790d4042d09d0d533c57f42876bb5d15d008f",
+      "text_hash": "ac2e37dd784b312b814bac683a98822da9736dde080ed2d3b654b9f319d5c78b",
+      "status": 200, "robots": "allowed", "hop_count": 1,
+      "captured_at": "2026-09-21T19:38:54Z",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Chicken_Fajitas&oldid=4513985",
+      "ingredients": 7, "steps": 7
+    },
+    {
+      "page": "Tuna_Casserole",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Tuna_Casserole",
+      "final_url": "https://en.wikibooks.org/wiki/Cookbook:Tuna_Casserole",
+      "url_hash": "5de8e519db7e4a29bddb782354ac95b78f8a99d3654f63d1e28491f231bc8226",
+      "body_hash": "565b1f2229ab8e91d30f2ef8d2d0f728fb30ea06ed00d789b38fd05efac788fc",
+      "text_hash": "c7ec0e5550480968ada54b138a6df4ba463d2077d08325925134b5804922876a",
+      "status": 200, "robots": "allowed", "hop_count": 1,
+      "captured_at": "2026-09-21T19:38:55Z",
+      "revision_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Tuna_Casserole&oldid=4525567",
+      "ingredients": 5, "steps": 4
+    }
+  ]
+}
