@@ -23,7 +23,7 @@ def test_profile_preserves_history_and_only_enables_meal_sources():
     source_registry.validate(roster)
     assert [s['url'] for s in allow['sources']] == list(profile.EXISTING) + [profile.ROUTE]
     assert [s['url'] for s in allow['sources'] if s.get('role') == 'discovery_route'] == [profile.ROUTE]
-    assert roster['surfaces'][-1]['cadence_seconds'] == 86400
+    assert roster['surfaces'][-1]['cadence_seconds'] == 10800
 
 
 def test_new_recipe_discovered_collected_and_replay_preserves_evidence(tmp_path):
@@ -50,10 +50,10 @@ def test_new_recipe_discovered_collected_and_replay_preserves_evidence(tmp_path)
     assert conn.execute('select count(*) from evidence').fetchone()[0] == 1
     assert conn.execute('select discovery_route from source_hints where url=?', (recipe,)).fetchone()[0] == profile.ROUTE
     assert conn.execute('select count(*) from recipe_publications').fetchone()[0] == 0
-    assert conn.execute('select next_check_at from source_state where url=?', (profile.ROUTE,)).fetchone()[0] == '2026-09-17T23:30:00Z'
+    assert conn.execute('select next_check_at from source_state where url=?', (profile.ROUTE,)).fetchone()[0] == '2026-09-17T02:30:00Z'
     assert all('other.example' not in url for url in transport.calls)
     conn.close()
-    # A later publisher update is found on the next daily poll, without editing configuration.
+    # A later publisher update is found on the next due poll, without editing configuration.
     newer = profile.ROUTE + 'fixture-next-dinner/'
     changed = make_transport({profile.ROUTE: (200, profile.ROUTE, {},
                             '<html><a href="/fixture-next-dinner/">New</a>' + index + '</html>'),
@@ -66,6 +66,41 @@ def test_new_recipe_discovered_collected_and_replay_preserves_evidence(tmp_path)
     assert fifth['evidence_new'] == 1
     conn = db.connect(cfg.db_path)
     assert conn.execute('select count(*) from evidence').fetchone()[0] == 2
+    conn.close()
+
+
+def test_index_advances_past_first_twenty_without_duplicates_or_model_calls(tmp_path):
+    allow, roster = profile.build_profile()
+    allow['sources'] = [s for s in allow['sources'] if s.get('role') == 'discovery_route']
+    (tmp_path / 'allowlist.json').write_text(json.dumps(allow))
+    (tmp_path / 'roster.json').write_text(json.dumps(roster))
+    urls = [profile.ROUTE + 'fixture-dinner-%02d/' % n for n in range(25)]
+    index = '<html>' + ''.join('<a href="%s">Dinner</a>' % u for u in urls) + '</html>'
+    article = ('<html><h1>Fixture dinner</h1><p>' + 'Explicit synthetic recipe fixture. ' * 20
+               + '</p><h2>Ingredients</h2><ul><li>1 cup rice</li></ul>'
+               + '<h2>Directions</h2><ol><li>Cook the rice.</li></ol></html>')
+    transport = make_transport({profile.ROUTE: (200, profile.ROUTE, {}, index),
+                                **{u: (200, u, {}, article) for u in urls}})
+    cfg = Config(db_path=tmp_path / 'research.sqlite', allowlist_path=tmp_path / 'allowlist.json',
+                 report_path=tmp_path / 'report.md', provider='none', max_urls=10)
+    now = datetime(2026, 9, 16, 23, 30, tzinfo=timezone.utc)
+    first = worker.run(cfg, transport=transport, content_kind='fixture', due_only=True, clock=lambda: now)
+    conn = db.connect(cfg.db_path)
+    assert first['discovered_hints'] == 20 and first['inference_calls'] == 0
+    assert conn.execute('SELECT COUNT(*) FROM source_hints WHERE discovery_route=?', (profile.ROUTE,)).fetchone()[0] == 20
+    conn.close()
+    second = worker.run(cfg, transport=transport, content_kind='fixture', due_only=True,
+                        clock=lambda: now + timedelta(hours=3))
+    conn = db.connect(cfg.db_path)
+    assert second['discovered_hints'] == 5 and second['inference_calls'] == 0
+    assert conn.execute('SELECT COUNT(*) FROM source_hints WHERE discovery_route=?', (profile.ROUTE,)).fetchone()[0] == 25
+    assert conn.execute('SELECT COUNT(*) FROM inference_calls').fetchone()[0] == 0
+    conn.close()
+    third = worker.run(cfg, transport=transport, content_kind='fixture', due_only=True,
+                       clock=lambda: now + timedelta(hours=6))
+    conn = db.connect(cfg.db_path)
+    assert third['discovered_hints'] == 0 and third['inference_calls'] == 0
+    assert conn.execute('SELECT COUNT(*) FROM source_hints WHERE discovery_route=?', (profile.ROUTE,)).fetchone()[0] == 25
     conn.close()
 
 

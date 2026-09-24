@@ -42,8 +42,8 @@ def _route_prefix(route_url: str) -> str:
     return path if path.endswith("/") else path.rsplit("/", 1)[0] + "/"
 
 
-def extract_hints(route_url: str, html: str, max_hints: int) -> List[str]:
-    """Same-origin links under the route's path prefix, normalized, deduplicated, capped."""
+def extract_hints(route_url: str, html: str, max_hints: int, known_urls=None) -> List[str]:
+    """At most max_hints new same-origin links; previously seen links do not consume slots."""
     p = _LinkParser()
     try:
         p.feed(html or "")
@@ -52,6 +52,7 @@ def extract_hints(route_url: str, html: str, max_hints: int) -> List[str]:
     prefix = _route_prefix(route_url)
     origin = _origin(route_url)
     seen, out = set(), []
+    known_urls = known_urls or set()
     for href in p.hrefs:
         abs_url = urljoin(route_url, href.strip())
         parts = urlsplit(abs_url)
@@ -62,7 +63,7 @@ def extract_hints(route_url: str, html: str, max_hints: int) -> List[str]:
             continue
         if LOGIN_PATH_RE.search(parts.path):
             continue
-        if clean in seen:
+        if clean in seen or clean in known_urls:
             continue
         seen.add(clean)
         out.append(clean)

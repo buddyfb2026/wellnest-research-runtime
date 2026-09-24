@@ -10,14 +10,14 @@ From repository root:
 PYTHONPATH=. python3 scripts/prepare_meal_discovery.py --output /absolute/new/config-directory
 ```
 
-The command validates the existing roster and emits a new configuration directory. It refuses an existing directory. It does not install, run, restart or publish anything. Generated collection scope is exactly the two existing meal pages plus `https://publicdomainrecipes.com/` as an explicit discovery route. The historical 25-seed registry and prior denials are preserved; they are not new collection grants. The new index has a daily cadence selected for this pilot, not an assertion of daily publishing. Discovered recipe pages retain the existing weekly refresh.
+The command validates the existing roster and emits a new configuration directory. It refuses an existing directory. It does not install, run, restart or publish anything. Generated collection scope is exactly the two existing meal pages plus `https://publicdomainrecipes.com/` as an explicit discovery route. The historical 25-seed registry and prior denials are preserved; they are not new collection grants. The index has a three-hour pilot check cadence, not an assertion of publisher activity. Discovered recipe pages retain the existing weekly refresh.
 
 ## Source evidence and limits
 
 - Public Domain Recipes' [index](https://publicdomainrecipes.com/) states its recipes are public domain and its project is under the Unlicense; its newest-recipes links are directly present in HTML. The product Fetcher observed HTTP 200 and robots allowed on September 16, 2026. Text only; no images, logos or donation content. Preserve attribution and defer publication.
 - Existing [FOSS recipe text licence](https://fossrecipes.com/license.html) remains CC0. Its index contains absolute `http://` recipe links despite being served over HTTPS. The existing same-origin check excludes those links. A direct HTTP-route assessment encountered an unavailable robots check (HTTP301); it was not bypassed. FOSS discovery is NOT enabled by this profile; its prior exact orzo entry is unchanged.
 - Foodista remains denied/pending. No new request, alternate access route or grant.
-- Only the first 20 eligible index links are considered by the incumbent mechanism. This is bounded newest-item monitoring, not exhaustive catalog enumeration. More than 20 arrivals between polls could be missed. Link order is not a family-quality ranking; desserts and incomplete recipes can be discovered.
+- At most 20 previously unseen eligible index links are stored per check. Already-seen links do not occupy those slots, so later checks can advance through a larger listing without a new schema or duplicate hints. This remains bounded discovery, not a family-quality ranking or a guarantee of exhaustive catalog coverage; desserts and incomplete recipes can still be discovered.
 - The model cannot expand source access. Each hint passes the existing origin/login/robots/registry gates before later collection. Discovery does not approve recipes or affiliate links.
 - The incumbent canonical publisher report does not attribute new exact child URLs automatically. Their source URL, attribution and discovery-route lineage are retained, but they appear as unattributed surfaces in that count. No new publisher-count claim follows.
 
@@ -42,7 +42,7 @@ These are real new persisted research records, not approved app cards. The first
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_wel49_meal_discovery.py tests/test_wel49.py tests/test_wel49_permissive_recipes.py tests/test_recurring.py -q
 ```
 
-116 passed. The new tests use explicitly synthetic transport to exercise the real worker's index discovery, later recipe collection, no-duplicate replay, next-day new-item detection, 24-hour index cadence, preserved history/denials and protocol-boundary refusal. Those fixtures are separate from the real Qwen proof above. No unrelated broad suite was repeated.
+The September 16 proof above ran against the original daily cadence and first-20 implementation. The three-hour/progressive-index follow-on has its own synthetic regression test; it does not retroactively change that proof or imply live installation. The original 116-test receipt remains historical, not a test count for the follow-on.
 
 ## Remaining acceptance and delivery
 

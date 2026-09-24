@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 MIN_CADENCE_S = 21600
+MIN_INDEX_CADENCE_S = 10800
 MAX_CADENCE_S = 2592000
 TOPICS = frozenset(('recipe_supply', 'weekend_methods', 'weekend_activities', 'seasonal_ideas',
                     'household_systems', 'product_discovery', 'parenting', 'family_operations'))
@@ -82,8 +83,9 @@ def validate(roster):
             raise ValueError('topics must be a non-empty list from the closed vocabulary')
         cadence = s.get('cadence_seconds')
         if cadence is not None:
-            if type(cadence) is not int or not MIN_CADENCE_S <= cadence <= MAX_CADENCE_S:
-                raise ValueError('cadence_seconds must be an integer in [21600, 2592000]')
+            minimum = MIN_INDEX_CADENCE_S if s['surface_kind'] == 'site_index' else MIN_CADENCE_S
+            if type(cadence) is not int or not minimum <= cadence <= MAX_CADENCE_S:
+                raise ValueError('cadence_seconds must be an integer in [%d, 2592000]' % minimum)
             _text(s, 'cadence_reason')
         equivalent = s.get('equivalent_urls', [])
         if not isinstance(equivalent, list):
