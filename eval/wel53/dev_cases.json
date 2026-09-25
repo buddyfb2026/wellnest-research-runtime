@@ -185,8 +185,8 @@
         "content_hash": "68cf68f4f82209a37ee7944723308d02ff320c6435a5400d5066aafeb4fa3f67",
         "evidence_id": "2",
         "is_current_observation": true,
-        "locator_version": "wel48_locator_v6",
-        "manifest_hash": "950f28624ab056967b24d562a0b6cacaa168ec2cd51043f2bcba0c7de51cb4a9",
+        "locator_version": "wel48_locator_v7",
+        "manifest_hash": "3ba84bde1fae37b86c42c5cc16de353be93c0b752c1e3c99968e01185f2f1e8d",
         "manifest_revision_no": 1,
         "revision": 1
       },
@@ -322,7 +322,7 @@
   "cases": [
     {
       "case_id": "D1",
-      "content_fingerprint": "3d57ef45d0720e32d349c226a6ecb479d572c58fb9b737059f4a962d3cd36503",
+      "content_fingerprint": "0b532b6a0de9ae5771f36abeaa96df6b8a4a5faeb5bb25c1395d73c17def8c4d",
       "document": {
         "completeness": "incomplete",
         "conflicts": [],
@@ -508,8 +508,8 @@
           "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447",
           "evidence_id": "2",
           "is_current_observation": true,
-          "locator_version": "wel48_locator_v6",
-          "manifest_hash": "d9a8b1b8affe7f41ef308547a2abdd5670ac2d3259301ce33e590505e1a98b04",
+          "locator_version": "wel48_locator_v7",
+          "manifest_hash": "d44c93d785bd45d58e694eca15fdc1838211c688782dbf69003c40666e48d48b",
           "manifest_revision_no": 1,
           "revision": 1
         },
@@ -635,7 +635,7 @@
       "label_kind": "saved_real",
       "observed": {
         "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447",
-        "manifest_hash": "d9a8b1b8affe7f41ef308547a2abdd5670ac2d3259301ce33e590505e1a98b04"
+        "manifest_hash": "d44c93d785bd45d58e694eca15fdc1838211c688782dbf69003c40666e48d48b"
       },
       "reviewed_by": "human:WEL-53 Reviewer",
       "split": "dev",
@@ -651,7 +651,7 @@
     },
     {
       "case_id": "D2",
-      "content_fingerprint": "7e7eef8b0a4f8d45afdcaa68cb5c8ff2a633f78e4c71c2e7e9a2adb85675103d",
+      "content_fingerprint": "008ea1aa24e79b129ce1748d6b4675dc060f059131961e28187aa09dc89a52d0",
       "document": {
         "completeness": "incomplete",
         "conflicts": [],
@@ -871,8 +871,8 @@
           "content_hash": "52366a25e87258f02801efe4c4f169fdc41e6dec06450faa5b9ff0ac7e1f52f1",
           "evidence_id": "1",
           "is_current_observation": true,
-          "locator_version": "wel48_locator_v6",
-          "manifest_hash": "52a51b16b9c4f72f60ee457497ca03efd63ba179418949dc2d8441126e16181e",
+          "locator_version": "wel48_locator_v7",
+          "manifest_hash": "2f6f8a2f3e81d9719ffc212489804d8d9ccfee9e059f85a0a88103c987a97215",
           "manifest_revision_no": 1,
           "revision": 1
         },
@@ -973,7 +973,7 @@
       "label_kind": "saved_real",
       "observed": {
         "content_hash": "52366a25e87258f02801efe4c4f169fdc41e6dec06450faa5b9ff0ac7e1f52f1",
-        "manifest_hash": "52a51b16b9c4f72f60ee457497ca03efd63ba179418949dc2d8441126e16181e"
+        "manifest_hash": "2f6f8a2f3e81d9719ffc212489804d8d9ccfee9e059f85a0a88103c987a97215"
       },
       "reviewed_by": "human:WEL-53 Reviewer",
       "split": "dev",
