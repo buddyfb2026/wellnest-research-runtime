@@ -58,6 +58,28 @@ fixtures. No existing test was changed; no new failure. Fable baseline was 73 pa
 because its hardcoded v6 is again different from the new version. Missing corpus
 tests remain NOT VERIFIED, not waived green.
 
+## September 25 review correction
+
+The earlier packet omitted a new failure in
+`tests/test_wel53_shadow.py::test_frozen_documents_equal_production_bind`:
+the production locator moved from v6 to v7 while the WEL-53 saved-real dev
+fixtures still carried v6 provenance. Changing only the version label is not
+enough: the locator manifest hash, observed hash and content fingerprint must
+move together or the shadow gate reports false `fingerprint_drift`.
+
+`eval/wel53/dev_cases.json` now updates the base control and the two
+production-bound saved-real cases consistently. The four synthetic hold cases
+retain their frozen v6 provenance and expected rejection reasons. No shadow
+policy, evaluator, holdout labels or production code changed in this correction.
+Focused `tests/test_wel53_shadow.py`, `tests/test_wel49_wikibooks_locator.py`
+and `tests/test_wel49_wikibooks_profile.py` pass **109/109** after the fix.
+A subsequent full local run with plugin autoload disabled returned **710 passed,
+11 failed, 2 skipped**. The repaired WEL-53 production-bind case is no longer
+a failure. Remaining failures are historical missing scratch fixtures, v5
+version pins, and the absent app-directory integration setting; none is in the
+corrected WEL-53 case. The earlier 131/9 combined command above remains a
+historical pre-correction receipt, not a claim about this final head.
+
 New tests + profile tests contain 25 passing cases; library and incumbent checks are
 included in the combined 140-case result. Direct baseline comparator verified four
 full incumbent manifests identical modulo locator_version.
