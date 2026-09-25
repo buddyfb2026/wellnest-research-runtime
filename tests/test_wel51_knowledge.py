@@ -197,6 +197,7 @@ def test_span_mismatch_writes_no_link(tmp_path):
 def test_review_requires_human(tmp_path):
     path = tmp_path / "db.sqlite"; conn, _ = seed_corpus(path); conn.close(); _synth(path); conn = db.connect(path); version = latest(conn); conn.close()
     with pytest.raises(knowledge.KnowledgeRefused): knowledge.review(path, version["id"], "approved", "worker", "no")
+    with pytest.raises(knowledge.KnowledgeRefused): knowledge.review(path, version["id"], "approved", "agent:codex", "no")
     conn = db.connect(path); assert tuple(conn.execute("SELECT state,state_set_by FROM finding_versions").fetchone()) == ("pending", "worker")
 
 
