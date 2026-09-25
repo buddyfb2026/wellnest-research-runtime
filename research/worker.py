@@ -214,7 +214,9 @@ def _run_locked(cfg: Config, conn: sqlite3.Connection, transport, model: Optiona
                 conn.execute("COMMIT")
                 continue
             if hint.get("role") == "discovery_route":
-                links = discovery.extract_hints(url, fr.html or "", cfgm.MAX_DISCOVERY_HINTS_PER_ROUTE)
+                known = {r["url"] for r in conn.execute("SELECT url FROM source_hints")}
+                links = discovery.extract_hints(url, fr.html or "", cfgm.MAX_DISCOVERY_HINTS_PER_ROUTE,
+                                                known_urls=known)
                 new = sum(1 for link in links if discovery.record_hint(conn, link, hint, fr.attempted_at))
                 ev.record_fetch_attempt(conn, run_id, fr.url, "ok", fr.attempted_at, fr.http_status, fr.final_url,
                                         fr.robots_status, "discovery route: %d same-origin links, %d new hints" % (len(links), new))

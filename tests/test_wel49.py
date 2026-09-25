@@ -240,11 +240,21 @@ def test_cadence_respected_on_success(cfg,cadence,expected):
     assert c.execute('SELECT next_check_at FROM source_state').fetchone()[0]==schedule.iso(T0+expected)
 
 
-@pytest.mark.parametrize('cadence',[60,2592001,True,21600.0])
+@pytest.mark.parametrize('cadence',[60,7200,2592001,True,21600.0])
 def test_roster_rejects_out_of_range_cadence(cadence):
     c=store()
     with pytest.raises(ValueError): registry.project(c,roster([surface(cadence=cadence)]))
     assert c.execute('SELECT COUNT(*) FROM source_surfaces').fetchone()[0]==0
+
+
+def test_three_hour_cadence_is_for_indexes_only():
+    index = surface(cadence=10800)
+    index['surface_kind'] = 'site_index'
+    c = store()
+    registry.project(c, roster([index]))
+    assert registry.resolve(c, U)['cadence_seconds'] == 10800
+    with pytest.raises(ValueError):
+        registry.project(c, roster([surface(cadence=10800)]))
 
 
 def test_cadence_does_not_shorten_backoff(cfg):

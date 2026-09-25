@@ -43,8 +43,8 @@ def build_profile():
         'roster_reason': 'Discover the newest linked recipes rather than repeatedly checking only one saved recipe.',
         'access_status': 'permitted', 'access_basis': BASIS,
         'assessed_at': '2026-09-16T23:25:00Z', 'assessed_by': 'agent:codex-wel49',
-        'cadence_seconds': 86400,
-        'cadence_reason': 'Operator-selected daily index check, not a claim of daily publisher activity. '
+        'cadence_seconds': 10800,
+        'cadence_reason': 'Operator-selected three-hour index check during the pilot, not a claim of publisher activity. '
                           'Discovered recipe refresh retains the existing weekly default.',
         'equivalent_urls': [],
     })
