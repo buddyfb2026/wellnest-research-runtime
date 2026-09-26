@@ -1,0 +1,33 @@
+{
+  "label": "fixture",
+  "live_coverage": false,
+  "url": "https://mirror.example/easy-chicken-and-rice-casserole/",
+  "source_file": "eval/wel48/fixtures/operating-recipe-literals.json",
+  "source_index": 1,
+  "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447",
+  "publisher": {
+    "publisher_id": "fixture_mirror",
+    "canonical_name": "WEL-51 synthetic mirror (fixture)",
+    "official_url": null,
+    "parent_publisher": null,
+    "identity_basis": "synthetic fixture; no real publisher; never fetched",
+    "assessed_at": "2026-09-21T00:00:00Z",
+    "assessed_by": "agent:wel51-fixture",
+    "notes": "label=fixture"
+  },
+  "surface": {
+    "url": "https://mirror.example/easy-chicken-and-rice-casserole/",
+    "publisher_id": "fixture_mirror",
+    "surface_kind": "site_article",
+    "topics": ["recipe_supply"],
+    "roster_status": "retain",
+    "roster_reason": "synthetic duplicate of C1 for WEL-51 tests; not a real source",
+    "access_status": "permitted",
+    "access_basis": "fixture only; never requested",
+    "assessed_at": "2026-09-21T00:00:00Z",
+    "assessed_by": "agent:wel51-fixture",
+    "cadence_seconds": null,
+    "cadence_reason": null,
+    "equivalent_urls": []
+  }
+}

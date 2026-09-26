@@ -29,17 +29,17 @@ def test_combined_fresh_and_upgrade_preserve_history(tmp_path, monkeypatch, prio
         conn.execute("INSERT INTO evidence_text(evidence_id,text) VALUES(1,'Legacy text')")
         before={table:[tuple(row) for row in conn.execute('SELECT * FROM '+table)]
                 for table in ('source_hints','evidence','evidence_text')}
-    assert [v for v,_ in db.MIGRATIONS]==[1,2,3,4,5,6,7]
-    assert db.migrate(conn)==7
-    assert [row[0] for row in conn.execute('SELECT version FROM schema_version ORDER BY version')]==[1,2,3,4,5,6,7]
+    assert [v for v,_ in db.MIGRATIONS]==[1,2,3,4,5,6,7,8]
+    assert db.migrate(conn)==8
+    assert [row[0] for row in conn.execute('SELECT version FROM schema_version ORDER BY version')]==[1,2,3,4,5,6,7,8]
     tables={row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     assert {'recipes','recipe_versions','locator_manifests','evidence_current_manifest',
             'publishers','source_surfaces','surface_aliases'}<=tables
     assert conn.execute('PRAGMA foreign_key_check').fetchall()==[]
-    assert db.migrate(conn)==7
+    assert db.migrate(conn)==8
     conn.close()
     conn=db.connect(path)
-    assert db.migrate(conn)==7
+    assert db.migrate(conn)==8
     if before:
         assert before=={table:[tuple(row) for row in conn.execute('SELECT * FROM '+table)] for table in before}
     conn.close()

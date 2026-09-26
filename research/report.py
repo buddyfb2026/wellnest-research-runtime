@@ -7,6 +7,7 @@ from typing import List, Optional
 from . import candidates as cands
 from . import schedule as sch
 from . import source_registry as registry
+from .knowledge import render_knowledge
 
 
 def _j(s: Optional[str]):
@@ -205,6 +206,8 @@ def render(conn: sqlite3.Connection, run_id: Optional[str] = None, now: Optional
                 c["id"], c["url"], c["evidence_id"], c["state"], c["state_set_by"],
                 (c["state_reason"] or "-").replace("|", "/"), c["generator"]))
         out.append("")
+
+    out += render_knowledge(conn, now)
 
     out += ["## Inference usage", "", "| run | provider | model | evidence | ok | error |", "|---|---|---|---|---|---|"]
     for i in conn.execute("SELECT * FROM inference_calls ORDER BY id").fetchall():

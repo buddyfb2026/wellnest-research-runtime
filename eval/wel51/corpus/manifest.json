@@ -1,0 +1,10 @@
+{
+  "corpus_version": 1,
+  "edges": [
+    {"edge_id": "E1", "source_file": "eval/wel48/fixtures/operating-recipe-literals.json", "source_index": 1, "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447", "expected_relation": "supports"},
+    {"edge_id": "E2", "source_file": "eval/wel48/fixtures/operating-recipe-literals.json", "source_index": 0, "content_hash": "52366a25e87258f02801efe4c4f169fdc41e6dec06450faa5b9ff0ac7e1f52f1", "expected_relation": "supports"},
+    {"edge_id": "E3", "source_file": "eval/wel51/fixtures/syndicated-duplicate.json", "content_hash": "06ef950818360bc16a5e250870a2014da73c051150c4703fb22fc0a5c6d3c447", "expected_relation": "supports"},
+    {"edge_id": "E4", "source_file": "tests/fixtures/wel52/f-a.json", "content_hash": "bbbcaa8491ac2479829f832d036fe55bcdab11efc38a1284c7672dc7335ea45c", "expected_relation": "qualifies_or_contradicts"}
+  ],
+  "expected": {"findings": 1, "links": 4, "versions": 1, "supports": 3, "qualifiers": 1, "distinct_roots": 3, "independent_publishers": 2, "fixture_links": 2}
+}

@@ -16,7 +16,7 @@ def load_spec(name):
 
 def make_store(path):
     conn = db.connect(path)
-    assert db.migrate(conn) == 7
+    assert db.migrate(conn) == 8
     return conn
 
 
